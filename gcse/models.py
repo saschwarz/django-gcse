@@ -1,16 +1,21 @@
-import xml.sax
-import xml.sax.saxutils
-import xml.sax.handler
 import datetime
 from urllib2 import urlopen
 from string import ascii_letters
+
+import xml.sax
+import xml.sax.saxutils
+import xml.sax.handler
+
 from django.db import models
 from django.db import connection
 from django.utils.translation import ugettext as _
-from nullable_foreign_key import NullableForeignKey
-from country_field import CountryField
-from settings import GCSE_LABEL_NAMES
+from django.conf import settings
 from django.core.urlresolvers import reverse
+
+from country_field import CountryField
+
+
+settings.GCSE_LABEL_NAMES = getattr(settings, 'GCSE_LABEL_NAMES', [])
 
 
 class Label(models.Model):
@@ -57,7 +62,7 @@ class Annotation(models.Model):
         ('D', 'Deleted'),
     )
     status = models.CharField(verbose_name=_('status'), max_length=1, choices=STATUS_CHOICES, default='A')
-    parent_version = NullableForeignKey('self', editable=False, blank=True, null=True, verbose_name=_('Parent Version'), related_name='newer_versions', help_text=_('Set to newer Annotation instance when user modifies this instance'))
+    parent_version = models.ForeignKey('self', editable=False, blank=True, null=True, verbose_name=_('Parent Version'), related_name='newer_versions', help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
     # Could use gis Point field but don't need that much functionality
     lat = models.DecimalField(verbose_name=_('Latitude'), max_digits=10, decimal_places=7, null=True, blank=True) # Enough precision for Google Maps
