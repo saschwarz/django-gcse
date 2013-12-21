@@ -1,0 +1,132 @@
+[
+    {
+        "pk": 1,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 1,
+            "name": "_cse_kueofys2mdy",
+            "description": "Google search engine id for an entire site",
+            "physical": 0
+        }
+    },
+    {
+        "pk": 2,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "blog",
+            "description": "Blogs primarily containing agility training or trialing content.",
+            "physical": 0
+        }
+    },
+    {
+        "pk": 3,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "club",
+            "description": "Group that holds agility trials and/or agility classes.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 4,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "equipment",
+            "description": "Agility equipment manufacturers, plans, parts, materials.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 5,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "facility",
+            "description": "A training and/or trialing facility or school usually with instruction available.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 6,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "forum",
+            "description": "An online dog agility forum searchable by Google.",
+            "physical": 0
+        }
+    },
+    {
+        "pk": 7,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "general",
+            "description": "Any web site with wide interest in agility or that does not fit the other categories.",
+            "physical": 0
+        }
+    },
+    {
+        "pk": 8,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "organization",
+            "description": "Agility sanctioning bodies, e.g. AKC, USDAA, FCI.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 9,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "rental",
+            "description": "Agility facility rental or agility ring rental.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 10,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "service",
+            "description": "Agility servies including: photography, video, trial secretary services, etc.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 11,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "store",
+            "description": "Agility products for sale online, in persoon or in a physical store.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 12,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "training",
+            "description": "Facilities and individuals who offer classes, workshops, seminars or private instruction in agility.",
+            "physical": 1
+        }
+    },
+    {
+        "pk": 13,
+        "model": "cse.label",
+        "fields": {
+            "hidden": 0,
+            "name": "video",
+            "description": "Website containing agility related professional or amateur videos to view.",
+            "physical": 0
+        }
+    }
+]
