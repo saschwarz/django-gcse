@@ -12,18 +12,27 @@ from django.core import urlresolvers
 from django.contrib.sites.models import Site
 from django.conf import settings
 
-from cse.models import Annotation, Label
-from cse.forms import AnnotationForm
+from gcse.models import Annotation, Label
+from gcse.forms import AnnotationForm
 from model_fields import get_labels_for
-from recaptcha.client import captcha
-from django.utils import simplejson
+#from recaptcha.client import captcha
+
+try:
+    from django.utils import simplejson as json
+except ImportError:
+    import json
 
 
-def indexXML(request, template='cse/annotation.xml'):
-    """Render all the active Annotations that have Google regular expressions."""
-    return render_to_response(template,
-                              {'annotations': Annotation.objects.filter(status='A').exclude(about=''),
-                               })
+def indexXML(request, template='gcse/annotation.xml'):
+    """
+    Render all the active Annotations that have Google regular expressions.
+    """
+    return render_to_response(
+        template,
+        {'annotations': Annotation.objects.filter(status='A').exclude(about=''),
+         }
+        )
+
 
 def index(request, num_annotations=5, template='index.html'):
     """Render main page"""
@@ -31,13 +40,13 @@ def index(request, num_annotations=5, template='index.html'):
     return render_to_response(template,
                               {
                               'created': active.exclude(comment='').order_by('-created')[:num_annotations],
-                              'modified': active.exclude(comment='').extra(where=['cse_annotation.modified != cse_annotation.created']).order_by('-modified')[:num_annotations],
+                              'modified': active.exclude(comment='').extra(where=['gcse_annotation.modified != gcse_annotation.created']).order_by('-modified')[:num_annotations],
                               },
                               context_instance=RequestContext(request)
                               )
 
 
-def search(request, num=20, template="cse/search.html"):
+def search(request, num=20, template="gcse/search.html"):
     query = request.GET.get('q', '')
     if query:
         qset = (
@@ -66,7 +75,7 @@ def search(request, num=20, template="cse/search.html"):
                                },
                               context_instance=RequestContext(request))
 
-def view(request, id, template='cse/view.html'):
+def view(request, id, template='gcse/view.html'):
     """Display an end user read only view of the site information"""
     site = get_object_or_404(Annotation, pk=id)
     return render_to_response(template,
@@ -75,14 +84,16 @@ def view(request, id, template='cse/view.html'):
                                },
                               context_instance=RequestContext(request))
 
+
 def directions(request, id):
     """Display an end user read only view of the site information with a Google map for getting directions"""
     site = get_object_or_404(Annotation, pk=id)
-    return render_to_response('cse/directions.html',
+    return render_to_response('gcse/directions.html',
                               {'site': site,
                                'labels': get_labels_for(site, cap=None)
                                },
                               context_instance=RequestContext(request))
+
 
 def _all_labels_to_bitmasks(all_labels):
     """Given a list of Labels return a dict mapping the label names to a bitmask"""
@@ -91,6 +102,7 @@ def _all_labels_to_bitmasks(all_labels):
         l_dict[label.name] = 1<<i
     return l_dict
 
+
 def _labels_to_mask(labels, label_to_bitmask_map):
     """Given a list of Labels return a number that is the 'or' of them into an integer"""
     value = 0
@@ -98,7 +110,8 @@ def _labels_to_mask(labels, label_to_bitmask_map):
         value |= label_to_bitmask_map[label.name]
     return value
 
-def map(request, template='cse/map.html'):
+
+def map(request, template='gcse/map.html'):
     """Display map with local search capability"""
     # Get all sites with lat and lng set so they can be mapped w/o
     startaddress = request.GET.get("startaddress", '')
@@ -109,12 +122,14 @@ def map(request, template='cse/map.html'):
     return render_to_response(template,
                               {'sites' : sites,
                                'labels': label_bitmasks,
-                               'startaddress': startaddress},
+                               'startaddress': startaddress,
+                               'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY},
                               context_instance=RequestContext(request))
 
 
 def edit_update_email(object):
-    admin_url = urlresolvers.reverse('admin:cse_annotation_change', args=(object.id,))
+    admin_url = urlresolvers.reverse('admin:cse_annotation_change',
+                                     args=(object.id,))
     email_body = "Annotation added/edited: http://%s%s admin: http://%s%s" % (
         Site.objects.get_current().domain,
         object.get_absolute_url(),
@@ -123,22 +138,24 @@ def edit_update_email(object):
     mail_managers("Annotation Added/Edited", email_body)
 
 
-def edit(request, id=None, add=False, template='cse/edit.html'):
+def edit(request, id=None, add=False, template='gcse/edit.html'):
     """Edit an existing Annotation or create a new one.
-    Modification and creations via this mechanism are not immediately visible to the end user."""
+    Modification and creations via this mechanism are not
+    immediately visible to the end user."""
     # Initialize to an empty string, not None, so the reCAPTCHA call query string
     # will be correct if there wasn't a captcha error on POST.
     captcha_error = ""
     a = None
     if request.method == 'POST':
+# SAS FIX!
         # Check the form captcha.  If not good, pass the template an error code
-        captcha_response = \
-        captcha.submit(request.POST.get("recaptcha_challenge_field", None),
-                       request.POST.get("recaptcha_response_field", None),
-                       settings.RECAPTCHA_PRIVATE_KEY,
-                       request.META.get("REMOTE_ADDR", None))
-        if not captcha_response.is_valid:
-            captcha_error = "&error=%s" % captcha_response.error_code
+        # captcha_response = \
+        # captcha.submit(request.POST.get("recaptcha_challenge_field", None),
+        #                request.POST.get("recaptcha_response_field", None),
+        #                settings.RECAPTCHA_PRIVATE_KEY,
+        #                request.META.get("REMOTE_ADDR", None))
+        # if not captcha_response.is_valid:
+        #     captcha_error = "&error=%s" % captcha_response.error_code
         if id: # update existing entry
             instance = Annotation.objects.get(pk=id)
             # replace database instance's values with form's values
@@ -147,17 +164,17 @@ def edit(request, id=None, add=False, template='cse/edit.html'):
                 newInstance = form.save(commit=False)
                 if newInstance.state != 'nonn':
                     # allow hackers to think they succeeded
-                    newInstance.id=None # get a new id on save
-                    newInstance.status = 'S' # save disabled
+                    newInstance.id = None  # get a new id on save
+                    newInstance.status = 'S'  # save disabled
                     newInstance.save()
                     form.save_m2m()
                     # make the new instance point to the permanent instance
                     instance = Annotation.objects.get(pk=id)
-                    newInstance.parent_version = instance;
+                    newInstance.parent_version = instance
                     newInstance.save()
                     edit_update_email(newInstance)
                 return HttpResponseRedirect(reverse('cse_thanks'))
-        else: # new entry
+        else:  # new entry
             form = AnnotationForm(request.POST)
             if captcha_error is '' and form.is_valid():
                 instance = form.save(commit=False)
@@ -174,23 +191,25 @@ def edit(request, id=None, add=False, template='cse/edit.html'):
             form = AnnotationForm()
     email = a and a.email != '' and a.email or ''
     return render_to_response(template,
-                              {'form': form, 'add':add,
-                               'email':email,
+                              {'form': form,
+                               'add': add,
+                               'email': email,
                                'captcha_public_key': settings.RECAPTCHA_PUBLIC_KEY,
-                               'captcha_error':captcha_error,
-                               'original_url':a and a.original_url or ""},
+                               'captcha_error': captcha_error,
+                               'original_url': a and a.original_url or ""},
                               context_instance=RequestContext(request))
 
 
-def results(request, template='cse/results.html'):
+def results(request, template='gcse/results.html'):
     """Render CSE results"""
     return render_to_response(template,
                               context_instance=RequestContext(request))
 
+
 @never_cache
-def todo(request, template='cse/todo.html'):
+def todo(request, template='gcse/todo.html'):
     """Render a page of Annotations requiring more data in random order"""
-#    annotations = Annotation.objects.exclude(comment='').filter(Q(labels__name__exact='club') | Q(labels__name__exact='facility') |  Q(labels__name__exact='training')).filter(status='A', state=None).distinct().order_by('?')[:25]
+    #    annotations = Annotation.objects.exclude(comment='').filter(Q(labels__name__exact='club') | Q(labels__name__exact='facility') |  Q(labels__name__exact='training')).filter(status='A', state=None).distinct().order_by('?')[:25]
     annotations = Annotation.objects.exclude(comment='').filter(Q(labels__name__exact='club') | Q(labels__name__exact='facility') |  Q(labels__name__exact='training')).filter(status='A', state=None).filter(newer_versions__isnull=True).order_by('?')
     return render_to_response(template,
                               {"annotations": annotations[:50],
@@ -198,7 +217,8 @@ def todo(request, template='cse/todo.html'):
                                },
                               context_instance=RequestContext(request))
 
-def browse_by_label_tabbed(request, template='cse/browse_by_label_tabbed.html'):
+
+def browse_by_label_tabbed(request, template='gcse/browse_by_label_tabbed.html'):
     labels = [
         ('club', 'clubs'),
         ('equipment', 'equipment'),
@@ -225,7 +245,7 @@ def browse_by_label_tabbed(request, template='cse/browse_by_label_tabbed.html'):
                                "label":tab_index},
                               context_instance=RequestContext(request))
 
-def browse_by_label_grid(request, label, template='cse/browse_by_label_grid.html'):
+def browse_by_label_grid(request, label, template='gcse/browse_by_label_grid.html'):
     return render_to_response(template,
                               {'label': label},
                               context_instance=RequestContext(request))
@@ -313,11 +333,11 @@ def ajax_annotation(request, label):
     rta = rta.order_by(order)[(page-1)*rows:page*rows]
 
     # We build the json that jqgrid likes best :)
-    rows = simplejson.dumps([AjaxViewAnnotation(a) for a in rta], default=AjaxViewAnnotation.json_encoder)
+    rows = json.dumps([AjaxViewAnnotation(a) for a in rta], default=AjaxViewAnnotation.json_encoder)
     query = '{"total":%(pages)s, "page":%(page)s, "records":%(total)s, "rows":%(rta)s }' % {'pages':pages, 'page':page, 'total':total, 'rta':rows}
     return HttpResponse(query, mimetype='application/json')
 
-def browse_by_label(request, label, template='cse/browse_by_label_div.html'):
+def browse_by_label(request, label, template='gcse/browse_by_label_div.html'):
     query_set = Annotation.objects.filter(status='A').filter(labels__name__exact=label).distinct().order_by('comment')
     paginator = Paginator(query_set, 20)
 
@@ -338,7 +358,7 @@ def browse_by_label(request, label, template='cse/browse_by_label_div.html'):
                                },
                               context_instance=RequestContext(request))
 
-def browse(request, q="A", num=20, template='cse/browse.html'):
+def browse(request, q="A", num=20, template='gcse/browse.html'):
     """Render the Annotations in alphabetical order in a paged manner"""
     query = request.GET.get('q', q)
     if query:
@@ -363,45 +383,6 @@ def browse(request, q="A", num=20, template='cse/browse.html'):
     index = Annotation.alpha_list(query)
     return render_to_response(template,
                               {'annotations': annotations,
-                               'index':index,
-                               'query':query},
-                              context_instance=RequestContext(request))
-
-def images(request, template='cse/images.html'):
-    """Render all active Annotations with urls as images"""
-    return render_to_response(template,
-                              {'annotations': Annotation.objects.filter(status='A').exclude(original_url='').order_by('?'),
-                               },
-                              context_instance=RequestContext(request))
-
-def created(request, num=10, template='cse/list.html'):
-    """Render the Annotations in reverse created order"""
-    num = request.GET.get('num', num)
-    return render_to_response(template,
-                              {'annotations': Annotation.objects.filter(status='A').order_by('-created')[:num],
-                               },
-                              context_instance=RequestContext(request))
-
-def modified(request, num=10, template='cse/list.html'):
-    """Render the Annotations in reverse modified order"""
-    num = request.GET.get('num', num)
-    return render_to_response(template,
-                              {'annotations': Annotation.objects.filter(status='A').order_by('-modified')[:num],
-                               },
-                              context_instance=RequestContext(request))
-
-def random(request, type, num=5, template="cse/table.html"):
-    """Render a random collection of Annotations"""
-    num = request.GET.get('num', num)
-    return render_to_response(template,
-                              {'annotations': Annotation.objects.filter(status='A').filter(Q(labels__name__exact=type)).order_by('?')[:num],
-                               },
-                              context_instance=RequestContext(request))
-
-def submitted(request, num=10, template='cse/list.html'):
-    """Render the Annotations in the submitted state"""
-    num = request.GET.get('num', num)
-    return render_to_response(template,
-                              {'annotations': Annotation.objects.filter(status='S').order_by('-created')[:num],
-                               },
+                               'index': index,
+                               'query': query},
                               context_instance=RequestContext(request))

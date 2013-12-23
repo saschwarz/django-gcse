@@ -1,6 +1,6 @@
 import unittest
 import xml.sax
-from cse import models, views
+from gcse import models, views
 
 
 class AnnotationHandlerTest(unittest.TestCase):

@@ -1,23 +1,24 @@
-from django.conf.urls.defaults import *
-from django.views.generic.simple import direct_to_template
+from django.conf.urls import patterns, url
+from django.views.generic import TemplateView
 from feeds import RssLatestFeed, AtomLatestFeed
 
 
 feeds = {
     'rss': RssLatestFeed,
-    'atom' : AtomLatestFeed,
+    'atom': AtomLatestFeed,
 }
 
 urlpatterns = patterns('',
-                       (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
-                        {'feed_dict': feeds}),
+                       (r'^feeds/rss/$', RssLatestFeed()),
+                       (r'^feeds/atom/$', AtomLatestFeed()),
                        )
-urlpatterns += patterns('cse.views',
+
+urlpatterns += patterns('gcse.views',
                         url(r'^$', 'index', name='cse_home'),
                         # urls for Google search related resources
-                        url(r'^cse.xml$', direct_to_template, {'template': 'cse/cse.xml' }, name='cse'),
+                        url(r'^gcse.xml$', TemplateView.as_view(template_name='gcse/cse.xml'), name='cse'),
                         url(r'^googility_annotations.xml$', 'indexXML', name='cse_annotations'),
-                        url(r'^results.html$', direct_to_template, {'template': 'cse/results.html' }, name='cse_results'),
+                        url(r'^results.html$', TemplateView.as_view(template_name='gcse/results.html'), name='cse_results'),
                         # urls for browsing, searching, viewing, editing local site
                         url(r'^map/$', 'map', name='cse_map'),
                         url(r'^site/$', 'browse', name='cse_browse'), # browse by site name
@@ -34,13 +35,5 @@ urlpatterns += patterns('cse.views',
 
                         url(r'^site/directions/(?P<id>\d+)/$', 'directions', name="cse_directions"),
                         url(r'^site/add/$', 'edit', {'add': True}, name='cse_add'),
-                        url(r'^site/add/thanks/$', direct_to_template, {'template': 'cse/thanks.html'}, name='cse_thanks'),
-
-                        # No longer used
-                        url(r'^site/created/$', 'created', name='cse_created'),
-                        url(r'^site/modified/$', 'modified', name='cse_modified'),
-                        url(r'^todo/$', 'todo', name='cse_todo'),
-                        url(r'^random/(?P<type>\w+)/$', 'random', name='cse_random'),
-                        url(r'^submitted/$', 'submitted', name='cse_submitted'),
-                        url(r'^site/images/$', 'images', name='cse_images'),
+                        url(r'^site/add/thanks/$', TemplateView.as_view(template_name='gcse/thanks.html'), name='cse_thanks'),
                         )

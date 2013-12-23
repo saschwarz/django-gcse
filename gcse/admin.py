@@ -5,11 +5,11 @@ from django.contrib import admin
 from django.forms import ModelForm, CharField, Textarea
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.template.loader import render_to_string
-from cse.models import Label, Annotation
-import cse.admin_views
+from gcse.models import Label, Annotation
 
 
 admin.site.register(Label)
+
 
 class AnnotationAdminForm(ModelForm):
     # Only allow non hidden fields to be selected as Labels
@@ -20,6 +20,7 @@ class AnnotationAdminForm(ModelForm):
 
     class Meta:
         model = Annotation
+
 
 class AnnotationModelAdmin(admin.ModelAdmin):
     '''Provide a side by side editor for copying submitted Annotation fields to the active/parent Annotation.
@@ -50,7 +51,7 @@ class AnnotationModelAdmin(admin.ModelAdmin):
 
 
 class AnnotationAdmin(AnnotationModelAdmin):
-    list_display = ('comment','status', 'modified', 'created', 'lat')
+    list_display = ('comment', 'status', 'modified', 'created', 'lat')
     list_filter = ('status', 'labels', 'created', 'modified')
     search_fields = ['comment', 'about']
     save_on_top = True

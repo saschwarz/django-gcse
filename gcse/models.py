@@ -11,6 +11,7 @@ from django.db import connection
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from country_field import CountryField
 
@@ -19,11 +20,35 @@ settings.GCSE_LABEL_NAMES = getattr(settings, 'GCSE_LABEL_NAMES', [])
 
 
 class Label(models.Model):
-    """Labels associated with an Annotation. Used to refine search results"""
-    name = models.CharField(max_length=128, blank=False, help_text=_('Google search refinement name.'))
-    description = models.CharField(max_length=256, blank=False, null=False, help_text=_('Description shown to users adding/editing sites.'))
-    hidden = models.BooleanField(default=False, help_text=_('Show this label to end users? Set your Google feed label to hidden.'))
-    physical = models.BooleanField(default=False, help_text=_('An Annotation associated with this Label would have a physical address.'))
+    """Labels associated with an Annotation. Used to refine search results.
+    https://developers.google.com/custom-search/docs/ranking#labels
+    """
+    MODE_CHOICES = (('E', 'ELIMINATE'),
+                    ('F', 'FILTER'),
+                    ('B', 'BOOST'),
+                    )
+    name = models.CharField(max_length=128,
+                            blank=False,
+                            help_text=_('Google search refinement name.'))
+    description = models.CharField(
+        max_length=256,
+        blank=False,
+        null=False,
+        help_text=_('Description shown to users adding/editing sites.'))
+    hidden = models.BooleanField(
+        default=False,
+        help_text=_('Show this label to end users? Set your Google feed label to hidden.'))
+    physical = models.BooleanField(
+        default=False,
+        help_text=_('An Annotation associated with this Label would have a physical address.'))
+    # TODO SAS this need a migration for googility.com
+    mode = models.CharField(
+        verbose_name=_('status'),
+        max_length=1,
+        choices=MODE_CHOICES,
+        default='F',
+        help_text=_('Controls whether a site is promoted, demoted, or excluded'))
+
     class Meta:
         ordering = ["name"]
 
@@ -33,15 +58,29 @@ class Label(models.Model):
 
 class Annotation(models.Model):
     """A single Annotation entry"""
-    comment = models.CharField(verbose_name=_('Business or Web Site Name'), max_length=256, blank=False, help_text=_('Name/title of the site'))
+    comment = models.CharField(verbose_name=_('Business or Web Site Name'),
+                               max_length=256,
+                               blank=False,
+                               help_text=_('Name/title of the site'))
     # allow as null for non-internet sites
-    original_url = models.CharField(_('Web Site URL'), max_length=256, blank=True, help_text=_('URL of the site'))
-#    original_url = models.URLField(_('Web Site URL'), max_length=256, blank=True, help_text=_('URL of the site'))
+    original_url = models.CharField(_('Web Site URL'),
+                                    max_length=256,
+                                    blank=True,
+                                    help_text=_('URL of the site'))
     # allow as null for non-internet sites
-    about = models.CharField(verbose_name=_('Google Regexp'), max_length=512, blank=True, help_text=_('Regular expression Google CSE uses to obtain pages for this site'))
-    labels = models.ManyToManyField(Label, help_text=_('Labels visible to users of the search engine for this entry'))
-    created = models.DateTimeField(verbose_name=_('Created'), default=datetime.datetime.now, help_text=_('Date and time this entry was created'), editable=False)
-    modified = models.DateTimeField(verbose_name=_('Last Modified'), default=datetime.datetime.now, help_text=_('Date and time this entry was last modified'), editable=False)
+    about = models.CharField(verbose_name=_('Google Regexp'),
+                             max_length=512,
+                             blank=True,
+                             help_text=_('Regular expression Google CSE uses to obtain pages for this site'))
+    labels = models.ManyToManyField(Label,
+                                    help_text=_('Labels visible to users of the search engine for this entry'))
+    created = models.DateTimeField(verbose_name=_('Created'), auto_now_add=True,
+                                   help_text=_('Date and time this entry was created'),
+                                   editable=False)
+    modified = models.DateTimeField(verbose_name=_('Last Modified'),
+                                    auto_now=True,
+                                    help_text=_('Date and time this entry was last modified'),
+                                    editable=False)
     # The labels and help text for these fields are defined in the forms.py
     address1 = models.CharField(verbose_name=_('Address Line 1'), max_length=128, blank=True)
     address2 = models.CharField(_('Address Line 2'), max_length=128, blank=True)
@@ -68,11 +107,18 @@ class Annotation(models.Model):
     lat = models.DecimalField(verbose_name=_('Latitude'), max_digits=10, decimal_places=7, null=True, blank=True) # Enough precision for Google Maps
     lng = models.DecimalField(verbose_name=_('Longitude'), max_digits=10, decimal_places=7, null=True, blank=True)
 
+    # TODO SAS Need googility migration for this field
+    # https://developers.google.com/custom-search/docs/ranking#score
+    score = models.FloatField(null=True, blank=True,
+                              validators=[MinValueValidator(-1),
+                                          MaxValueValidator(1)],
+                              help_text=_('Score value to influence label score - leave blank for default.'))
+
     class Meta:
         ordering = ["about"]
 
     def __unicode__(self):
-        return "%s %s" %(self.comment, self.id)
+        return "%s %s" % (self.comment, self.id)
 
     def get_absolute_url(self):
         return ('cse_annotation_detail', (), {'id': self.id})
@@ -109,10 +155,11 @@ class Annotation(models.Model):
 
     @classmethod
     def alpha_list(cls, selection=None):
-        """Return a list of the case insensitive matches of Annotation comment's first letters.
-        For use in the view to give alpha based tabs for browsing"""
+        """Return a list of the case insensitive matches of Annotation
+        comment's first letters. For use in the view to give alpha based
+        tabs for browsing"""
         cursor = connection.cursor()
-        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM cse_annotation order by substr(comment, 1, 1)")
+        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM gcse_annotation order by substr(comment, 1, 1)")
         existent = [str(i[0]) for i in cursor.fetchall()]
         results = []
         for i in ascii_letters[26:] + "0123456789":
@@ -126,6 +173,7 @@ class Annotation(models.Model):
 
     def labels_as_links(self):
         return "&nbsp;".join(['<a href="%s?label=%s">%s</a>' % (reverse('browse_by_label'), l.name, l.name) for l in self.labels.all()])
+
 
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     """Create a set of Annotation instances from an XML file."""
@@ -161,7 +209,7 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
             # Try to find existing label
             label, found = Label.objects.get_or_create(name=attributes['name'])
             # print label, found
-            if label.name in GCSE_LABEL_NAMES:
+            if label.name in settings.GCSE_LABEL_NAMES:
                 self.curAnnotation.feed_label = label
             else:
                 self.curAnnotation.labels.add(label)
@@ -180,4 +228,5 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         elif name == "Comment":
             self.inComment = False
             # Store in database unescaped - let view(s) escape if needed
-            self.curAnnotation.comment = xml.sax.saxutils.unescape(self.curAnnotation.comment)
+            self.curAnnotation.comment = \
+                xml.sax.saxutils.unescape(self.curAnnotation.comment)

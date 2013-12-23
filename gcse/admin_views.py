@@ -6,8 +6,9 @@ from django.core.mail import send_mail
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.sites.models import Site
 from django.conf import settings
-from cse.models import AnnotationSAXHandler, Annotation
-from cse.forms import ImportForm
+from gcse.models import AnnotationSAXHandler, Annotation
+from gcse.forms import ImportForm
+
 
 @staff_member_required
 @transaction.autocommit
