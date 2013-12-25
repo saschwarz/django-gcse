@@ -1,0 +1,15 @@
+{% load setting %}
+Hi,
+
+Thank you for updating the {% site "name" %} information for {{ site.comment|safe }}.
+Your changes have been approved and they are now visible at:
+http://{% site "domain" %}{% url gcse.views.view site.id %}
+
+Google takes several hours to several days to update the {% site "name" %} custom search engine with the new information.
+
+Thanks again for helping the agility community.
+
+Best regards,
+Steve
+http://{% site "domain" %}
+http://agilitynerd.com/

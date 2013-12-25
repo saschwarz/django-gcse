@@ -1,0 +1,12 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+
+{% block title %}{% site "name" %} - Thank You{% endblock %}
+
+{% block content %}
+  <h1>Saved Successfully</h1>
+  <p>Thank you for helping the agility community!</p>
+  <p>Your information will be <a href="{% url 'faq' %}#4">reviewed by our moderators</a> before it is added to the website.</p>
+  <p>If you provided an email address you'll be sent an email after your information has been added to the website.</p>
+  <p>Google may take a few days to update their search engine with the new information.</p>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+
+{% block title %}{% site "name" %} - Get Driving Directions{% endblock %}
+
+{% block javascript %}
+{{block.super}}
+<script type="text/javascript" src="http://www.google.com/jsapi?key={% setting "GOOGLE_MAPS_API_KEY" %}"></script>
+<script type="text/javascript">
+<!--
+  google.load("maps", "2.x");
+
+    var map;
+    var directions;
+    var geocoder;
+    var trafficInfo;
+    var trafficDisplayed = true;
+    var curPoint;
+    var gMarker;
+
+    function resizeMap(){
+        var h = jQuery('#directions').height();
+	if (h > 800){
+	    h = 800;
+        } else if (h < 450){
+            h = 450;
+        }
+	var mapDiv = jQuery('#map');
+	mapDiv.css("float", "right");
+	mapDiv.height(h);
+	map.checkResize();
+    }
+
+    // Call this function when the page has been loaded
+    function initialize(centerAddress) {
+      jQuery("#directionFrom").hide();
+      jQuery("#directionTo").hide();
+      if (GBrowserIsCompatible()) {
+        map = new google.maps.Map2(document.getElementById("map"));
+	map.addControl(new google.maps.LargeMapControl());
+	map.addControl(new google.maps.MapTypeControl());
+	map.enableGoogleBar();
+	directions = new google.maps.Directions(map, document.getElementById("directions"));
+	google.maps.Event.addListener(directions, "error", handleErrors);
+	google.maps.Event.addListener(directions, "addoverlay", resizeMap);
+        geocoder = new google.maps.ClientGeocoder();
+	jQuery("#getDirectionsFromButton").click(clickDirectionsFrom);
+	jQuery("#getDirectionsToButton").click(clickDirectionsTo);
+        jQuery("#directionToFromAddress").keypress(function(e){
+            if (e.which == 13){
+	        clickDirectionsTo();
+	    }
+        });
+        jQuery("#directionFromToAddress").keypress(function(e){
+            if (e.which == 13){
+	        clickDirectionsFrom();
+	    }
+        });
+      }
+    };
+
+function clickDirectionsFrom(){
+    jQuery("#directions").show();
+    setDirections(jQuery("#directionFromFromAddress").val(), jQuery("#directionFromToAddress").val());
+}
+
+function clickDirectionsTo(){
+    jQuery("#directions").show();
+    setDirections(jQuery("#directionToFromAddress").val(), jQuery("#directionToToAddress").val());
+}
+
+function setDirections(fromAddress, toAddress) {
+  directions.load("from: " + fromAddress + " to: " + toAddress, { "getSteps":true});
+}
+
+function handleErrors(){
+    if (directions.getStatus().code == G_GEO_UNKNOWN_ADDRESS)
+        alert("No corresponding geographic location could be found for one of the specified addresses. This may be due to the fact that the address is relatively new, or it may be incorrect.\nError code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_SERVER_ERROR)
+        alert("A geocoding or directions request could not be successfully processed, yet the exact reason for the failure is not known.\n Error code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_MISSING_QUERY)
+        alert("The HTTP q parameter was either missing or had no value. For geocoder requests, this means that an empty address was specified as input. For directions requests, this means that no query was specified in the input.\n Error code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_BAD_KEY)
+        alert("The given key is either invalid or does not match the domain for which it was given. \n Error code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_BAD_REQUEST)
+        alert("A directions request could not be successfully parsed.\n Error code: " + directions.getStatus().code);
+    else alert("An unknown error occurred.");
+};
+    function initAddress(address, node) {
+      if (geocoder) {
+        geocoder.getLatLng(
+          address,
+          function(point) {
+            if (!point) {
+//              alert(address + " not found");
+            } else {
+	      curPoint = point;
+              map.setCenter(point, 13);
+              var marker = new google.maps.Marker(point);
+	      gMarker = marker;
+	      google.maps.Event.addListener(marker, "click", function() {
+	      marker.openInfoWindow(node);
+	      });
+              map.addOverlay(marker);
+	      showAddress(marker, node);
+            }
+          }
+        );
+      }
+    }
+    function showAddress(marker, node){
+        marker.openInfoWindow(node);
+    }
+    function showTo(){
+      jQuery("#navigation").hide();
+      jQuery("#directionFrom").hide();
+      jQuery("#directionTo").show();
+      showAddress(gMarker, document.getElementById("infoWindow"));
+    }
+    function showFrom(){
+      jQuery("#navigation").hide();
+      jQuery("#directionFrom").show();
+      jQuery("#directionTo").hide();
+      showAddress(gMarker, document.getElementById("infoWindow"));
+    }
+    function showNavigation(){
+      jQuery("#navigation").show();
+      jQuery("#directionFrom").hide();
+      jQuery("#directionTo").hide();
+      showAddress(gMarker, document.getElementById("infoWindow"));
+    }
+    google.setOnLoadCallback(function(){initialize(); initAddress("{{site.address1|escape}} {{site.address2|escape}} {{site.city|escape}} {{site.state|escape}} {{site.zipcode|escape}} {{site.country|escape}}", document.getElementById("infoWindow"))});
+-->
+</script>
+{% endblock %}
+
+{% block content %}
+  <!-- marker within map -->
+  <div style="display:none">
+    <div id="infoWindow">
+      <div id="address">
+	<div class="addressTitle">{{site.comment|escape}}</div>
+	<div class="addressLine1">{{site.address1|escape}}</div>
+	<div class="addressLine2">{{site.address2|escape}}</div>
+	<div class="addressCityStateZip">{{site.city|escape}} {{site.state|escape}} {{site.country|escape}}</div>
+      </div>
+  <div id="navigation">
+    <div class="spacer"></div>
+    <div class="navigation">Get directions: <a href="javascript:showTo();">To here</a> - <a href="javascript:showFrom();">From here</a></div>
+  </div>
+  <div id="directionTo" style="display:none">
+    <div class="navigation">Get directions: <b>To here</b> - <a href="javascript:showFrom();">From here</a></div>
+    <div class="help">Start address</div>
+    <input type="text" id="directionToFromAddress" value=""/>
+    <input type="hidden" id="directionToToAddress" size="20" value="{{site.address1|escape}} {{site.address2|escape}} {{site.city|escape}} {{site.state|escape}} {{site.country|escape}}"/>
+    <input name="button" type="button" value="Go" id="getDirectionsToButton"/>
+  </div>
+  <div id="directionFrom">
+    <div class="navigation">Get directions: <a href="javascript:showTo();">To here</a> - <b>From here</b></div>
+    <div class="help">End address</div>
+    <input type="hidden" size="25" id="directionFromFromAddress" value="{{site.address1|escape}} {{site.address2|escape}} {{site.city|escape}} {{site.state|escape}} {{site.country|escape}}"/>
+    <input type="text" id="directionFromToAddress" value=""/>
+    <input name="button" type="button" value="Go" id="getDirectionsFromButton"/>
+  </div>
+  </div>
+  </div>
+    <h3 style="margin-bottom:0px">{{site.comment|escape}}</h3>
+    <table style="font-weight:bold"><tbody>
+        <tr><td colspan="3">{{site.address1|escape}}</td></tr>
+	{% if site.address2 %}
+        <tr><td colspan="3">{{site.address2|escape}}</td></tr>
+        {% endif %}
+        <tr><td>{{site.city|escape}}</td><td>{{site.state|escape}}</td><td>{{site.zipcode|escape}}</td></tr>
+        <tr><td colspan="3">{{site.phone|escape}}</td></tr>
+    </tbody></table>
+    <div id="directions" style="float:left;width:300px;padding:0px;margin-top:0px;vertical-align:top;display:none;"></div>
+    <div id="map" style="width:600px;height: 450px;vertical-align:top;margin-top:10px;"></div>
+    <br style="clear:both"/>
+{% endblock %}

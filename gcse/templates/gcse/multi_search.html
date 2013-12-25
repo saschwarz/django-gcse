@@ -1,0 +1,52 @@
+{% load setting %}
+{% load periodicals_tags %}
+{% load cse_tags %}
+<script type="text/javascript">
+<!--
+$(document).ready(function() {
+    var actionURL = {'periodical':'{% url 'haystack_search' %}',
+                     'google':'{% url 'cse_results' %}'
+                    };
+    var searchForm = jQuery("#cse-search-box");
+    function setFormAction(){
+        searchForm.attr("action", actionURL[$("input[name=searchType]:checked").val()]);
+    };
+    if ($.browser.msie) {
+        $('input:radio').click(function () {
+	    setFormAction();
+            this.blur();
+            this.focus();
+	    })
+    } else {
+        $('input:radio').click(function () {
+	    setFormAction();
+	    })
+    }
+    // same URL for periodical search and results so use that to check
+    if (document.location.pathname === '{% url 'haystack_search' %}'){
+        $('#search-type-periodical').attr('checked','checked');
+    } else {
+        $('#search-type-google').attr('checked','checked');
+    }
+    setFormAction();
+});
+-->
+</script>
+<form action="{% url 'cse_results' %}" id="cse-search-box">
+  <div>
+<!--    <input type="hidden" name="cx" value="001042720131993941673:kueofys2mdy" /> -->
+    <input type="hidden" name="cref" value="http://{% site "domain" %}{% url 'cse' %}" />
+    <input type="hidden" name="cof" value="FORID:9" />
+    <input type="hidden" name="ie" value="UTF-8" />
+    <input type="hidden" name="client" value="pub-5717026662794622" />
+    {% if form.q %}
+    {{form.q}}
+    {% else %}
+    <input type="text" name="q" size="31"/>
+    {% endif %}
+    <input type="submit" name="sa" value="Search"/><br/>
+    <label for="search-type-google"><input type="radio" class="radio_search_type" name="searchType" id="search-type-google" value="google"/>&nbsp;{% annotation_count %} Agility Web Sites</label>
+    <label for="search-type-periodical"><input type="radio" class="radio_search_type" name="searchType" id="search-type-periodical" value="periodical" />&nbsp;{% article_count %} Agility Magazine Articles</label>
+  </div>
+</form>
+<script type="text/javascript" src="http://www.google.com/cse/brand?form=cref_iframe"></script>

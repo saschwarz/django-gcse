@@ -1,0 +1,203 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+
+{% block title %}{% site "name" %} - {% if add %}Add a {% else %}Edit a {% endif %} "Place"{% endblock %}
+
+{% block meta %}
+{{block.super}}
+{% if site.description %}
+<meta name="Description" content="{{site.description}}">
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+{{block.super}}
+<script type="text/javascript" src="http://data.agilitynerd.com/js/showdown/showdown.js"></script>
+<script type="text/javascript">
+<!--
+$(document).ready(function(){
+     $('div#tabs').tabs({ fx: { opacity: 'toggle' } }).width(580);
+     $('div#tabs').show();
+
+    // setup showdown.js (markdown support for description)
+    var showdown = new Showdown.converter();
+    // Keep track of number of characters in description
+    var MAXDESCLENGTH = 512;
+    function remainingChars(node, cur, max){
+        node.text((max-cur)+' character'+((max-cur == 1)?'':'s')+' available');
+	if (cur >= max){
+	    node.addClass("error");
+        } else {
+	    node.removeClass("error");
+        }
+    };
+    $('#id_description').keypress(function(e){
+	var len = $(this).val().length;
+	var keyCode = (e.keyCode ? e.keyCode : e.which);
+	// add one since this is BEFORE key is in pressed
+	(keyCode == 8 || keyCode == 46) ?  --len : ++len;
+	if (keyCode >= 48 && len > MAXDESCLENGTH){
+	    return false;
+        }
+     });
+    $('#id_description').keyup(function(e){
+	var description = $(this).val();
+	var len = description.length;
+	remainingChars($('#descchars'), len, MAXDESCLENGTH);
+	// redisplay markdown in preview window
+	$('#previewPane').html(showdown.makeHtml(description));
+     });
+     // set the initial number of characters left
+     var description = $('#id_description').val();
+     remainingChars($('#descchars'), description.length, MAXDESCLENGTH);
+     $('#previewPane').html(showdown.makeHtml(description));
+});
+-->
+</script>
+{% endblock %}
+
+{% block content %}
+    <h1> {% if add %}Add{% else %}Edit{% endif %} a "Place" in {% site "name" %}</h1>
+    <form action="." method="post">
+      <div id="web">
+        <div class="fieldWrapper {% if form.comment.errors %}error{%endif%}">
+            <label for="id_comment">{{form.comment.label}}</label>:<br/>{{form.comment}}
+            <span class="required">*</span>
+            <p class="help">Name/title of the site. i.e. AgilityNerd Blog</p>
+            {% if form.comment.errors %}
+            <span class="error">{{ form.comment.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.original_url.errors %}error{%endif%}">
+            <label for="id_original_url">{{form.original_url.label}}</label>:<br/>{{form.original_url}} 	    {% if original_url %}<span style="padding-left:15px"><a href="{{original_url}}" target="_blank">Visit the website</a></span>{% endif %}
+            <p class="help">i.e. http://agilitynerd.com/blog</p>
+            {% if form.original_url.errors %}
+            <span class="error">{{ form.original_url.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.description.errors %}error{%endif%}">
+            <label for="id_description">{{form.description.label}}</label>:<br/>{{form.description}}
+            <p class="help">A plain text or Markdown description up to 512 characters: <span id="descchars"></span></p>
+            {% if form.description.errors %}
+            <span class="error">{{ form.description.errors }}</span>
+            {% endif %}
+	    <div id="tabs">
+	      <ul>
+	        <li><a href="#preview"><span>Description Preview</span></a></li>
+	        <li><a href="#syntax"><span>Markdown Syntax Guide</span></a></li>
+	      </ul>
+	      <div id="syntax">
+	    <table>
+	    <tr><th>You type this text:</th><th>Text is displayed like this:</th></tr>
+	    <tr><td>leave a blank line for a new paragraph</td><td/></tr>
+	    <tr><td>*asterisks around text for italics*</td><td><i>asterisks around text for italics</i></td></tr>
+	    <tr><td>**two asterisks around text for bold text**</td><td><b>two asterisks around text for bold text</b></td></tr>
+	    <tr><td>#pound symbol around text for this size#</td><td><h1 style="display:inline;">pound symbol around text for this size</h1></td></tr>
+	    <tr><td>##two pound symbols around text for this size##</td><td><h2 style="display:inline;">two pound symbols around text for this size</h2></td></tr>
+	    <tr><td>###three pound symbols around text for this size###</td><td><h3 style="display:inline;">three pound symbols around text for this size</h3></td></tr>
+	    <tr><td>####four pound symbols around text for this size#####</td><td><h4 style="display:inline;">four pound symbols around text for this size</h4></td></tr>
+	    <tr><td>#####five pound symbols around text for this size#####</td><td><h5 style="display:inline;">five pound symbols around text for this size</h5></td></tr>
+	    <tr><td>+ plus sign and space for bullets</td><td><ul><li style="list-style-type:inherit;">plus sign and space for bullets</li><ul></td></tr>
+	    </table>
+	    </div>
+	    <div id="preview">
+	    <div id="previewPane"></div>
+	    </div>
+	  </div> <!-- end tabs -->
+        </div>
+        <div class="fieldWrapper {% if form.labels.errors %}error{%endif%}">
+	    <label>Select all applicable:</label>
+            <span class="required">*</span>
+            {% if form.labels.errors %}
+            <span class="error">{{ form.labels.errors }}</span>
+            {% endif %}
+	    {{ form.labels }}
+        </div>
+        <div class="fieldWrapper {% if form.email.errors %}error{%endif%}">
+            <label for="id_email">{{form.email.label}}</label>:<br/>
+	    {% if email %}{% load mailhide %} <span style="font-size:12px">Click to view: {{email|mailhide}}</span>
+            <div style="font-size:12px"> Need to change it? <a href="{% url 'contact_form' %}">Contact Us</a>. We protect email addresses.</div>
+            <p class="help">This email address is also CC'd with changes to this information.</p>
+	    {% else %}{{form.email}}
+            <p class="help">{{ form.email.help_text }}</p>
+            <p class="help">This email address is also CC'd with changes to this information.</p>
+            {% endif %}
+            {% if form.email.errors %}
+            <span class="error">{{ form.email.errors }}</span>
+            {% endif %}
+        </div>
+	</div> <!-- end div.web -->
+        <div id="address">
+	<h2 style="font-size:16px">Help find this business or service on the map</h2>
+        <div style="font-size:13px;margin-bottom:5px;margin-left:5px;">
+          Club, Trainer, Equipment, or Service with no location? <br/>Fill in city, state, and country - it puts it on the map!
+        </div>
+        <div style="font-size:13px;margin-bottom:5px;margin-left:5px;">
+	Multiple addresses? Save this entry and create an entry for each location that has agility! Append town name to end of each.<br/>
+	</div>
+        <div class="fieldWrapper {% if form.address1.errors %}error{%endif%}">
+            <label for="id_address1">{{form.address1.label}}</label>:<br/>{{form.address1}}
+            <p class="help"></p>
+            {% if form.address1.errors %}
+            <span class="error">{{ form.address1.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.address2.errors %}error{%endif%}">
+            <label for="id_address2">{{form.address2.label}}</label>:<br/>{{form.address2}}
+            <p class="help"></p>
+            {% if form.address2.errors %}
+            <span class="error">{{ form.address2.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.city.errors %}error{%endif%}">
+            <label for="id_city">{{form.city.label}}</label>:<br/>{{form.city}}
+            <p class="help"></p>
+            {% if form.city.errors %}
+            <span class="error">{{ form.city.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.state.errors %}error{%endif%}">
+            <label for="id_state">{{form.state.label}}</label>:<br/>{{form.state}}
+            <p class="help"></p>
+            {% if form.state.errors %}
+            <span class="error">{{ form.state.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.zipcode.errors %}error{%endif%}">
+            <label for="id_zipcode">{{form.zipcode.label}}</label>:<br/>{{form.zipcode}}
+            <p class="help"></p>
+            {% if form.zipcode.errors %}
+            <span class="error">{{ form.zipcode.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.country.errors %}error{%endif%}">
+            <label for="id_country">{{form.country.label}}</label>:<br/>{{form.country}}
+            <p class="help"></p>
+            {% if form.country.errors %}
+            <span class="error">{{ form.country.errors }}</span>
+            {% endif %}
+        </div>
+        <div class="fieldWrapper {% if form.phone.errors %}error{%endif%}">
+            <label for="id_phone">{{form.phone.label}}</label>:<br/>{{form.phone}}
+            <p class="help"></p>
+            {% if form.phone.errors %}
+            <span class="error">{{ form.phone.errors }}</span>
+            {% endif %}
+        </div>
+        <p class="required">*Required fields</p>
+	</div><!-- end address -->
+        <div class="fieldWrapper {% if form.submitter_email.errors %}error{%endif%}">
+            <label for="id_submitter_email">Your Email</label>:<br/>{{form.submitter_email}}
+	    <p class="help">Enter your Email address if you'd like an email when the information you just entered is updated.<br/>This email address is then deleted.</p>
+            {% if form.submitter_email.errors %}
+            <span class="error">{{ form.submitter_email.errors }}</span>
+	    {% endif %}
+        </div>
+        <div class="fieldWrapper">{{form.recaptcha}}
+          {% if form.recaptcha.errors %}
+          <span class="recaptcha-error">{{form.recaptcha.errors}}</span>
+          {% endif %}
+        </div>
+        <p><input type="submit" value="Submit"/></p>
+    </form>
+{% endblock %}

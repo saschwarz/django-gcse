@@ -1,0 +1,42 @@
+<style>
+.ui-tabs .ui-tabs-panel{
+padding: 5px 0;
+}
+</style>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+      jQuery("#{{label}}list").jqGrid({
+                    url:'{% url 'cse_ajax_annotation' label %}',
+                    datatype: 'json',
+                    colNames:['Place', 'Labels', 'City', 'State'],
+                    colModel :[
+                        {name:"fields.comment", index:"comment", width:120 },
+			{name:"fields.labels", index:"labels", width:100 },
+			{name:"fields.city", index:"city", width:50 },
+			{name:"fields.state", index:"state", width:20 }
+                    ],
+                    pager: jQuery('#{{label}}pager'),
+                    jsonReader: {
+                        root: "rows",
+                        id: "0",
+                        page: "page",
+                        total: "total",
+                        records: "records",
+                        repeatitems: false,
+                        cell: "fields"
+		    },
+                    width:582,
+		    sortname:"comment",
+		    sortorder:"asc",
+                    rowNum:25,
+                    rowList:[25,50,100],
+                    viewrecords:true,
+                    height:'100%',
+		    hidegrid:false,
+		    loadtext:'loading...'
+      });
+      jQuery("#{{label}}list").navGrid('#{{label}}pager',{edit:false,add:false,del:false});
+});
+</script>
+<div id="{{label}}pager" class="scroll" style="text-align:center;"></div>
+<table id="{{label}}list" class="scroll" cellpadding="0" cellspacing="0"></table>

@@ -1,0 +1,18 @@
+{% load setting %}
+Hi,
+
+The {% site "name" %} information for {{ site.comment|safe }} has been updated.
+You can see the updated entry at: http://{% site "domain" %}{% url cse.views.view site.id %}
+If there are errors or omissions please correct them at: http://{% site "domain" %}{% url cse.views.edit site.id %}
+
+Google takes several hours to several days to update the {% site "name" %} custom search engine with the new information.
+
+Are you new to {% site "name" %}? Here's what it's about: http://{% site "domain" %}{% url 'about' %}
+Here are the answers to some frequently asked questions:  http://{% site "domain" %}{% url 'faq' %}
+
+{% if site.original_url %}Please consider adding a link to http://{% site "domain" %} to your website, we'd really appreciate it!{% endif %}
+
+Best regards,
+Steve
+http://{% site "domain" %}
+http://agilitynerd.com/

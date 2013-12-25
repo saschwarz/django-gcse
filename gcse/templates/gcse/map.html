@@ -1,0 +1,398 @@
+{% extends "gcse/base.html" %}
+
+{% block title %}{% site "name" %} - Find Dog Agility Near You!{% endblock %}
+
+{% block link %}
+{{block.super}}
+<link rel="stylesheet" href="http://data.agilitynerd.com/js/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+{% endblock %}
+
+{% block localcss %}
+{{block.super}}
+<style type="text/css" media="all">
+label {font-weight:bold;}
+table.tablesorter {width:100%;}
+table.tablesorter thead th {text-align:center;}
+table.tablesorter tbody td.center {text-align:center;vertical-align:middle;}
+table.tablesorter tbody td.right {text-align:right}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp, table.tablesorter thead tr .header {background-image:none;}
+.topmenuitem {float:left;padding-right:15px;}
+.addressTitle {font-weight:bold;padding-bottom:3px;}
+.moreInfo {float:left;margin-right:15px;}
+.error {color:red;}
+.ui-tabs-nav li a { line-height:0.8em }
+#contentcolumn { padding-top:10px;}
+#directiontabaddress {padding:5px;}
+#directiontab {width:300px;padding:5px;margin-top:0px;vertical-align:top;margin-bottom:10px; height:437px;overflow-y:auto;}
+#directiontab {width:300px;padding:5px;margin-top:0px;vertical-align:top;margin-bottom:10px; height:470px;overflow-y:auto;}
+#googleads {text-align:center;padding-top:15px;}
+#map {float:left;width:650px;height:520px;vertical-align:top;margin-top:0px;margin-left:5px;margin-bottom:0px}
+#placesTable {width:300px;margin-bottom:5px;margin-top:0px;}
+#results {width:300px;height:480px;padding:5px;margin-top:0px;vertical-align:top;overflow-y:auto;}
+#resultsNav {text-align:center;padding:5px;}
+#resultsNav label {padding-right:6px;}
+#searchInputs {margin-bottom:10px;}
+#searchCheckboxes {float:left;padding-left:20px;padding-bottom:20px;}
+#searchCheckboxes label {margin-left:10px;font-size:12px;}
+#startLocation {float:left;}
+#tabs {font-size:11px;float:left;clear:both;width:310px;}
+#tabs {display:none;}
+table.tablesorter tbody tr td.highlight {
+    background-color: #C5D2F1;
+}
+</style>
+<style type="text/css" media="print">
+#div.contentcolumn {margin-left:0px;}
+#googleads, #results, #startLocation, #searchCheckboxes, .leftmenuitem, #tabs ul {display:none}
+#directiontab {overflow-y:visible;}
+</style>
+{% endblock %}
+
+{% block javascript %}
+{{block.super}}
+<script type="text/javascript" src="http://www.google.com/jsapi?key={{ GOOGLE_MAPS_API_KEY }}"></script>
+<script type="text/javascript">
+<!--
+google.load("maps", "2.x");
+google.setOnLoadCallback(initialize);
+var NUM_PER_PAGE = 10;
+var map;
+var directions;
+var geocoder;
+var trafficInfo;
+var trafficDisplayed = true;
+var startMarker;
+var zoom = 4;
+var latlng;
+var gSites;
+var gVisibleLocations = [];
+var gStartPoint;
+var gMask = 0;
+var gCurrentPage = 0;
+var gCurrentDestId = 0;
+var gTabs;
+var label_dict;
+
+function initialize(centerAddress) {
+    if (GBrowserIsCompatible()) {
+        jQuery(window).unload(google.maps.Unload);
+	    map = new google.maps.Map2(document.getElementById("map"));
+	    map.addControl(new google.maps.LargeMapControl());
+	    map.addControl(new google.maps.MapTypeControl());
+	    map.enableGoogleBar();
+	    directions = new google.maps.Directions(map, document.getElementById("directions"));
+	    google.maps.Event.addListener(directions, "error", handleErrors);
+	    geocoder = new google.maps.ClientGeocoder();
+	    // center on USA
+	    gStartPoint = new GLatLng(39.639537, -95.712890);
+	    map.setCenter(gStartPoint, zoom);
+	    // Add all the points
+	    label_dict = { {% for key, value in labels.items %}'{{key}}':{{value}}{% if not forloop.last %},{% endif %}{% endfor %} };
+        gSites = [
+	        {% for site in sites %}
+	    {id:{{site.id}},lat:{{site.lat}},lng:{{site.lng}},url:'{{site.original_url|escape}}',title:'{{site.comment|escape}}',a1:'{{site.address1|escape}}',a2:'{{site.address2|escape}}',c:'{{site.city|escape}}',s:'{{site.state|escape}}',z:'{{site.zipcode|escape}}',t:'{{site.phone|escape}}',value:{{site.label_value}}}{% if not forloop.last %},{% endif %}
+	    {% endfor %}
+	    ];
+	    for (var i in gSites){
+            var pnt = new google.maps.LatLng(gSites[i].lat,gSites[i].lng);
+	        var marker = new google.maps.Marker(pnt);
+	        gSites[i].idx = i;
+	        gSites[i].marker = marker;
+	        gSites[i].pnt = pnt;
+	        gSites[i].dist = (gStartPoint.distanceFrom(pnt) * 0.000621371192).toFixed(0); // convert to miles
+	        google.maps.Event.addListener( marker, 'click', enclose(i, showAddress));
+	    }
+    }
+    // initialize tabs with only results tab visible
+    gTabs = jQuery("#tabs").tabs();
+    gTabs.data("disabled.tabs", [1]);
+    jQuery('#tabs').show();
+    jQuery('#directiontab').hide();
+    gTabs.bind('tabsshow',
+               function(event, ui) {
+                   // only called on click of tab
+                   if (jQuery(ui.panel)[0].id === 'directiontab'){
+                       // wipe out results points and show direction line
+                       setDirections(gCurrentDestId);
+                   } else {
+                       // wipe out direction line and show result points
+                       showPage(gCurrentPage);
+                   }
+               });
+    // hook up the startButton
+    jQuery("#startAddressButton").click(function(){ clickStartButton(); });
+    // enter key is the same as pressing startButton button
+    jQuery("#startAddress").keypress(function(e){
+        if (e.which == 13){
+	        clickStartButton();
+	    }
+    });
+    {% if startaddress %}
+    clickStartButton();
+    {% else %}
+    var defaultAddr = 'Type your start or search location here';
+    jQuery("#startAddress").val(defaultAddr).click(function(){if (jQuery(this).val() == defaultAddr) jQuery(this).val('');});
+    {% endif %}
+};
+
+function enclose(obj, func){
+    var o = obj;
+    return function () {func(obj)};
+}
+
+function updatePlaces(startPoint, onlyCheckboxes){
+    if (jQuery("#startAddress").val() == ""){
+        return;
+    }
+    var mask = 0;
+    jQuery("input[type=checkbox]").each(function(){
+        if (this.checked){
+	        mask |= label_dict[this.id];
+	    }
+    });
+    if (startPoint !== gStartPoint || mask !== gMask){
+        gVisibleLocations = [];
+    }
+    gStartPoint = startPoint;
+    gMask = mask;
+    if (!mask){
+        return;
+    }
+    var site;
+    for (var i in gSites){
+        site = gSites[i];
+	    if (onlyCheckboxes === false){ // calc distance when startPoint changes
+	        site.dist = (startPoint.distanceFrom(site.pnt) * 0.000621371192).toFixed(0); // convert to miles`<
+	    }
+	    if (site.value & mask){
+	        gVisibleLocations.push(site);
+	    }
+    }
+    gVisibleLocations.sort(function(a,b){return a.dist - b.dist;});
+    updateResults(gVisibleLocations, 0, NUM_PER_PAGE);
+    updateMap(gVisibleLocations, 0, NUM_PER_PAGE);
+}
+
+function updateResults(siteList, pageNum, numPerPage){
+    // display a page of numPerPage results
+    places='<div style="text-align:center"><table class="tablesorter" id="placesTable"><thead><tr><th style="width:42px;padding-left:0px;">Miles</th><th>Name</th></thead><tbody>';
+    var matches = '';
+    var site;
+    for (var s=pageNum*numPerPage, l=Math.min(siteList.length, s+numPerPage); s<l; ++s){
+        site = siteList[s];
+	    matches += '<tr><td class="right">'+site.dist+'</td><td id="'+site.idx+'" class="resultRow"><a href="javascript:showAddress('+site.idx+')">'+site.title+'</a><br/>';
+	    matches += (((site.value&label_dict.training)||(site.value&label_dict.facility))? "training" : "");
+	    matches += ((site.value&label_dict.club)? " club" : "");
+	    matches += ((site.value&label_dict.rental)? " rental" : "");
+	    matches += ((site.value&label_dict.equipment)? " equipment" : "");
+	    matches += '</td></tr>';
+    }
+    if (!matches){
+        matches = '<tr><td colspan="6" class="error">No entries matched</td></tr>';
+    }
+    places += matches + '</tbody></table>';
+    places += '<div class="help">*Approximate distances.</div><div id="resultsNav"><label>Results:</label>';
+    if (siteList.length < numPerPage){
+        places += '<label>1-'+siteList.length+'</label>';
+    } else {
+        for (var s=0, l=Math.min(siteList.length/numPerPage, 5); s<l; ++s){
+	        if (s == pageNum){
+		        places += '<label>'+((s*numPerPage)+1)+'-'+((s+1)*numPerPage)+'</label>';
+	        } else {
+		        places += '<label><a href="javascript:showPage('+s+')">'+((s*numPerPage)+1)+'-'+((s+1)*numPerPage)+'</a></label>';
+	        }
+	    }
+    }
+    places += '</div></div>';
+    document.getElementById("placesList").innerHTML = places;
+    var lastHighlighted;
+    jQuery(".resultRow").hover(function(){var t=jQuery(this);
+                                          if (lastHighlighted){
+                                              lastHighlighted.removeClass('highlight');
+                                          }
+                                          lastHighlighted = t;
+                                          t.addClass('highlight');
+                                          showAddress(t[0].id);},
+                               function(){}
+                               );
+    jQuery("#results").show();
+    gTabs.tabs("select", "#results");
+}
+
+function updateMap(siteList, pageNum, numPerPage){
+    // clear existing overlays
+    // find the center and bounding box for the list of points
+    // add them to the map and set the zoom level so they are all visible
+    map.clearOverlays();
+    var minLat=90, maxLat=-90, minLng=180, maxLng=-180;
+    var pnt, lat, lng, dist, site;
+    var latSum = 0, lngSum = 0, num=0, maxDist=0;
+    var numVisible = 0;
+    for (var s=pageNum*numPerPage, l=Math.min(siteList.length, s+numPerPage); s<l; ++s, ++num){
+        site = siteList[s];
+        pnt = site.pnt;
+        lat = pnt.lat();
+	    lng = pnt.lng();
+        dist = Number(site.dist);
+        if (!maxDist || (dist >= maxDist && dist < maxDist+300)){
+            maxDist = dist;
+	        if (lat < minLat) {
+	            minLat = lat;
+            } else if (lat > maxLat){
+	            maxLat = lat;
+	        }
+	        if (lng < minLng) {
+	            minLng = lng;
+	        } else if (lng > maxLng){
+	            maxLng = lng;
+	        }
+	        latSum += lat;
+	        lngSum += lng;
+            ++numVisible;
+        }
+	    map.addOverlay(site.marker);
+    }
+    map.setCenter(new GLatLng(latSum/numVisible, lngSum/numVisible));
+    bounds = new GLatLngBounds(new GLatLng(minLat, minLng), new GLatLng(maxLat, maxLng));
+    desiredZoom = Math.max(map.getBoundsZoomLevel(bounds), 5); // sometimes getBoundsZoomLevel() returns 1
+    map.setZoom(desiredZoom);
+}
+
+function setDirections(id){
+    map.clearOverlays();
+    var fromAddress = jQuery('#startAddress').val();
+    gCurrentDestId = id;
+    var site = gSites[id];
+    var toAddress = site.a1+' '+site.c+', '+site.s+' '+ site.z; // can't use latlng...
+    directions.load("from: " + fromAddress + " to: " + toAddress, { "getSteps":true});
+    if (gTabs.tabs("length") == 1){
+        gTabs.tabs("add", '#directiontab', 'Directions', 1);
+    }
+    var text = '\
+        <div class="addressTitle">'+site.title+'</div>\
+	    <div class="addressLine1">'+site.a1+'</div>\
+	    <div class="addressLine2">'+site.a2+'</div>\
+	    <div class="addressCityStateZip">'+site.c+', '+site.s+' '+ site.z+'</div>';
+    if (site.t){
+        text +='<div class="phone">'+site.t+'</div>';
+    }
+    jQuery('#directiontabaddress').html(text);
+    jQuery('#directiontab').show();
+    gTabs.tabs("select", '#directiontab');
+}
+
+function handleErrors(){
+    if (directions.getStatus().code == G_GEO_UNKNOWN_ADDRESS)
+        alert("No corresponding geographic location could be found for one of the specified addresses. This may be due to the fact that the address is relatively new, or it may be incorrect.\nError code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_SERVER_ERROR)
+        alert("A geocoding or directions request could not be successfully processed, yet the exact reason for the failure is not known.\n Error code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_MISSING_QUERY)
+        alert("The HTTP q parameter was either missing or had no value. For geocoder requests, this means that an empty address was specified as input. For directions requests, this means that no query was specified in the input.\n Error code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_BAD_KEY)
+        alert("The given key is either invalid or does not match the domain for which it was given. \n Error code: " + directions.getStatus().code);
+    else if (directions.getStatus().code == G_GEO_BAD_REQUEST)
+        alert("A directions request could not be successfully parsed.\n Error code: " + directions.getStatus().code);
+    else alert("An unknown error occurred.");
+    jQuery('#startAddress').focus();
+};
+
+function clickStartButton(){
+    var addrStr = jQuery('#startAddress').val();
+    if (addrStr !== ''){
+        startAddress(addrStr, '<div><b>Starting Point:</b><br/>'+addrStr+'</div>'); // async call
+    }
+    jQuery('#tabs').show();
+}
+
+function startAddress(address, node) {
+    if (geocoder) {
+        geocoder.getLatLng(address,function(point) {
+            if (!point) {
+		        alert(address + " not found");
+            } else {
+		        if (startMarker){
+		            map.removeOverlay(startMarker);
+		        }
+		        map.setCenter(point, zoom);
+		        var marker = new google.maps.Marker(point);
+		        startMarker = marker;
+		        google.maps.Event.addListener(startMarker, "click", function() {
+		                                          marker.openInfoWindow(node);
+		                                      });
+		        map.addOverlay(marker);
+		        gStartPoint = point;
+		        updatePlaces(point, false);
+            }
+	    });
+    }
+}
+
+function showAddress(siteIndex){
+    try {
+        var site = gSites[siteIndex];
+	    var html='\
+            <div id="infoWindow">\
+            <div id="address">\
+	        <div class="addressTitle">'+site.title+'</div>';
+        if (site.a1) {
+	        html += '<div class="addressLine1">'+site.a1+'</div><div class="addressLine2">'+site.a2+'</div>';
+	    } else {
+	        html += '<div class="addressLine1" style="padding-bottom:5px">This \'Place\' is in this area.<br/>Contact them for specific location(s).</div>';
+	    }
+	    html += '<div class="addressCityStateZip">';
+	    if (site.c){
+	        html += site.c+', ';
+	    }
+	    html += site.s+' '+ site.z+'</div>';
+	    if (site.t){
+	        html +='<div class="phone">'+site.t+'</div>';
+	    }
+	    html += '</div><dif class="moreInfo">';
+	    if (site.a1){
+	        html += '<a href="javascript:setDirections('+site.idx+');">directions</a>';
+	    }
+	    html += '<a style="padding-left:20px;" target="_blank" href="http://{%site "domain"%}/site/view/'+site.id+'/">more info</a>';
+	    if (site.url){
+	        html += '<a style="padding-left:20px;" target="_blank" href="'+site.url+'">web site</a>';
+	    }
+	    html += '</div></div>';
+	    site.marker.openInfoWindow(html);
+	    map.panTo(site.pnt);
+    } catch(e){
+        alert(e);
+    }
+}
+
+function showPage(pageNum){
+    gCurrentPage = pageNum;
+    updateResults(gVisibleLocations, pageNum, NUM_PER_PAGE);
+    updateMap(gVisibleLocations, pageNum, NUM_PER_PAGE);
+}
+//-->
+</script>
+{% endblock %}
+
+{% block content %}
+  <div id="searchInputs">
+  <div id="startLocation"><input type="text" id="startAddress" size="40" value="{{startaddress}}"/><input name="button" type="button" value="Search Map" id="startAddressButton"/></div>
+  <div id="searchCheckboxes">
+  <label for="training" style="margin-left:0px;">Training/Trainers:</label><input type="checkbox" checked="checked" id="training" onclick="updatePlaces(gStartPoint, true)"/>
+  <label for="club">Clubs:</label><input type="checkbox" checked="checked" id="club" onclick="updatePlaces(gStartPoint, true)"/>
+  <label for="rental">Ring Rental:</label><input type="checkbox" checked="checked" id="rental" onclick="updatePlaces(gStartPoint, true)"/>
+  <label for="equipment">Equipment:</label><input type="checkbox" checked="checked" id="equipment" onclick="updatePlaces(gStartPoint, true)"/>
+  </div>
+  </div>
+  <div id="tabs">
+      <ul>
+	<li><a href="#results"><span>Results</span></a></li>
+      </ul>
+      <div id="results">
+        <div id="placesList"></div>
+      </div>
+      <div id="directiontab">
+          <div id="directiontabaddress"></div>
+          <div id="directions"></div>
+      </div>
+  </div><!-- end of tabs -->
+  <div id="map"></div>
+{% endblock %}

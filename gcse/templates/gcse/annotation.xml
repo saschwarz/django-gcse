@@ -1,0 +1,18 @@
+<Annotations>
+{% spaceless %}
+{% if annotations %}
+    {% for annotation in annotations %}
+    <Annotation about="{{ annotation.about }}">
+	<Label name="{{annotation.feed_label.name}}" />
+        {% for label in annotation.labels.all %}
+	<Label name="{{label.name}}" />
+        {% endfor %}
+	{% comment %}
+        <AdditionalData attribute="original_url" value="{{annotation.original_url}}"/>
+        <Comment>{{annotation.comment}}</Comment>
+	{% endcomment %}
+    </Annotation>
+    {% endfor %}
+{% endif %}
+{% endspaceless %}
+</Annotations>

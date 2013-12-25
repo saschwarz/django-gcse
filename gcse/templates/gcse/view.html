@@ -1,0 +1,183 @@
+{% extends "gcse/3column_with_menu.html" %}
+{% load setting %}
+{% load markup %}
+
+{% block title %}{% site "name" %} - {{site.comment|escape}}{% endblock %}
+
+{% block meta %}
+{{block.super}}
+{% if site.description %}
+<meta name="Description" content="{{site.description}}">
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+{{block.super}}
+{% if site.state %}
+<script type="text/javascript" src="http://www.google.com/jsapi?key={% setting "GOOGLE_MAPS_API_KEY" %}"></script>
+<script type="text/javascript">
+<!--
+    google.load("maps", "2.x");
+
+    var map;
+    var directions;
+    var geocoder;
+    var trafficInfo;
+    var trafficDisplayed = true;
+    var curPoint;
+    var gMarker;
+
+    // Call this function when the page has been loaded
+    function initialize(centerAddress) {
+      if (GBrowserIsCompatible()) {
+        map = new google.maps.Map2(document.getElementById("map"));
+	map.addControl(new google.maps.LargeMapControl());
+        geocoder = new google.maps.ClientGeocoder();
+      }
+    };
+    function setMarker(point, node){
+        map.setCenter(point, 13);
+	var marker = new google.maps.Marker(point);
+	gMarker = marker;
+	google.maps.Event.addListener(marker, "click", function() {
+	    marker.openInfoWindow(node);
+        });
+        map.addOverlay(marker);
+	showAddress(marker, node);
+    };
+    function noDirections(){
+	// find directions link and hide it
+	jQuery("#directionsLink").hide();
+	jQuery("#infoDirectionsLink").hide();
+	jQuery("#noInfoDirectionsLink").show();
+    };
+    function noMap(){
+	// find directions link and hide it
+	jQuery("#directionsLink").hide();
+	// find map and hide it
+	jQuery("#map").hide();
+    };
+    function initAddress(lat, lng, address, node) {
+      // set point based on lat, lng
+      if (lat && lng){
+          curPoint = new GLatLng(lat, lng);
+          setMarker(curPoint, node);
+      } else if (geocoder) {
+          geocoder.getLatLng(address,
+	      function(point){
+	          if (!point) {
+		      noDirections();
+		      geocoder.getLatLng(address.split(",")[1],
+		          function(point){
+			      if (!point) {
+				  noMap();
+		              } else {
+			      	   curPoint = point;
+				   setMarker(curPoint, node);
+			      }
+			  });
+		  } else {
+		      curPoint = point;
+		      setMarker(curPoint, node);
+		  }
+	      });
+      }
+    };
+    function showAddress(marker, node){
+        marker.openInfoWindow(node);
+    }
+    google.setOnLoadCallback(function(){initialize(); initAddress({{site.lat|default:"undefined"}}, {{site.lng|default:"undefined"}}, "{{site.address1|escape}}, {{site.city|escape}} {{site.state|escape}} {{site.zipcode|escape}} {{site.country|escape}}", document.getElementById("infoWindow"))});
+-->
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+    {% load shrinkthewebtags %}
+    <h1 style="text-align:center;">{{site.comment|escape}}</h1>
+    {% if site.description %}
+    <p id="description">{{site.description|markdown}}</p>
+    {% endif %}
+    <div {% if site.state and site.original_url %}style="float:left;"{% endif %}>
+    {% if site.state and site.original_url %}
+    <table style="text-align:left;margin-top:13px;width:400px;">
+    {% else %}
+    <table style="text-align:left;margin-top:13px;width:100%;">
+    {% endif %}
+	<tr><td style="width:150px;"><b>Website:</b></td><td><a href="{{site.original_url}}">{{site.original_url}}</a></td></tr>
+        <tr><td><b>Email:</b></td><td>{% if site.email %}{% load mailhide %}{{site.email|mailhide}}{%endif%}</td></tr>
+    {% if site.phone %}
+        <tr><td><b>{{labels.phone}}:</b></td><td>{{site.phone|escape}}</td></tr>
+    {% endif %}
+    {% if site.shouldHaveAddress %}
+      {% if site.hasAddress %}
+        <tr><td><b>{{labels.address1}}:</b></td><td>{{site.address1|escape}}</td></tr>
+	{% if site.address2 %}
+        <tr><td><b>{{labels.address2}}:</b></td><td>{{site.address2|escape}}</td></tr>
+        {% endif %}
+        <tr><td><b>{{labels.city}}:</b></td><td>{{site.city|escape}}</td></tr>
+        <tr><td><b>{{labels.state}}:</b></td><td>{{site.state|escape}}</td></tr>
+        <tr><td><b>{{labels.zipcode}}:</b></td><td>{{site.zipcode|escape}}</td></tr>
+        <tr><td><b>{{labels.country}}:</b></td><td>{{site.get_country_display|escape}}</td></tr>
+      {% endif %}
+    {% endif %}
+    </table>
+</div>
+{% if site.state and site.original_url %}
+   <p style="float:right;text-align:center;margin-top:5px;padding-top:8px;margin-bottom:0px;"><a href="{{site.original_url}}" title="Click to visit: {{site.comment|escape}}">
+   {% stwimage site.original_url '' stwinside=1 stwxmax=200 stwymax=200 stwfull=1 stwdelay=15 %}</a></p>
+  <br style="clear:both"/>
+{% endif %}
+    <table style="text-align:left;margin-top:0px;width:100%;">
+        <tr><td colspan="2"><b>Provides:</b></td></tr>
+        <tr><td colspan="2"><table style="margin-left:15px">
+	    {% for label in site.labels.all %}
+	    {% if not label.hidden %}
+	    <tr><td style="width:75px;vertical-align:top;"><b>{{label.name|capfirst|escape}}</b></td><td>{{label.description}}</td></tr>
+	    {% endif %}
+	    {% endfor %}
+	    </table>
+            </td>
+	</tr>
+      {% if site.shouldHaveAddress and not site.state %}
+        <tr><td colspan="2" style="color:green"><b>Based on the "Provides" selections above, this entry may have a physical address.</b></td></tr>
+      {% endif %}
+    </table>
+
+    <p style="font-size:14px;font-weight:bold;padding-bottom:10px;">
+      <span style="float:left">Can you improve this entry? Please <a href="../../edit/{{site.id|escape}}/">edit it</a> *anyone* can!</span>
+      {% if site.hasAddress %}<span id="directionsLink" style="float:right;margin-right:20px;"><a href="{% url 'cse_directions' site.id %}">Get Driving Directions<img src="http://data.agilitynerd.com/images/15star.png"/></a></span> {% endif %}
+      <br style="clear:both"/>
+    </p>
+{% if site.state %}
+    <div style="display:none">
+      <div id="infoWindow">
+        <div id="address">
+	<div class="addressTitle">{{site.comment|escape}}</div>
+        {% if site.address1 %}
+	<div class="addressLine1">{{site.address1|escape}}</div>
+	<div class="addressLine2">{{site.address2|escape}}</div>
+        {% else %}
+          {% if site.webOnly %}
+	<div class="addressLine1" style="margin-bottom:5px;">This web "Place" is in this area.</div>
+          {% else %}
+	<div class="addressLine1" style="margin-bottom:5px;">This business/service works in this area.<br/>Contact them for location/directions.</div>
+	  {% endif %}
+	{% endif %}
+	<div class="addressCityStateZip">{{site.city|escape}} {{site.state|escape}} {{site.country|escape}}</div>
+      </div>
+  {% if site.hasAddress %}
+  <div id="navigation">
+    <div class="spacer"></div>
+    <div id="infoDirectionsLink" class="navigation"><a href="{% url 'cse_directions' site.id %}">Get Directions</a></div>
+    <div id="noInfoDirectionsLink" class="navigation" style="display:none">Google can't map this address.<br/>Contact them for driving directions.</div>
+  </div>
+  {% endif %}
+  </div>
+  </div>
+  <div id="map" style="height: 400px;vertical-align:top;margin-top:10px;margin-right:20px"></div>
+{% else %}
+  <p style="text-align:center"><a href="{{site.original_url}}" title="Click to visit: {{site.comment|escape}}">
+   {% stwimage site.original_url '' stwinside=1 stwxmax=320 stwymax=320 stwfull=1 stwdelay=15 %}</a></p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+<table class="annotations">
+<tr><th>Name</th><th>City/Town</th><th>State/Province</th></tr>
+{% if annotations %}
+    {% for annotation in annotations %}
+    <tr><td class="name">{% if annotation.original_url %}<a href="{{annotation.original_url}}">{% endif %}{{annotation.comment|escape}}{% if annotation.original_url %}</a>{% endif %}
+        <td class="city">{{annotation.city|default:""}}</td><td class="state">{{annotation.state|default:""}}</td>
+    </tr>
+    {% endfor %}
+{% endif %}
+</table>
+

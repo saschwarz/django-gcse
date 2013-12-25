@@ -1,0 +1,27 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+{% block title %}{% site "name" %} - Browse All {{label|capfirst}} Places{% endblock %}
+
+{% block content %}
+<h1>{{label|capfirst}} Places in {% site "name" %}</h1>
+<p>These <a href="#" title="A 'Place' is the {% site "name" %} shorthand for a business, website, club, facility, equipment vendor, blog etc.">places</a> have the <b>"{{label|capfirst}}"</b> label in the {% site "name" %} search database.</p>
+<table class="searchResults" style="width:100%"><tbody>
+  <tr><th>Name</th><th>Web Site</th><th>Details</th></tr>
+    {% for site in annotations.object_list %}
+        <tr class="{% cycle 'odd' 'even' %}"><td>{{ site.comment|escape }}</td><td><a href="{{site.original_url}}">{{ site.original_url|escape }}</a></td><td style="text-align:center"><a href="{{site.get_absolute_url}}">View</a></td></tr>
+    {% endfor %}
+</tbody></table>
+<div class="pagination">
+    <span class="step-links">
+        {% if annotations.has_previous %}
+            <a href="?page={{ annotations.previous_page_number }}">previous</a>
+        {% endif %}
+        <span class="current">
+            Page {{ annotations.number }} of {{ annotations.paginator.num_pages }}
+        </span>
+        {% if annotations.has_next %}
+            <a href="?page={{ annotations.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

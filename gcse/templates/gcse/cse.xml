@@ -1,0 +1,63 @@
+{% load setting %}
+<GoogleCustomizations version="1.0">
+<CustomSearchEngine id="kueofys2mdy" creator="001042720131993941673" version="1.0" volunteers="false" keywords="dog agility training" visible="true" encoding="UTF-8" top_refinements="4">
+  <Title>AgilityNerd Dog Agility Search</Title>
+  <Description>Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores</Description>
+  <Context refinementsTitle="Refine results for $q:">
+    <!-- max of FOUR Facets each with at most FOUR FacetItems -->
+    <Facet>
+      <FacetItem title="Blogs">
+        <Label name="blogs" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Clubs">
+      <Label name="club" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Equipment">
+      <Label name="equipment" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Forums">
+      <Label name="forum" mode="FILTER"/>
+      </FacetItem>
+    </Facet>
+    <Facet>
+      <FacetItem title="General">
+      <Label name="general" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Organizations">
+      <Label name="organization" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Services">
+      <Label name="service" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Stores">
+      <Label name="store" mode="FILTER"/>
+      </FacetItem>
+    </Facet>
+    <Facet>
+      <FacetItem title="Training">
+      <Label name="training" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Training Facilities">
+      <Label name="facility" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Video">
+      <Label name="video" mode="FILTER"/>
+      </FacetItem>
+      <FacetItem title="Ring Rental">
+      <Label name="rental" mode="FILTER"/>
+      </FacetItem>
+    </Facet>
+    <BackgroundLabels>
+      <Label name="_cse_kueofys2mdy" mode="FILTER" weight="1" />
+      <Label name="_cse_exclude_kueofys2mdy" mode="ELIMINATE" weight="1" />
+    </BackgroundLabels>
+  </Context>
+  <LookAndFeel>
+    <Logo url="http://data.agilitynerd.com/images/AgilityNerd_SideBySide.gif" destination="http://agilitynerd.com" height="51" />
+  </LookAndFeel>
+  <SubscribedLinks />
+  <AdSense />
+  <EnterpriseAccount />
+</CustomSearchEngine>
+<Include type="Annotations" href="http://{% site "domain"%}{% url 'cse_annotations' %}"/>
+</GoogleCustomizations>

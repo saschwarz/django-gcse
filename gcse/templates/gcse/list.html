@@ -1,0 +1,9 @@
+<ul>
+{% if annotations %}
+    {% for annotation in annotations %}
+    <li>
+        <a href="{{annotation.original_url}}">{{annotation.comment|escape}}</a>
+    </li>
+    {% endfor %}
+{% endif %}
+</ul>
