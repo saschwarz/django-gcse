@@ -62,12 +62,12 @@ class Annotation(models.Model):
                                max_length=256,
                                blank=False,
                                help_text=_('Name/title of the site'))
-    # allow as null for non-internet sites
+    # allow blank for non-internet sites
     original_url = models.CharField(_('Web Site URL'),
                                     max_length=256,
                                     blank=True,
                                     help_text=_('URL of the site'))
-    # allow as null for non-internet sites
+    # allow blank for non-internet sites
     about = models.CharField(verbose_name=_('Google Regexp'),
                              max_length=512,
                              blank=True,
@@ -93,19 +93,45 @@ class Annotation(models.Model):
     description = models.CharField(_('Description'),  max_length=512, blank=True)
 
     # Fields not visible to end users
-    submitter_email = models.EmailField(verbose_name=_('Submitter Email'), max_length=128, blank=True, help_text=_('Email address of the person who submitted this site information'))
-    feed_label = models.ForeignKey(Label, verbose_name=_('Feed Label'), related_name='feed_label', blank=True, null=True, help_text=_('The label used by Google to identify this feed')) # end users won't view/edit this setting; only admins.
+    submitter_email = models.EmailField(verbose_name=_('Submitter Email'),
+                                        max_length=128,
+                                        blank=True,
+                                        help_text=_('Email address of the person who submitted this site information'))
+    feed_label = models.ForeignKey(Label,
+                                   verbose_name=_('Feed Label'),
+                                   related_name='feed_label',
+                                   blank=True,
+                                   null=True,
+                                   help_text=_('The label used by Google to identify this feed')) # end users won't view/edit this setting; only admins.
+
     STATUS_CHOICES = (
         ('S', 'Submitted'),
         ('A', 'Active'),
         ('D', 'Deleted'),
     )
-    status = models.CharField(verbose_name=_('status'), max_length=1, choices=STATUS_CHOICES, default='A')
-    parent_version = models.ForeignKey('self', editable=False, blank=True, null=True, verbose_name=_('Parent Version'), related_name='newer_versions', help_text=_('Set to newer Annotation instance when user modifies this instance'))
+    status = models.CharField(verbose_name=_('status'),
+                              max_length=1,
+                              choices=STATUS_CHOICES,
+                              default='A')
+    parent_version = models.ForeignKey('self',
+                                       editable=False,
+                                       blank=True,
+                                       null=True,
+                                       verbose_name=_('Parent Version'),
+                                       related_name='newer_versions',
+                                       help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
     # Could use gis Point field but don't need that much functionality
-    lat = models.DecimalField(verbose_name=_('Latitude'), max_digits=10, decimal_places=7, null=True, blank=True) # Enough precision for Google Maps
-    lng = models.DecimalField(verbose_name=_('Longitude'), max_digits=10, decimal_places=7, null=True, blank=True)
+    lat = models.DecimalField(verbose_name=_('Latitude'),
+                              max_digits=10,
+                              decimal_places=7,
+                              null=True,
+                              blank=True)  # Enough precision for Google Maps
+    lng = models.DecimalField(verbose_name=_('Longitude'),
+                              max_digits=10,
+                              decimal_places=7,
+                              null=True,
+                              blank=True)
 
     # TODO SAS Need googility migration for this field
     # https://developers.google.com/custom-search/docs/ranking#score
@@ -129,13 +155,15 @@ class Annotation(models.Model):
         if not self.id:
             self.created = now
         self.modified = now
-        super(Annotation, self).save(force_insert, force_update, *args, **kwargs)
+        super(Annotation, self).save(force_insert, force_update,
+                                     *args, **kwargs)
 
     def wasAdded(self):
         return self.modified == self.created
 
     def shouldHaveAddress(self):
-        """Does this annotation have labels that indicate that it could have a physical address"""
+        """Does this annotation have Labels that indicate
+        that it could have a physical address"""
         for label in self.labels.all():
             if label.physical:
                 return True
@@ -159,7 +187,8 @@ class Annotation(models.Model):
         comment's first letters. For use in the view to give alpha based
         tabs for browsing"""
         cursor = connection.cursor()
-        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM gcse_annotation order by substr(comment, 1, 1)")
+        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM "
+                       "gcse_annotation order by substr(comment, 1, 1)")
         existent = [str(i[0]) for i in cursor.fetchall()]
         results = []
         for i in ascii_letters[26:] + "0123456789":
@@ -168,11 +197,15 @@ class Annotation(models.Model):
                 style = "selected"
             elif i in existent:
                 style = "active"
-            results.append({'i': i, 'style':style})
+            results.append({'i': i, 'style': style})
         return results
 
     def labels_as_links(self):
-        return "&nbsp;".join(['<a href="%s?label=%s">%s</a>' % (reverse('browse_by_label'), l.name, l.name) for l in self.labels.all()])
+        return "&nbsp;".join(
+            ['<a href="%s?label=%s">%s</a>' % (
+                reverse('browse_by_label'), l.name, l.name)
+             for l in self.labels.all()]
+            )
 
 
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
@@ -193,7 +226,8 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     def startElement(self, name, attributes):
         # print "startElement", name
         if name == "Annotation":
-            self.curAnnotation, found = Annotation.objects.get_or_create(about=attributes["about"])
+            self.curAnnotation, found = Annotation.objects.\
+                get_or_create(about=attributes["about"])
             # print self.curAnnotation, found
         elif name == "AdditionalData":
             # print name, attributes

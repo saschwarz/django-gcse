@@ -18,6 +18,7 @@ try:
             "django.contrib.contenttypes",
             "django.contrib.sites",
             "gcse",
+            "django_mailhide",
         ],
         SITE_ID=1,
         NOSE_ARGS=['-s'],

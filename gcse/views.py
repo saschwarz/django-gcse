@@ -194,8 +194,6 @@ def edit(request, id=None, add=False, template='gcse/edit.html'):
                               {'form': form,
                                'add': add,
                                'email': email,
-                               'captcha_public_key': settings.RECAPTCHA_PUBLIC_KEY,
-                               'captcha_error': captcha_error,
                                'original_url': a and a.original_url or ""},
                               context_instance=RequestContext(request))
 
