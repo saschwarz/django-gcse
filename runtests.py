@@ -19,9 +19,13 @@ try:
             "django.contrib.sites",
             "gcse",
             "django_mailhide",
+            "stw",
         ],
         SITE_ID=1,
         NOSE_ARGS=['-s'],
+        GOOGLE_MAPS_API_KEY='',
+        SHRINK_THE_WEB={'stwaccesskeyid': '',
+                        }
     )
 
     from django_nose import NoseTestSuiteRunner

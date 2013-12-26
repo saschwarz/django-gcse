@@ -1,6 +1,5 @@
-{% extends "gcse/3column_with_menu.html" %}
+{% extends "gcse/base.html" %}
 {% load setting %}
-{% load markup %}
 
 {% block title %}{% site "name" %} - {{site.comment|escape}}{% endblock %}
 
@@ -96,7 +95,7 @@
     {% load shrinkthewebtags %}
     <h1 style="text-align:center;">{{site.comment|escape}}</h1>
     {% if site.description %}
-    <p id="description">{{site.description|markdown}}</p>
+    <p id="description">{{site.description}}</p>
     {% endif %}
     <div {% if site.state and site.original_url %}style="float:left;"{% endif %}>
     {% if site.state and site.original_url %}

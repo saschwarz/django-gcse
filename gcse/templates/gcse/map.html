@@ -1,11 +1,7 @@
 {% extends "gcse/base.html" %}
+{% load setting %}
 
 {% block title %}{% site "name" %} - Find Dog Agility Near You!{% endblock %}
-
-{% block link %}
-{{block.super}}
-<link rel="stylesheet" href="http://data.agilitynerd.com/js/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-{% endblock %}
 
 {% block localcss %}
 {{block.super}}

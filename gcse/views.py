@@ -120,7 +120,7 @@ def map(request, template='gcse/map.html'):
     for site in sites:
         site.label_value = _labels_to_mask(site.labels.all(), label_bitmasks)
     return render_to_response(template,
-                              {'sites' : sites,
+                              {'sites': sites,
                                'labels': label_bitmasks,
                                'startaddress': startaddress,
                                'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY},
