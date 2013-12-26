@@ -1,12 +1,15 @@
-import unittest
 import xml.sax
+from django.test import TestCase
+from django.test.utils import override_settings
+
 from gcse import models, views
 
 
-class AnnotationHandlerTest(unittest.TestCase):
+@override_settings(GCSE_LABEL_NAMES = ["_cse_kueofys2mdy",])
+class AnnotationHandlerTest(TestCase):
 
     def testParseWithAmpersand(self):
-        str='''<Annotations file="./clubsxml">
+        str = '''<Annotations file="./clubsxml">
   <Annotation about="www.luckydogagility.com/*">
       <Label name="_cse_kueofys2mdy" />
       <Label name="facility" />
@@ -23,7 +26,7 @@ class AnnotationHandlerTest(unittest.TestCase):
         self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
 
     def testWithMakeAnnotations(self):
-        str='''<Annotation about="www.google.com/cse/tools/makeannotations?url=http%3A%2F%2Fwww.pacngorec.com%2Fpacngorec_home.htm&amp;pattern=exact&amp;label=_cse_kueofys2mdy&amp;label=_csefeed_kueofys2mdy" timestamp="0x000451ea1aeb78b6" href="CqABd3d3Lmdvb2dsZS5jb20vY3NlL3Rvb2xzL21ha2Vhbm5vdGF0aW9ucz91cmw9aHR0cCUzQSUyRiUyRnd3dy5wYWNuZ29yZWMuY29tJTJGcGFjbmdvcmVjX2hvbWUuaHRtJnBhdHRlcm49ZXhhY3QmbGFiZWw9X2NzZV9rdWVvZnlzMm1keSZsYWJlbD1fY3NlZmVlZF9rdWVvZnlzMm1keRC28a3Xob2UAg" feed="true">
+        str = '''<Annotation about="www.google.com/cse/tools/makeannotations?url=http%3A%2F%2Fwww.pacngorec.com%2Fpacngorec_home.htm&amp;pattern=exact&amp;label=_cse_kueofys2mdy&amp;label=_csefeed_kueofys2mdy" timestamp="0x000451ea1aeb78b6" href="CqABd3d3Lmdvb2dsZS5jb20vY3NlL3Rvb2xzL21ha2Vhbm5vdGF0aW9ucz91cmw9aHR0cCUzQSUyRiUyRnd3dy5wYWNuZ29yZWMuY29tJTJGcGFjbmdvcmVjX2hvbWUuaHRtJnBhdHRlcm49ZXhhY3QmbGFiZWw9X2NzZV9rdWVvZnlzMm1keSZsYWJlbD1fY3NlZmVlZF9rdWVvZnlzMm1keRC28a3Xob2UAg" feed="true">
     <Label name="_cse_kueofys2mdy" />
     <Label name="equipment"/>
     <AdditionalData attribute="original_url" value="http://www.pacngorec.com/pacngorec_home.htm" />
@@ -37,7 +40,7 @@ class AnnotationHandlerTest(unittest.TestCase):
         self.assertEqual(annotation.feed_label.name, "_cse_kueofys2mdy")
 
     def testWithErrorOnOriginalURL(self):
-        str='''<Annotation about="agilitynerd.com/*" timestamp="0x000420938c4e0bb7" href="ChFhZ2lsaXR5bmVyZC5jb20vKhC3l7jiuJKIAg">
+        str = '''<Annotation about="agilitynerd.com/*" timestamp="0x000420938c4e0bb7" href="ChFhZ2lsaXR5bmVyZC5jb20vKhC3l7jiuJKIAg">
     <Label name="_cse_kueofys2mdy" />
     <Label name="blog" />
     <Label name="video" />
@@ -52,17 +55,18 @@ class AnnotationHandlerTest(unittest.TestCase):
         self.assertEqual(annotation.original_url, "http://agilitynerd.com/")
 
 
-class AnnotationTest(unittest.TestCase):
+class AnnotationTest(TestCase):
     def setUp(self):
         hiddenLabel = models.Label(name="hidden 1",
                                    description="hidden 1 desc",
-                                   hidden=True, physical=False);
+                                   hidden=True, physical=False)
         hiddenLabel.save()
         label1 = models.Label(name="label 1",
                               description="label 1 desc",
-                              hidden=False, physical=True);
+                              hidden=False, physical=True)
         label1.save()
-        self.annotation = models.Annotation(comment="Site Name", original_url="http://example.com")
+        self.annotation = models.Annotation(comment="Site Name",
+                                            original_url="http://example.com")
         self.annotation.save()
         self.annotation.labels.add(hiddenLabel)
         self.annotation.labels.add(label1)
@@ -89,14 +93,16 @@ class AnnotationTest(unittest.TestCase):
         self.assertTrue(self.annotation.shouldHaveAddress())
 
 
-class ViewLabels(unittest.TestCase):
+class ViewLabels(TestCase):
     """Requires Labels in database"""
     class MockLabel:
         def __init__(self, name):
             self.name = name
 
     def setUp(self):
-        self._all_labels = [ViewLabels.MockLabel('one'), ViewLabels.MockLabel('two'), ViewLabels.MockLabel('three')]
+        self._all_labels = [ViewLabels.MockLabel('one'),
+                            ViewLabels.MockLabel('two'),
+                            ViewLabels.MockLabel('three')]
 
     def test_all_labels_to_bitmasks_all_in_dict(self):
         results = views._all_labels_to_bitmasks(self._all_labels)
