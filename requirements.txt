@@ -3,5 +3,5 @@ django-stw
 #django-recaptcha==0.0.6
 # version that supports django 1.6+
 -e git://github.com/saschwarz/django-recaptcha.git#egg=django-recaptcha
-pip install -e git+https://bitbucket.org/absolwenciifpw/django-mailhide/master.zip#egg=django-mailhide
+-e git+https://bitbucket.org/absolwenciifpw/django-mailhide/master.zip#egg=django-mailhide
 pycrypto
