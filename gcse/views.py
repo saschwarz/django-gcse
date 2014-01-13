@@ -11,9 +11,10 @@ from django.core.mail import mail_managers
 from django.core import urlresolvers
 from django.contrib.sites.models import Site
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 from gcse.models import Annotation, Label
-from gcse.forms import AnnotationForm
+from gcse.forms import PlaceForm
 from model_fields import get_labels_for
 #from recaptcha.client import captcha
 
@@ -29,19 +30,19 @@ def indexXML(request, template='gcse/annotation.xml'):
     """
     return render_to_response(
         template,
-        {'annotations': Annotation.objects.filter(status='A').exclude(about=''),
+        {'annotations': Annotation.active.exclude(about=''),
          }
         )
 
 
 def index(request, num_annotations=5, template='index.html'):
-    """Render main page"""
-    active = Annotation.objects.filter(status='A')
+    """Render main page with lists of recently created and recently modified Annotations"""
+    active = Annotation.active
     return render_to_response(template,
                               {
-                              'created': active.exclude(comment='').order_by('-created')[:num_annotations],
-                              'modified': active.exclude(comment='').extra(where=['gcse_annotation.modified != gcse_annotation.created']).order_by('-modified')[:num_annotations],
-                              },
+            'created': active.exclude(comment='').order_by('-created')[:num_annotations],
+            'modified': active.exclude(comment='').extra(where=['gcse_annotation.modified != gcse_annotation.created']).order_by('-modified')[:num_annotations],
+            },
                               context_instance=RequestContext(request)
                               )
 
@@ -53,7 +54,7 @@ def search(request, num=20, template="gcse/search.html"):
             Q(original_url__icontains=query) |
             Q(comment__icontains=query)
         )
-        paginator = Paginator(Annotation.objects.filter(status='A').filter(qset).distinct().order_by('comment'), num)
+        paginator = Paginator(Annotation.active.filter(qset).distinct().order_by('comment'), num)
     else:
         paginator = Paginator([], num)
 
@@ -74,6 +75,7 @@ def search(request, num=20, template="gcse/search.html"):
                                "query": query
                                },
                               context_instance=RequestContext(request))
+
 
 def view(request, id, template='gcse/view.html'):
     """Display an end user read only view of the site information"""
@@ -115,7 +117,7 @@ def map(request, template='gcse/map.html'):
     """Display map with local search capability"""
     # Get all sites with lat and lng set so they can be mapped w/o
     startaddress = request.GET.get("startaddress", '')
-    sites = Annotation.objects.filter(status='A').exclude(lat=None).exclude(lng=None)
+    sites = Annotation.active.exclude(lat=None).exclude(lng=None)
     label_bitmasks = _all_labels_to_bitmasks(Label.objects.filter(hidden=False).order_by('name'))
     for site in sites:
         site.label_value = _labels_to_mask(site.labels.all(), label_bitmasks)
@@ -128,14 +130,18 @@ def map(request, template='gcse/map.html'):
 
 
 def edit_update_email(object):
+    """
+    Send email to managers when a change to an Annotation/Place has been
+    submitted by an end user.
+    """
     admin_url = urlresolvers.reverse('admin:cse_annotation_change',
                                      args=(object.id,))
-    email_body = "Annotation added/edited: http://%s%s admin: http://%s%s" % (
+    email_body = _("Annotation added/edited: http://%s%s admin: http://%s%s") % (
         Site.objects.get_current().domain,
         object.get_absolute_url(),
         Site.objects.get_current().domain,
         admin_url)
-    mail_managers("Annotation Added/Edited", email_body)
+    mail_managers(_("Annotation Added/Edited"), email_body)
 
 
 def edit(request, id=None, add=False, template='gcse/edit.html'):
@@ -159,7 +165,7 @@ def edit(request, id=None, add=False, template='gcse/edit.html'):
         if id: # update existing entry
             instance = Annotation.objects.get(pk=id)
             # replace database instance's values with form's values
-            form = AnnotationForm(data=request.POST, instance=instance)
+            form = PlaceForm(data=request.POST, instance=instance)
             if captcha_error is '' and form.is_valid():
                 newInstance = form.save(commit=False)
                 if newInstance.state != 'nonn':
@@ -175,7 +181,7 @@ def edit(request, id=None, add=False, template='gcse/edit.html'):
                     edit_update_email(newInstance)
                 return HttpResponseRedirect(reverse('cse_thanks'))
         else:  # new entry
-            form = AnnotationForm(request.POST)
+            form = PlaceForm(request.POST)
             if captcha_error is '' and form.is_valid():
                 instance = form.save(commit=False)
                 instance.status = 'S'
@@ -186,9 +192,9 @@ def edit(request, id=None, add=False, template='gcse/edit.html'):
     else:
         if id:
             a = get_object_or_404(Annotation, pk=id)
-            form = AnnotationForm(instance=a)
+            form = PlaceForm(instance=a)
         else:
-            form = AnnotationForm()
+            form = PlaceForm()
     email = a and a.email != '' and a.email or ''
     return render_to_response(template,
                               {'form': form,
@@ -202,19 +208,6 @@ def results(request, template='gcse/results.html'):
     """Render CSE results"""
     return render_to_response(template,
                               context_instance=RequestContext(request))
-
-
-@never_cache
-def todo(request, template='gcse/todo.html'):
-    """Render a page of Annotations requiring more data in random order"""
-    #    annotations = Annotation.objects.exclude(comment='').filter(Q(labels__name__exact='club') | Q(labels__name__exact='facility') |  Q(labels__name__exact='training')).filter(status='A', state=None).distinct().order_by('?')[:25]
-    annotations = Annotation.objects.exclude(comment='').filter(Q(labels__name__exact='club') | Q(labels__name__exact='facility') |  Q(labels__name__exact='training')).filter(status='A', state=None).filter(newer_versions__isnull=True).order_by('?')
-    return render_to_response(template,
-                              {"annotations": annotations[:50],
-                               "numtodo": annotations.count()
-                               },
-                              context_instance=RequestContext(request))
-
 
 def browse_by_label_tabbed(request, template='gcse/browse_by_label_tabbed.html'):
     labels = [
@@ -283,6 +276,7 @@ class AjaxViewAnnotation:
     def json_encoder(cls, inst):
         return {'fields':{'comment':inst.comment, 'labels':inst.labels, 'city':inst.city, 'state':inst.state}}
 
+
 def ajax_annotation(request, label):
     """Ajax needed by  jqgrid. This is not generic nor the best code you can have
     but for teaching purposes I prefer to sacrifice style.
@@ -299,7 +293,7 @@ def ajax_annotation(request, label):
     except Exception:
         raise Http404
     # Here goes the model.
-    query = Annotation.objects.filter(status='A').filter(Q(labels__name__exact=label))
+    query = Annotation.active.filter(Q(labels__name__exact=label))
 
     # We compute what we are going to present in the grid
     if request.GET.get('_search')=='true':
@@ -336,7 +330,7 @@ def ajax_annotation(request, label):
     return HttpResponse(query, mimetype='application/json')
 
 def browse_by_label(request, label, template='gcse/browse_by_label_div.html'):
-    query_set = Annotation.objects.filter(status='A').filter(labels__name__exact=label).distinct().order_by('comment')
+    query_set = Annotation.active.filter(labels__name__exact=label).distinct().order_by('comment')
     paginator = Paginator(query_set, 20)
 
     # Make sure page request is an int. If not, deliver first page.
@@ -356,6 +350,7 @@ def browse_by_label(request, label, template='gcse/browse_by_label_div.html'):
                                },
                               context_instance=RequestContext(request))
 
+
 def browse(request, q="A", num=20, template='gcse/browse.html'):
     """Render the Annotations in alphabetical order in a paged manner"""
     query = request.GET.get('q', q)
@@ -363,7 +358,7 @@ def browse(request, q="A", num=20, template='gcse/browse.html'):
         qset = (
             Q(comment__istartswith=query)
         )
-        paginator = Paginator(Annotation.objects.filter(status='A').filter(qset).distinct().order_by('comment'), num)
+        paginator = Paginator(Annotation.active.filter(qset).distinct().order_by('comment'), num)
     else:
         paginator = Paginator([], num)
 

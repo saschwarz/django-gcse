@@ -5,7 +5,6 @@ from django.test.utils import override_settings
 from gcse import models, views
 
 
-@override_settings(GCSE_LABEL_NAMES = ["_cse_kueofys2mdy",])
 class AnnotationHandlerTest(TestCase):
 
     def testParseWithAmpersand(self):
@@ -36,8 +35,7 @@ class AnnotationHandlerTest(TestCase):
         xml.sax.parseString(str, curHandler)
         self.assertEqual(len(curHandler.annotations), 1)
         annotation = curHandler.annotations[0]
-        self.assertEqual(len(annotation.labels.all()), 1)
-        self.assertEqual(annotation.feed_label.name, "_cse_kueofys2mdy")
+        self.assertEqual(2, len(annotation.labels.all()))
 
     def testWithErrorOnOriginalURL(self):
         str = '''<Annotation about="agilitynerd.com/*" timestamp="0x000420938c4e0bb7" href="ChFhZ2lsaXR5bmVyZC5jb20vKhC3l7jiuJKIAg">
@@ -55,17 +53,17 @@ class AnnotationHandlerTest(TestCase):
         self.assertEqual(annotation.original_url, "http://agilitynerd.com/")
 
 
-class AnnotationTest(TestCase):
+class PlaceTest(TestCase):
     def setUp(self):
         hiddenLabel = models.Label(name="hidden 1",
                                    description="hidden 1 desc",
-                                   hidden=True, physical=False)
+                                   hidden=True)
         hiddenLabel.save()
         label1 = models.Label(name="label 1",
                               description="label 1 desc",
-                              hidden=False, physical=True)
+                              hidden=False)
         label1.save()
-        self.annotation = models.Annotation(comment="Site Name",
+        self.annotation = models.Place(comment="Site Name",
                                             original_url="http://example.com")
         self.annotation.save()
         self.annotation.labels.add(hiddenLabel)
@@ -73,7 +71,7 @@ class AnnotationTest(TestCase):
         self.assertTrue(self.annotation.labels.count() == 2)
 
     def allowNullURL(self):
-        a = models.Annotation(comment="Site Name")
+        a = models.Place(comment="Site Name")
         a.save()
 
     def testHasAddress(self):
@@ -94,7 +92,7 @@ class AnnotationTest(TestCase):
 
 
 class ViewLabels(TestCase):
-    """Requires Labels in database"""
+
     class MockLabel:
         def __init__(self, name):
             self.name = name

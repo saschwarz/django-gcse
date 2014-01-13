@@ -58,22 +58,3 @@ class AnnotationAdmin(AnnotationModelAdmin):
     form = AnnotationAdminForm
 
 admin.site.register(Annotation, AnnotationAdmin)
-
-
-
-
-##                 sourceAnnotation = admin.helpers.AdminForm(ModelForm(instance=updated),
-##                                                            list(self.get_fieldsets(request)),
-##                                                            self.prepopulated_fields)
-##                 extra_context['sourceAnnotation'] = render_to_string('admin/cse/annotation/includes/readonlyfieldset.html', { 'sourceAnnotation': sourceAnnotation })
-
-#             changed = []
-#             for field in updated.__class__._meta.fields:
-#                 old_value = field._get_val_from_obj(active)
-#                 current_value = field._get_val_from_obj(updated)
-#                 if old_value != current_value:
-#                     changed.append(True)
-#                 else:
-#                     changed.append(False)
-#                 #do something fun here
-#             extra_context['changed'] = changed

@@ -18,10 +18,12 @@ urlpatterns += patterns('gcse.views',
                         # urls for Google search related resources
                         url(r'^gcse.xml$', TemplateView.as_view(template_name='gcse/cse.xml'), name='cse'),
                         url(r'^googility_annotations.xml$', 'indexXML', name='cse_annotations'),
+
                         url(r'^results.html$', TemplateView.as_view(template_name='gcse/results.html'), name='cse_results'),
                         # urls for browsing, searching, viewing, editing local site
                         url(r'^map/$', 'map', name='cse_map'),
                         url(r'^site/$', 'browse', name='cse_browse'), # browse by site name
+
                         url(r'^site/search/$', 'search', name='cse_search'),
                         url(r'^site/edit/(?P<id>\d+)/$', 'edit', name='cse_edit'),
                         url(r'^site/view/(?P<id>\d+)/$', 'view', name='cse_view'),

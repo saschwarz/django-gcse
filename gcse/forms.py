@@ -6,14 +6,21 @@ from django.utils.html import conditional_escape
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from django.utils.encoding import smart_unicode
-from models import Annotation, Label
+from models import Annotation, Label, Place
 from model_fields import get_labels_for
 
 
 class ImportForm(forms.Form):
-    """Import a local or remote (via HTTP) annotation file. Available to admin users."""
-    fileName = forms.FileField(label=_("File name"), required=False)
-    url = forms.URLField(label=_("URL"), required=False, widget=forms.TextInput(attrs={'size':100}))
+    """
+    Import a local or remote (via HTTP) annotation file.
+    Available to admin users.
+    """
+    fileName = forms.FileField(label=_("File name"),
+                               required=False)
+    url = forms.URLField(label=_("URL"),
+                         required=False,
+                         widget=forms.TextInput(attrs={'size': 100}))
+
 
 class SpecialMultipleChoiceField(forms.MultipleChoiceField):
     """Allows choices list elements to have a third ignored value"""
@@ -30,10 +37,15 @@ class SpecialMultipleChoiceField(forms.MultipleChoiceField):
                     return True
         return False
 
+
 class SpecialCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
-    """Accepts a third 'help' choice list element to be displayed below the label and checkbox"""
+    """
+    Accepts a third 'help' choice list element to be displayed below the label
+    and checkbox.
+    """
     def render(self, name, value, attrs=None, choices=()):
-        if value is None: value = []
+        if value is None:
+            value = []
         has_id = attrs and 'id' in attrs
         final_attrs = self.build_attrs(attrs, name=name)
         output = [u'<ul>']
@@ -48,7 +60,8 @@ class SpecialCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
             else:
                 label_for = ''
 
-            cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
+            cb = forms.CheckboxInput(final_attrs,
+                                     check_test=lambda value: value in str_values)
             option_value = force_unicode(option_value)
             option_help = force_unicode(option_help)
             rendered_cb = cb.render(name, option_value)
@@ -57,13 +70,14 @@ class SpecialCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
         output.append(u'</ul>')
         return mark_safe(u'\n'.join(output))
 
-class AnnotationForm(ModelForm):
+
+class PlaceForm(ModelForm):
     """End user form for modifying or adding new sites to the index."""
     class Meta:
-        model = Annotation
+        model = Place
         exclude = ('about', 'created', 'newer_version', 'modified', 'status',)
 
-    labels_dict = get_labels_for(Annotation, cap=False)
+    labels_dict = get_labels_for(Place, cap=False)
     comment = forms.CharField(label=labels_dict['comment'], widget=forms.TextInput(attrs={'size':'50'}))
     original_url = forms.CharField(label=labels_dict['original_url'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
 #    original_url = forms.URLField(label=labels_dict['original_url'], widget=forms.TextInput(attrs={'size':'50'}), required=False, error_messages={'invalid': _(u'Please enter a valid URL: http://example.com')}) # initial="http://" - requires that URLField be subclassed and a custom clean() be written
@@ -80,7 +94,7 @@ class AnnotationForm(ModelForm):
     description = forms.CharField(label=labels_dict['description'], widget=forms.Textarea(attrs={'cols':'70', 'rows':'8'}), required=False)
 
     def __init__(self, *args, **kwargs):
-        super(AnnotationForm, self ).__init__( *args, **kwargs )
+        super(PlaceForm, self ).__init__( *args, **kwargs )
         # Show the latest non-hidden labels to the user for their selection
         self.fields['labels'] = SpecialMultipleChoiceField(widget=SpecialCheckboxSelectMultiple,
                                                            choices=[(o.id, str(o), o.description) for o in Label.objects.filter(hidden=False).order_by('name')])

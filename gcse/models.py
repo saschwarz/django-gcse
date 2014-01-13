@@ -1,4 +1,3 @@
-import datetime
 from urllib2 import urlopen
 from string import ascii_letters
 
@@ -9,61 +8,115 @@ import xml.sax.handler
 from django.db import models
 from django.db import connection
 from django.utils.translation import ugettext as _
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from country_field import CountryField
 
 
-settings.GCSE_LABEL_NAMES = getattr(settings, 'GCSE_LABEL_NAMES', [])
-
-
 class Label(models.Model):
     """Labels associated with an Annotation. Used to refine search results.
     https://developers.google.com/custom-search/docs/ranking#labels
     """
-    MODE_CHOICES = (('E', 'ELIMINATE'),
-                    ('F', 'FILTER'),
-                    ('B', 'BOOST'),
-                    )
     name = models.CharField(max_length=128,
                             blank=False,
                             help_text=_('Google search refinement name.'))
-    description = models.CharField(
-        max_length=256,
-        blank=False,
-        null=False,
-        help_text=_('Description shown to users adding/editing sites.'))
-    hidden = models.BooleanField(
-        default=False,
-        help_text=_('Show this label to end users? Set your Google feed label to hidden.'))
-    physical = models.BooleanField(
-        default=False,
-        help_text=_('An Annotation associated with this Label would have a physical address.'))
+    MODE_ELIMINATE = 'E'
+    MODE_FILTER = 'F'
+    MODE_BOOST = 'B'
+    MODE_CHOICES = ((MODE_ELIMINATE, 'ELIMINATE'),
+                    (MODE_FILTER, 'FILTER'),
+                    (MODE_BOOST, 'BOOST'),
+                    )
     # TODO SAS this need a migration for googility.com
     mode = models.CharField(
         verbose_name=_('status'),
         max_length=1,
         choices=MODE_CHOICES,
-        default='F',
-        help_text=_('Controls whether a site is promoted, demoted, or excluded'))
+        default=MODE_FILTER,
+        help_text=_('Controls whether an Annotation is promoted, demoted, or excluded'))
+    # TODO SAS this need a migration for googility.com
+    weight = models.FloatField(null=True, blank=True,
+                               validators=[MinValueValidator(-1),
+                                           MaxValueValidator(1)],
+                               help_text=_('Score value to influence label score - leave blank for default.'))
+    # These fields are used to control Label visibility if you use the
+    # supplied optional views to display the Labels/Annotations.
+    description = models.CharField(
+        max_length=256,
+        blank=False,
+        null=False,
+        help_text=_('Description shown to users adding/editing Annotations.'))
+    hidden = models.BooleanField(
+        default=False,
+        help_text=_('Show this label to end users? Set your Google feed Label(s) to hidden.'))
+    # TODO SAS write a migration to move this field to Place for googility.com
+    # physical = models.BooleanField(
+    #     default=False,
+    #     help_text=_('Annotations with this Label have a physical address.'))
 
     class Meta:
         ordering = ["name"]
 
     def __unicode__(self):
-        return self.name
+        return "name: %s id: %s mode: %s weight: %s" % (self.name, self.id, self.mode, self.weight)
+
+    @classmethod
+    def get_mode(cls, mode_string):
+        for mode_char, mode_str in cls.MODE_CHOICES:
+            if mode_str == mode_string:
+                return mode_char
 
 
-class Annotation(models.Model):
-    """A single Annotation entry"""
+class FacetItem(models.Model):
+    """A named search refinement"""
+    title = models.CharField(max_length=128)
+    label = models.ForeignKey(Label,
+                              help_text=_('The label associated with this refinement facet'))
+
+    class Meta:
+        ordering = ["title"]
+
+
+class CustomSearchEngine(models.Model):
+    """Only the google_xml field should be populated all the other fields
+    are automatically populated."""
+    gid = models.CharField(max_length=32,
+                           unique=True)
+    title = models.CharField(max_length=128)
+    google_xml = models.TextField(max_length=4096)
+    output_xml = models.TextField(max_length=4096)
+    labels = models.ManyToManyField(Label,
+                                    help_text=_('Labels for this search engine'))
+    facet_items = models.ManyToManyField(FacetItem,
+                                         help_text=_('Refinements visible to users'))
+    created = models.DateTimeField(verbose_name=_('Created'),
+                                   auto_now_add=True,
+                                   help_text=_('Date and time this entry was created'),
+                                   editable=False)
+    modified = models.DateTimeField(verbose_name=_('Last Modified'),
+                                    auto_now=True,
+                                    help_text=_('Date and time this entry was last modified'),
+                                    editable=False)
+
+
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super(ActiveManager, self).get_queryset().\
+            filter(status=AnnotationBase.STATUS_ACTIVE)
+
+
+class AnnotationBase(models.Model):
+    """
+    Abstract base class upon which Annotation entries and local "Place"
+    entries can be created.
+    """
     comment = models.CharField(verbose_name=_('Business or Web Site Name'),
                                max_length=256,
                                blank=False,
                                help_text=_('Name/title of the site'))
     # allow blank for non-internet sites
-    original_url = models.CharField(_('Web Site URL'),
+    original_url = models.CharField(verbose_name=_('Web Site URL'),
                                     max_length=256,
                                     blank=True,
                                     help_text=_('URL of the site'))
@@ -74,45 +127,33 @@ class Annotation(models.Model):
                              help_text=_('Regular expression Google CSE uses to obtain pages for this site'))
     labels = models.ManyToManyField(Label,
                                     help_text=_('Labels visible to users of the search engine for this entry'))
-    created = models.DateTimeField(verbose_name=_('Created'), auto_now_add=True,
-                                   help_text=_('Date and time this entry was created'),
-                                   editable=False)
-    modified = models.DateTimeField(verbose_name=_('Last Modified'),
-                                    auto_now=True,
-                                    help_text=_('Date and time this entry was last modified'),
-                                    editable=False)
-    # The labels and help text for these fields are defined in the forms.py
-    address1 = models.CharField(verbose_name=_('Address Line 1'), max_length=128, blank=True)
-    address2 = models.CharField(_('Address Line 2'), max_length=128, blank=True)
-    city = models.CharField(_('City/Town'), max_length=128, blank=True)
-    state = models.CharField(_('State/Province/Region'), max_length=128, blank=True)
-    zipcode = models.CharField(_('Zip/Postal Code'), max_length=128, blank=True)
-    country = CountryField(_('Country'), max_length=2, blank=True)
-    phone = models.CharField(_('Telephone'), max_length=128, blank=True)
-    email = models.EmailField(_('Business or Web Site Email'), max_length=128, blank=True)
-    description = models.CharField(_('Description'),  max_length=512, blank=True)
 
-    # Fields not visible to end users
-    submitter_email = models.EmailField(verbose_name=_('Submitter Email'),
-                                        max_length=128,
-                                        blank=True,
-                                        help_text=_('Email address of the person who submitted this site information'))
-    feed_label = models.ForeignKey(Label,
-                                   verbose_name=_('Feed Label'),
-                                   related_name='feed_label',
-                                   blank=True,
-                                   null=True,
-                                   help_text=_('The label used by Google to identify this feed')) # end users won't view/edit this setting; only admins.
-
+    # TODO SAS Need googility migration for this field
+    # https://developers.google.com/custom-search/docs/ranking#score
+    score = models.FloatField(null=True, blank=True,
+                              validators=[MinValueValidator(-1),
+                                          MaxValueValidator(1)],
+                              help_text=_('Score value to influence label score - leave blank for default.'))
+    # If the site uses supplied views for user moderated submissions:
+    STATUS_SUBMITTED = 'S'
+    STATUS_ACTIVE = 'A'
+    STATUS_DELETED = 'D'
     STATUS_CHOICES = (
-        ('S', 'Submitted'),
-        ('A', 'Active'),
-        ('D', 'Deleted'),
+        (STATUS_SUBMITTED, _('Submitted')),
+        (STATUS_ACTIVE, _('Active')),
+        (STATUS_DELETED, _('Deleted')),
     )
     status = models.CharField(verbose_name=_('status'),
                               max_length=1,
                               choices=STATUS_CHOICES,
-                              default='A')
+                              default=STATUS_SUBMITTED)
+    # TODO SAS migration to remove this field
+    # feed_label = models.ForeignKey(Label,
+    #                                verbose_name=_('Feed Label'),
+    #                                related_name='feed_label',
+    #                                blank=True,
+    #                                null=True,
+    #                                help_text=_('The label used by Google to identify this feed')) # end users won't view/edit this setting; only admins.
     parent_version = models.ForeignKey('self',
                                        editable=False,
                                        blank=True,
@@ -121,42 +162,91 @@ class Annotation(models.Model):
                                        related_name='newer_versions',
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
+    created = models.DateTimeField(verbose_name=_('Created'),
+                                   auto_now_add=True,
+                                   help_text=_('Date and time this entry was created'),
+                                   editable=False)
+    modified = models.DateTimeField(verbose_name=_('Last Modified'),
+                                    auto_now=True,
+                                    help_text=_('Date and time this entry was last modified'),
+                                    editable=False)
+
+    objects = models.Manager()
+    active = ActiveManager()
+
+    class Meta:
+        abstract = True
+
+
+class Annotation(AnnotationBase):
+    """
+    Concrete class representing an Annotation in the Google annotations file.
+    https://developers.google.com/custom-search/docs/annotations
+    """
+    pass
+
+
+class Place(AnnotationBase):
+    """
+    Concrete class representation of a physical place, organization, business
+    that can be represented in an Annotation and/or on a Google map
+    """
+    # The labels and help text for these fields are defined in the forms.py
+    address1 = models.CharField(verbose_name=_('Address Line 1'),
+                                max_length=128,
+                                blank=True)
+    address2 = models.CharField(verbose_name=_('Address Line 2'),
+                                max_length=128,
+                                blank=True)
+    city = models.CharField(verbose_name=_('City/Town'),
+                            max_length=128,
+                            blank=True)
+    state = models.CharField(verbose_name=_('State/Province/Region'),
+                             max_length=128,
+                             blank=True)
+    zipcode = models.CharField(verbose_name=_('Zip/Postal Code'),
+                               max_length=128,
+                               blank=True)
+    country = CountryField(verbose_name=_('Country'),
+                           max_length=2,
+                           blank=True)
+    phone = models.CharField(verbose_name=_('Telephone'),
+                             max_length=128,
+                             blank=True)
+    email = models.EmailField(verbose_name=_('Business or Web Site Email'),
+                              max_length=128,
+                              blank=True)
+    description = models.CharField(verbose_name=_('Description'),
+                                   max_length=512,
+                                   blank=True)
+
+    # Fields not visible to end users
+    submitter_email = models.EmailField(verbose_name=_('Submitter Email'),
+                                        max_length=128,
+                                        blank=True,
+                                        help_text=_('Email address of the person who submitted this site information'))
+
     # Could use gis Point field but don't need that much functionality
     lat = models.DecimalField(verbose_name=_('Latitude'),
                               max_digits=10,
                               decimal_places=7,
                               null=True,
-                              blank=True)  # Enough precision for Google Maps
+                              blank=True)
     lng = models.DecimalField(verbose_name=_('Longitude'),
                               max_digits=10,
                               decimal_places=7,
                               null=True,
                               blank=True)
 
-    # TODO SAS Need googility migration for this field
-    # https://developers.google.com/custom-search/docs/ranking#score
-    score = models.FloatField(null=True, blank=True,
-                              validators=[MinValueValidator(-1),
-                                          MaxValueValidator(1)],
-                              help_text=_('Score value to influence label score - leave blank for default.'))
-
     class Meta:
-        ordering = ["about"]
+        ordering = ["about",]
 
     def __unicode__(self):
         return "%s %s" % (self.comment, self.id)
 
     def get_absolute_url(self):
-        return ('cse_annotation_detail', (), {'id': self.id})
+        return ('gcse_annotation_detail', (), {'id': self.id})
     get_absolute_url = models.permalink(get_absolute_url)
-
-    def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        now = datetime.datetime.now()
-        if not self.id:
-            self.created = now
-        self.modified = now
-        super(Annotation, self).save(force_insert, force_update,
-                                     *args, **kwargs)
 
     def wasAdded(self):
         return self.modified == self.created
@@ -208,6 +298,59 @@ class Annotation(models.Model):
             )
 
 
+class CSESAXHandler(xml.sax.handler.ContentHandler):
+    """Create and populate a CustomSearchEngine"""
+
+    def __init__(self):
+        self.cse = None
+        self.name = ''
+        self.attrs = {}
+        self.facet_item = None
+
+    def parseString(self, stream):
+        xml.sax.parseString(stream, self)
+        self.cse.google_xml = stream
+        return self.cse
+
+    def parse(self, url):
+        xml.sax.parse(urlopen(url), self)
+        return self.cse
+
+    def startElement(self, name, attributes):
+        self.name = name
+        self.attrs[name] = ''
+        if name == "CustomSearchEngine":
+            self.cse, created = CustomSearchEngine.objects.\
+                get_or_create(gid=attributes["id"])
+        elif name == "FacetItem":
+            title = attributes["title"]
+            facet, created = FacetItem.objects.get(title=title)
+            self.cse.facet_items.add(facet)
+            self.facet_item = facet
+        elif name == "Label":
+            # Try to find existing label
+            lname = attributes['name']
+            label, created = Label.objects.get_or_create(name=lname)
+            # don't overwrite local label configurations
+            if created:
+                label.mode = Label.get_mode(attributes['mode'])
+                if 'weight' in attributes:
+                    label.weight = float(attributes['weight'])
+                label.save()
+            if self.facet_item:
+                self.facet_item.label = Label
+                self.facet_item = None
+            else:
+                self.cse.labels.add(label)
+
+    def characters(self, data):
+        self.attrs[self.name] += data
+
+    def endElement(self, name):
+        if name == 'Title':
+            self.cse.title = self.attrs[name]
+
+
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     """Create a set of Annotation instances from an XML file."""
 
@@ -224,29 +367,22 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         xml.sax.parse(urlopen(url), self)
 
     def startElement(self, name, attributes):
-        # print "startElement", name
         if name == "Annotation":
-            self.curAnnotation, found = Annotation.objects.\
+            self.curAnnotation, created = Annotation.objects.\
                 get_or_create(about=attributes["about"])
-            # print self.curAnnotation, found
         elif name == "AdditionalData":
-            # print name, attributes
             if attributes['attribute'] == 'original_url':
                 original_url = attributes['value']
-                # found some input data which had an asterisk at the end
+                # created some input data which had an asterisk at the end
                 self.curAnnotation.original_url = original_url.rstrip("*")
-                # print self.curAnnotation
         elif name == "Comment":
             self.inComment = True
             self.curAnnotation.comment = ''
         elif name == "Label":
             # Try to find existing label
-            label, found = Label.objects.get_or_create(name=attributes['name'])
-            # print label, found
-            if label.name in settings.GCSE_LABEL_NAMES:
-                self.curAnnotation.feed_label = label
-            else:
-                self.curAnnotation.labels.add(label)
+            lname = attributes['name']
+            label, created = Label.objects.get_or_create(name=lname)
+            self.curAnnotation.labels.add(label)
 
     def characters(self, data):
         if self.inComment:
@@ -254,10 +390,8 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 
     def endElement(self, name):
         if name == "Annotation":
-            # print self.curAnnotation
             self.curAnnotation.save()
             self.annotations.append(self.curAnnotation)
-            # print "ANNOTATIONS", self.annotations
             self.curAnnotations = None
         elif name == "Comment":
             self.inComment = False

@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from gcse.models import Label, Annotation
 
 
-class ViewsTestCase(TestCase):
+class ViewsTemplatesTestCase(TestCase):
 
     def setUp(self):
         self.client = Client()
