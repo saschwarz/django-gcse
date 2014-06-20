@@ -1,4 +1,8 @@
-from urllib2 import urlopen
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
 from string import ascii_letters
 
 import xml.sax
