@@ -55,18 +55,18 @@ class AnnotationHandlerTest(TestCase):
 
 class PlaceTest(TestCase):
     def setUp(self):
-        hiddenLabel = models.Label(name="hidden 1",
-                                   description="hidden 1 desc",
-                                   hidden=True)
-        hiddenLabel.save()
+        backgroundLabel = models.Label(name="background 1",
+                                       description="background 1 desc",
+                                       background=True)
+        backgroundLabel.save()
         label1 = models.Label(name="label 1",
                               description="label 1 desc",
-                              hidden=False)
+                              background=False)
         label1.save()
         self.annotation = models.Place(comment="Site Name",
                                             original_url="http://example.com")
         self.annotation.save()
-        self.annotation.labels.add(hiddenLabel)
+        self.annotation.labels.add(backgroundLabel)
         self.annotation.labels.add(label1)
         self.assertTrue(self.annotation.labels.count() == 2)
 

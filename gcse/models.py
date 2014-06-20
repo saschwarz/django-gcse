@@ -11,7 +11,9 @@ from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from country_field import CountryField
+from model_utils.models import TimeStampedModel
+
+from .country_field import CountryField
 
 
 class Label(models.Model):
@@ -47,7 +49,8 @@ class Label(models.Model):
         blank=False,
         null=False,
         help_text=_('Description shown to users adding/editing Annotations.'))
-    hidden = models.BooleanField(
+    # TODO SAS this needs to be migrated from googilit.com's "hidden" field to
+    background = models.BooleanField(
         default=False,
         help_text=_('Show this label to end users? Set your Google feed Label(s) to hidden.'))
     # TODO SAS write a migration to move this field to Place for googility.com
@@ -69,35 +72,44 @@ class Label(models.Model):
 
 
 class FacetItem(models.Model):
-    """A named search refinement"""
-    title = models.CharField(max_length=128)
+    """A named search refinement presented in the search results to CSE users."""
+    title = models.CharField(max_length=128,
+                             help_text=_('Refinement title displayed in search results.'))
     label = models.ForeignKey(Label,
-                              help_text=_('The label associated with this refinement facet'))
+                              null=True, # allow creation without Label
+                              help_text=_('The label associated with this refinement facet.'))
+    cse = models.ForeignKey('CustomSearchEngine',
+                            help_text=_('The Custom Search Engine associated with this refinement facet.'))
 
     class Meta:
         ordering = ["title"]
 
+    def __unicode__(self):
+        return u'%s %s' % (self.title, self.label)
 
-class CustomSearchEngine(models.Model):
-    """Only the google_xml field should be populated all the other fields
-    are automatically populated."""
+
+class CustomSearchEngine(TimeStampedModel):
+    """Only the title and google_xml fields should be populated all the other
+    fields are automatically populated.
+
+    The idea is Annotations have Labels associated with them and the CSE can define
+    Labels that are filtered/excluded/boosted differently than the labels associated
+    with the Annotations. Same thing with FacetItems that contain Labels - which are
+    used by search engine users to filter/refine their searches.
+    """
     gid = models.CharField(max_length=32,
                            unique=True)
     title = models.CharField(max_length=128)
+    description = models.CharField(max_length=256)
     google_xml = models.TextField(max_length=4096)
     output_xml = models.TextField(max_length=4096)
+    background_labels = models.ManyToManyField(Label,
+                                               related_name='cse_background_labels',
+                                               help_text=_('Non-visible Labels for this search engine'))
     labels = models.ManyToManyField(Label,
                                     help_text=_('Labels for this search engine'))
-    facet_items = models.ManyToManyField(FacetItem,
-                                         help_text=_('Refinements visible to users'))
-    created = models.DateTimeField(verbose_name=_('Created'),
-                                   auto_now_add=True,
-                                   help_text=_('Date and time this entry was created'),
-                                   editable=False)
-    modified = models.DateTimeField(verbose_name=_('Last Modified'),
-                                    auto_now=True,
-                                    help_text=_('Date and time this entry was last modified'),
-                                    editable=False)
+    facets = models.ManyToManyField(FacetItem,
+                                    help_text=_('Optional FacetItems for this search engine'))
 
 
 class ActiveManager(models.Manager):
@@ -106,7 +118,7 @@ class ActiveManager(models.Manager):
             filter(status=AnnotationBase.STATUS_ACTIVE)
 
 
-class AnnotationBase(models.Model):
+class AnnotationBase(TimeStampedModel):
     """
     Abstract base class upon which Annotation entries and local "Place"
     entries can be created.
@@ -161,15 +173,6 @@ class AnnotationBase(models.Model):
                                        verbose_name=_('Parent Version'),
                                        related_name='newer_versions',
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
-
-    created = models.DateTimeField(verbose_name=_('Created'),
-                                   auto_now_add=True,
-                                   help_text=_('Date and time this entry was created'),
-                                   editable=False)
-    modified = models.DateTimeField(verbose_name=_('Last Modified'),
-                                    auto_now=True,
-                                    help_text=_('Date and time this entry was last modified'),
-                                    editable=False)
 
     objects = models.Manager()
     active = ActiveManager()
@@ -239,7 +242,7 @@ class Place(AnnotationBase):
                               blank=True)
 
     class Meta:
-        ordering = ["about",]
+        ordering = ["about"]
 
     def __unicode__(self):
         return "%s %s" % (self.comment, self.id)
@@ -299,13 +302,14 @@ class Place(AnnotationBase):
 
 
 class CSESAXHandler(xml.sax.handler.ContentHandler):
-    """Create and populate a CustomSearchEngine"""
+    """Create and populate a CustomSearchEngine from an XML document."""
 
     def __init__(self):
         self.cse = None
         self.name = ''
         self.attrs = {}
         self.facet_item = None
+        self.in_background_label = False
 
     def parseString(self, stream):
         xml.sax.parseString(stream, self)
@@ -324,9 +328,12 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
                 get_or_create(gid=attributes["id"])
         elif name == "FacetItem":
             title = attributes["title"]
-            facet, created = FacetItem.objects.get(title=title)
-            self.cse.facet_items.add(facet)
+            facet, created = FacetItem.objects.get_or_create(title=title,
+                                                             cse=self.cse)
+            self.cse.facets.add(facet)
             self.facet_item = facet
+        elif name == 'BackgroundLabels':
+            self.in_background_label = True
         elif name == "Label":
             # Try to find existing label
             lname = attributes['name']
@@ -336,12 +343,16 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
                 label.mode = Label.get_mode(attributes['mode'])
                 if 'weight' in attributes:
                     label.weight = float(attributes['weight'])
+                label.background = self.in_background_label
                 label.save()
+                if label.background:
+                    self.cse.background_labels.add(label)
+                else:
+                    self.cse.labels.add(label)
             if self.facet_item:
-                self.facet_item.label = Label
+                self.facet_item.label = label
+                self.facet_item.save()
                 self.facet_item = None
-            else:
-                self.cse.labels.add(label)
 
     def characters(self, data):
         self.attrs[self.name] += data
@@ -349,7 +360,10 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
     def endElement(self, name):
         if name == 'Title':
             self.cse.title = self.attrs[name]
-
+        elif name == 'Description':
+            self.cse.description = self.attrs[name]
+        elif name == 'BackgroundLabels':
+            self.in_background_label = False
 
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     """Create a set of Annotation instances from an XML file."""

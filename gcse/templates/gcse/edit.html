@@ -1,6 +1,5 @@
 {% extends "gcse/base.html" %}
 {% load setting %}
-{% load mailhide %}
 
 {% block title %}{% site "name" %} - {% if add %}Add a {% else %}Edit a {% endif %} "Place"{% endblock %}
 
@@ -116,7 +115,8 @@ $(document).ready(function(){
         </div>
         <div class="fieldWrapper {% if form.email.errors %}error{%endif%}">
             <label for="id_email">{{form.email.label}}</label>:<br/>
-	    {% if email %}{% load mailhide %} <span style="font-size:12px">Click to view: {{email|mailhide}}</span>
+            {% block email %}
+	    {% if email %}<span style="font-size:12px">Click to view: {{email}}</span>
             <div style="font-size:12px"> Need to change it? <a href="{% url 'contact_form' %}">Contact Us</a>. We protect email addresses.</div>
             <p class="help">This email address is also CC'd with changes to this information.</p>
 	    {% else %}{{form.email}}
@@ -126,6 +126,7 @@ $(document).ready(function(){
             {% if form.email.errors %}
             <span class="error">{{ form.email.errors }}</span>
             {% endif %}
+            {% endblock email %}
         </div>
 	</div> <!-- end div.web -->
         <div id="address">

@@ -103,21 +103,23 @@
     {% else %}
     <table style="text-align:left;margin-top:13px;width:100%;">
     {% endif %}
-	<tr><td style="width:150px;"><b>Website:</b></td><td><a href="{{site.original_url}}">{{site.original_url}}</a></td></tr>
-        <tr><td><b>Email:</b></td><td>{% if site.email %}{% load mailhide %}{{site.email|mailhide}}{%endif%}</td></tr>
+	<tr><th style="width:150px;">Website:</th><td><a href="{{site.original_url}}">{{site.original_url}}</a></td></tr>
+        {% block email %}
+        <tr><th>Email:</th><td>{{site.email|escape}}</td></tr>
+        {% endblock email %}
     {% if site.phone %}
-        <tr><td><b>{{labels.phone}}:</b></td><td>{{site.phone|escape}}</td></tr>
+        <tr><th>{{labels.phone}}:</th><td>{{site.phone|escape}}</td></tr>
     {% endif %}
     {% if site.shouldHaveAddress %}
       {% if site.hasAddress %}
-        <tr><td><b>{{labels.address1}}:</b></td><td>{{site.address1|escape}}</td></tr>
+        <tr><th>{{labels.address1}}:</th><td>{{site.address1|escape}}</td></tr>
 	{% if site.address2 %}
-        <tr><td><b>{{labels.address2}}:</b></td><td>{{site.address2|escape}}</td></tr>
+        <tr><th>{{labels.address2}}:</th><td>{{site.address2|escape}}</td></tr>
         {% endif %}
-        <tr><td><b>{{labels.city}}:</b></td><td>{{site.city|escape}}</td></tr>
-        <tr><td><b>{{labels.state}}:</b></td><td>{{site.state|escape}}</td></tr>
-        <tr><td><b>{{labels.zipcode}}:</b></td><td>{{site.zipcode|escape}}</td></tr>
-        <tr><td><b>{{labels.country}}:</b></td><td>{{site.get_country_display|escape}}</td></tr>
+        <tr><th>{{labels.city}}:</th><td>{{site.city|escape}}</td></tr>
+        <tr><th>{{labels.state}}:</th><td>{{site.state|escape}}</td></tr>
+        <tr><th>{{labels.zipcode}}:</th><td>{{site.zipcode|escape}}</td></tr>
+        <tr><th>{{labels.country}}:</th><td>{{site.get_country_display|escape}}</td></tr>
       {% endif %}
     {% endif %}
     </table>
@@ -128,21 +130,21 @@
   <br style="clear:both"/>
 {% endif %}
     <table style="text-align:left;margin-top:0px;width:100%;">
-        <tr><td colspan="2"><b>Provides:</b></td></tr>
-        <tr><td colspan="2"><table style="margin-left:15px">
+        <tr><th colspan="2">Provides:</th></tr>
+        <tr><td colspan="2">            
+            <table style="margin-left:15px">
 	    {% for label in site.labels.all %}
 	    {% if not label.hidden %}
-	    <tr><td style="width:75px;vertical-align:top;"><b>{{label.name|capfirst|escape}}</b></td><td>{{label.description}}</td></tr>
+	    <tr><th style="width:75px;vertical-align:top;">{{label.name|capfirst|escape}}</th><td>{{label.description}}</td></tr>
 	    {% endif %}
 	    {% endfor %}
 	    </table>
             </td>
 	</tr>
       {% if site.shouldHaveAddress and not site.state %}
-        <tr><td colspan="2" style="color:green"><b>Based on the "Provides" selections above, this entry may have a physical address.</b></td></tr>
+        <tr><th colspan="2" style="color:green">Based on the "Provides" selections above, this entry may have a physical address.</th></tr>
       {% endif %}
     </table>
-
     <p style="font-size:14px;font-weight:bold;padding-bottom:10px;">
       <span style="float:left">Can you improve this entry? Please <a href="../../edit/{{site.id|escape}}/">edit it</a> *anyone* can!</span>
       {% if site.hasAddress %}<span id="directionsLink" style="float:right;margin-right:20px;"><a href="{% url 'cse_directions' site.id %}">Get Driving Directions<img src="http://data.agilitynerd.com/images/15star.png"/></a></span> {% endif %}

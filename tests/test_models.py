@@ -32,68 +32,69 @@ CSE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
 # Semi customized
 FACETED_XML = """
 <GoogleCustomizations version="1.0">
-<CustomSearchEngine id="csekeystring" version="1.0" volunteers="false" keywords="" visible="true" encoding="UTF-8" top_refinements="4">
-  <Title>AgilityNerd Dog Agility Search</Title>
-  <Description>Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores</Description>
-  <Context refinementsTitle="Refine results for $q:">
-    <!-- max of FOUR Facets each with at most FOUR FacetItems -->
-    <Facet>
-      <FacetItem title="Blogs">
-        <Label name="blogs" mode="BOOST" weight="0.8"/>
-      </FacetItem>
-      <FacetItem title="Clubs">
-      <Label name="club" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Equipment">
-      <Label name="equipment" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Forums">
-      <Label name="forum" mode="FILTER"/>
-      </FacetItem>
-    </Facet>
-    <Facet>
-      <FacetItem title="General">
-      <Label name="general" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Organizations">
-      <Label name="organization" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Services">
-      <Label name="service" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Stores">
-      <Label name="store" mode="FILTER"/>
-      </FacetItem>
-    </Facet>
-    <Facet>
-      <FacetItem title="Training">
-      <Label name="training" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Training Facilities">
-      <Label name="facility" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Video">
-      <Label name="video" mode="FILTER"/>
-      </FacetItem>
-      <FacetItem title="Ring Rental">
-      <Label name="rental" mode="FILTER"/>
-      </FacetItem>
-    </Facet>
-    <BackgroundLabels>
-      <Label name="_cse_csekeystring" mode="FILTER" weight="1" />
-      <Label name="_cse_exclude_csekeystring" mode="ELIMINATE" weight="1" />
-    </BackgroundLabels>
-  </Context>
-  <LookAndFeel>
-    <Logo url="http://data.agilitynerd.com/images/AgilityNerd_SideBySide.gif" destination="http://agilitynerd.com" height="51" />
-  </LookAndFeel>
-  <SubscribedLinks />
-  <AdSense />
-  <EnterpriseAccount />
-</CustomSearchEngine>
-<Include type="Annotations" href="http://googility.com/googility_annotations.xml"/>
+  <CustomSearchEngine id="csekeystring" version="1.0" volunteers="false" keywords="" visible="true" encoding="UTF-8" top_refinements="4">
+    <Title>AgilityNerd Dog Agility Search</Title>
+    <Description>Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores</Description>
+    <Context refinementsTitle="Refine results for $q:">
+      <!-- max of FOUR Facets each with at most FOUR FacetItems -->
+      <Facet>
+        <FacetItem title="Blogs">
+          <Label name="blogs" mode="BOOST" weight="0.8"/>
+        </FacetItem>
+        <FacetItem title="Clubs">
+          <Label name="club" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Equipment">
+          <Label name="equipment" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Forums">
+          <Label name="forum" mode="FILTER"/>
+        </FacetItem>
+      </Facet>
+      <Facet>
+        <FacetItem title="General">
+          <Label name="general" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Organizations">
+          <Label name="organization" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Services">
+          <Label name="service" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Stores">
+          <Label name="store" mode="FILTER"/>
+        </FacetItem>
+      </Facet>
+      <Facet>
+        <FacetItem title="Training">
+          <Label name="training" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Training Facilities">
+          <Label name="facility" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Video">
+          <Label name="video" mode="FILTER"/>
+        </FacetItem>
+        <FacetItem title="Ring Rental">
+          <Label name="rental" mode="FILTER"/>
+        </FacetItem>
+      </Facet>
+      <BackgroundLabels>
+        <Label name="_cse_csekeystring" mode="FILTER" weight="1" />
+        <Label name="_cse_exclude_csekeystring" mode="ELIMINATE" weight="1" />
+      </BackgroundLabels>
+    </Context>
+    <LookAndFeel>
+      <Logo url="http://data.agilitynerd.com/images/AgilityNerd_SideBySide.gif" destination="http://agilitynerd.com" height="51" />
+    </LookAndFeel>
+    <SubscribedLinks />
+    <AdSense />
+    <EnterpriseAccount />
+  </CustomSearchEngine>
+  <Include type="Annotations" href="http://googility.com/googility_annotations.xml"/>
 </GoogleCustomizations>
 """
+
 
 class TestCustomSearchEngine(TestCase):
 
@@ -163,43 +164,61 @@ class TestCSESAXHandler(TestCase):
     def test_title_is_parsed_from_xml(self):
         self.assertEqual('AgilityNerd Site Search', self.cse.title)
 
+    def test_empty_description_is_parsed_from_xml(self):
+        self.assertEqual('', self.cse.description)
+
+    def test_description_is_parsed_from_xml(self):
+        self.cse = self.handler.parseString(FACETED_XML)
+        self.assertEqual(u'Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores'
+,
+                         self.cse.description)
+
     def test_labels_are_parsed_from_xml(self):
         cse = self.cse
-        self.assertEqual(2, cse.labels.count())
+        self.assertEqual(0, cse.labels.count())
+        self.assertEqual(2, cse.background_labels.count())
 
-        label_names = [x.name for x in cse.labels.all()]
+        labels = cse.background_labels.all()
+        label_names = [x.name for x in labels]
         self.assertTrue("_cse_c12345-r678" in label_names)
         self.assertTrue("_cse_exclude_c12345-r678" in label_names)
 
-        label_modes = [x.mode for x in cse.labels.all()]
+        label_modes = [x.mode for x in labels]
         self.assertTrue(Label.MODE_FILTER in label_modes)
         self.assertTrue(Label.MODE_ELIMINATE in label_modes)
+
+        self.assertTrue(True, labels[0].background)
+        self.assertTrue(True, labels[1].background)
 
     def test_labels_are_parsed_from_facets_in_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
         cse = self.cse
-        self.assertEqual(14, cse.labels.count())
+        self.assertEqual(12, cse.labels.count())
+        labels = cse.labels.all()
+        label_names = set([x.name for x in labels])
+        self.assertEqual(set(["blogs", "club", "equipment", "forum", "general", "organization", "service", "store", "training", "facility", "video", "rental"]),
+                         label_names)
 
-        label_names = set([x.name for x in cse.labels.all()])
-        self.assertEqual(label_names, set(["blogs", "club", "equipment", "forum", "general", "organization", "service", "store", "training", "facility", "video", "rental", "_cse_csekeystring", "_cse_exclude_csekeystring"]))
-
-        label_modes = [x.mode for x in cse.labels.all()]
+        label_modes = [x.mode for x in labels]
         self.assertTrue(Label.MODE_FILTER in label_modes)
-        self.assertTrue(Label.MODE_ELIMINATE in label_modes)
+        self.assertFalse(Label.MODE_ELIMINATE in label_modes)
         self.assertTrue(Label.MODE_BOOST in label_modes)
 
         self.assertEqual(1, cse.labels.filter(weight=0.8).count())
+
+        self.assertEqual(set(["_cse_csekeystring", "_cse_exclude_csekeystring"]),
+                         set([x.name for x in cse.background_labels.all()]))
+
     def test_google_xml_is_parsed_from_xml(self):
         self.assertEqual(CSE_XML, self.cse.google_xml)
 
     def test_facet_items_are_parsed_from_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
         cse = self.cse
-        self.assertEqual(12, cse.facet_items.count())
+        self.assertEqual(12, cse.facets.count())
         
     # def test_output_xml_is_parsed_from_xml(self):
     #     self.assertEqual(CSE_XML, self.cse.output_xml)
-
 
 
 class TestLabel(TestCase):

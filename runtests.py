@@ -18,7 +18,6 @@ try:
             "django.contrib.contenttypes",
             "django.contrib.sites",
             "gcse",
-            "django_mailhide",
             "stw",
         ],
         SITE_ID=1,

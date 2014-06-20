@@ -1,5 +1,6 @@
 django>=1.5.1
 django-stw
+django-model-utils
 #django-recaptcha==0.0.6
 # version that supports django 1.6+
 -e git://github.com/saschwarz/django-recaptcha.git#egg=django-recaptcha
