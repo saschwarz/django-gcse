@@ -109,12 +109,12 @@ class TestCustomSearchEngine(TestCase):
         l1.save()
         l1.mode = Label.MODE_FILTER
         l1.save()
-        cse.labels.add(l1)
+        cse.background_labels.add(l1)
         l2 = Label(name="fred")
         l2.save()
         l2.mode = Label.MODE_ELIMINATE
         l2.save()
-        cse.labels.add(l2)
+        cse.background_labels.add(l2)
 
         
 class TestImportCustomSearchEngine(TestCase):
@@ -175,7 +175,7 @@ class TestCSESAXHandler(TestCase):
 
     def test_labels_are_parsed_from_xml(self):
         cse = self.cse
-        self.assertEqual(0, cse.labels.count())
+        self.assertEqual(0, cse.facetitem_set.count())
         self.assertEqual(2, cse.background_labels.count())
 
         labels = cse.background_labels.all()
@@ -193,8 +193,8 @@ class TestCSESAXHandler(TestCase):
     def test_labels_are_parsed_from_facets_in_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
         cse = self.cse
-        self.assertEqual(12, cse.labels.count())
-        labels = cse.labels.all()
+        self.assertEqual(12, cse.facetitem_set.count())
+        labels = cse.facetitems_labels()
         label_names = set([x.name for x in labels])
         self.assertEqual(set(["blogs", "club", "equipment", "forum", "general", "organization", "service", "store", "training", "facility", "video", "rental"]),
                          label_names)
@@ -204,7 +204,7 @@ class TestCSESAXHandler(TestCase):
         self.assertFalse(Label.MODE_ELIMINATE in label_modes)
         self.assertTrue(Label.MODE_BOOST in label_modes)
 
-        self.assertEqual(1, cse.labels.filter(weight=0.8).count())
+        self.assertEqual(1, len([x for x in labels if x.weight==0.8]))
 
         self.assertEqual(set(["_cse_csekeystring", "_cse_exclude_csekeystring"]),
                          set([x.name for x in cse.background_labels.all()]))
@@ -215,7 +215,7 @@ class TestCSESAXHandler(TestCase):
     def test_facet_items_are_parsed_from_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
         cse = self.cse
-        self.assertEqual(12, cse.facets.count())
+        self.assertEqual(12, cse.facetitem_set.count())
         
     # def test_output_xml_is_parsed_from_xml(self):
     #     self.assertEqual(CSE_XML, self.cse.output_xml)
