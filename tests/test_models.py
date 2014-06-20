@@ -1,3 +1,5 @@
+from lxml import etree as ET
+
 from django.db import IntegrityError
 from django.test import TestCase
 from gcse.models import CustomSearchEngine, CSESAXHandler, Label
@@ -100,9 +102,7 @@ class TestCustomSearchEngine(TestCase):
 
     def test_adding_labels(self):
         cse = CustomSearchEngine(gid='c12345-r678',
-                                 title='AgilityNerd Site Search',
-                                 google_xml=CSE_XML,
-                                 output_xml=CSE_XML
+                                 title='AgilityNerd Site Search'
                                  )
         cse.save()
         l1 = Label(name="fred")
@@ -121,36 +121,71 @@ class TestImportCustomSearchEngine(TestCase):
 
     def test_insert(self):
         cse = CustomSearchEngine(gid='c12345-r678',
-                                 title='AgilityNerd Site Search',
-                                 google_xml=CSE_XML,
-                                 output_xml=CSE_XML
+                                 title='AgilityNerd Site Search'
                                  )
         cse.save()
 
     def test_gid_is_unique(self):
         cse = CustomSearchEngine(gid='c12345-r678',
-                                 title='AgilityNerd Site Search',
-                                 google_xml=CSE_XML,
-                                 output_xml=CSE_XML
+                                 title='AgilityNerd Site Search'
                                  )
         cse.save()
         cse = CustomSearchEngine(gid='c12345-r678',
-                                 title='AgilityNerd Site Search',
-                                 google_xml=CSE_XML,
-                                 output_xml=CSE_XML
+                                 title='AgilityNerd Site Search'
                                  )
         self.assertRaises(IntegrityError, cse.save)
 
     # def test_gid_populated_from_google_xml(self):
     #     cse = CustomSearchEngine(gid='c12345-r678',
-    #                              title='Site Search',
-    #                              google_xml=CSE_XML,
-    #                              output_xml=CSE_XML
+    #                              title='Site Search'
     #                              )
     #     cse.save()
     #     handler = CSESAXHandler()
     #     cse = handler.parseString(CSE_XML)
 
+
+def _extractPathText(xml, path):
+    doc = ET.fromstring(xml)
+    rowset = doc.xpath(path)
+    if rowset:
+        return rowset[0].text
+    return None
+
+
+class TestCSEUpdateXML(TestCase):
+
+    def test_input_matches_output_xml_when_no_changes_to_instance(self):
+        cse = CustomSearchEngine(input_xml=CSE_XML)
+        cse._update_xml()
+        self.assertEqual('', cse.title) # no title set so leave XML alone
+        self.assertEqual("AgilityNerd Site Search", _extractPathText(cse.output_xml, "/CustomSearchEngine/Title"))
+
+    def test_output_xml_has_new_title_when_title_is_changed(self):
+        cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
+                                 input_xml=CSE_XML)
+        cse._update_xml()
+        self.assertEqual(cse.title, _extractPathText(cse.output_xml, "/CustomSearchEngine/Title"))
+
+    def test_output_xml_has_new_title_element_when_there_is_no_title_element(self):
+        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"></CustomSearchEngine>"""
+        cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
+                                 input_xml=input_xml)
+        cse._update_xml()
+        self.assertEqual(cse.title, _extractPathText(cse.output_xml, "/CustomSearchEngine/Title"))
+
+    def test_output_xml_has_new_description_when_description_is_changed(self):
+        cse = CustomSearchEngine(description="""Here's a new description in need of escaping: &<>""",
+                                 input_xml=CSE_XML)
+        cse._update_xml()
+        self.assertEqual(cse.description, _extractPathText(cse.output_xml, "/CustomSearchEngine/Description"))
+
+    def test_output_xml_has_new_description_element_when_there_is_no_description_element(self):
+        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"></CustomSearchEngine>"""
+        cse = CustomSearchEngine(description="""Here's a new description in need of escaping: &<>""",
+                                 input_xml=input_xml)
+        cse._update_xml()
+        self.assertEqual(cse.description, _extractPathText(cse.output_xml, "/CustomSearchEngine/Description"))
+        
 
 class TestCSESAXHandler(TestCase):
 
@@ -209,8 +244,8 @@ class TestCSESAXHandler(TestCase):
         self.assertEqual(set(["_cse_csekeystring", "_cse_exclude_csekeystring"]),
                          set([x.name for x in cse.background_labels.all()]))
 
-    def test_google_xml_is_parsed_from_xml(self):
-        self.assertEqual(CSE_XML, self.cse.google_xml)
+    def test_input_xml_is_parsed_from_xml(self):
+        self.assertEqual(CSE_XML, self.cse.input_xml)
 
     def test_facet_items_are_parsed_from_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)

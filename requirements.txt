@@ -5,4 +5,5 @@ django-model-utils
 # version that supports django 1.6+
 -e git://github.com/saschwarz/django-recaptcha.git#egg=django-recaptcha
 -e git+https://bitbucket.org/absolwenciifpw/django-mailhide/master.zip#egg=django-mailhide
+lxml==3.3.5
 pycrypto

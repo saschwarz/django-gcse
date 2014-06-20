@@ -8,6 +8,7 @@ from string import ascii_letters
 import xml.sax
 import xml.sax.saxutils
 import xml.sax.handler
+from lxml import etree as ET
 
 from django.db import models
 from django.db import connection
@@ -121,7 +122,7 @@ class CustomSearchEngine(TimeStampedModel):
     Once saved a CustomeSearchEngine instance can be updated by
     generating a new XML representation on the Google website and
     calling the factory methods with the 'merge=True' option or by
-    manually updating the 'google_xml' field and 'save()'ing the
+    manually updating the 'input_xml' field and 'save()'ing the
     instance.
 
     Once created FacetItems can be added to allow users to refine
@@ -149,7 +150,7 @@ class CustomSearchEngine(TimeStampedModel):
     gid = models.CharField(max_length=32, unique=True)
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=256)
-    google_xml = models.TextField(max_length=4096)
+    input_xml = models.TextField(max_length=4096)
     output_xml = models.TextField(max_length=4096)
 
     background_labels = models.ManyToManyField(Label,
@@ -160,6 +161,40 @@ class CustomSearchEngine(TimeStampedModel):
         """Return all the Labels for the FacetItems associated with this instance."""
         labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s', [self.id])
         return labels
+
+    def _create_or_update_xml_element(self, doc, name):
+        value = getattr(self, name)
+        if value:
+            capitalize = name.capitalize()
+            lower = name.lower()
+            try:
+                el = doc.xpath("/CustomSearchEngine/%s" % capitalize)[0]
+            except IndexError:
+                parent = doc.xpath("/CustomSearchEngine")[0]
+                el = ET.XML("<%s></%s>" %(capitalize, capitalize))
+                parent.insert(1, el)
+            el.text = value
+        
+    def _update_xml(self):
+        """Parse the input_xml and update it with the current database values in this instance."""
+        doc = ET.fromstring(self.input_xml)
+        self._create_or_update_xml_element(doc, "title")
+        self._create_or_update_xml_element(doc, "description")
+        # update Context's Facet and BackgroundLabels
+        # for elem in rowset.getchildren():
+        #     if int(elem.get("itemID")) not in idlist:
+        #         rowset.remove(elem)
+        
+        # Add Include of Annotations
+        self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
+
+    @classmethod
+    def instantiate_from_stream(stream):
+        handler = CSESAXHandler()
+        cse = handler.parseString(CSE_XML)
+        cse._update_xml()
+        cse.save()
+
 
 class ActiveManager(models.Manager):
     def get_queryset(self):
@@ -362,7 +397,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
 
     def parseString(self, stream):
         xml.sax.parseString(stream, self)
-        self.cse.google_xml = stream
+        self.cse.input_xml = stream
         return self.cse
 
     def parse(self, url):
