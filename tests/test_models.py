@@ -2,7 +2,7 @@ from lxml import etree as ET
 
 from django.db import IntegrityError
 from django.test import TestCase
-from gcse.models import CustomSearchEngine, CSESAXHandler, Label
+from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem
 
 # Default CSE XML created by google
 CSE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
@@ -10,29 +10,30 @@ CSE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
   <Title>AgilityNerd Site Search</Title>
   <Context>
     <BackgroundLabels>
-      <Label name="_cse_c12345-r678" mode="FILTER" />
-      <Label name="_cse_exclude_c12345-r678" mode="ELIMINATE" />
+      <Label name="_cse_c12345-r678" mode="FILTER"/>
+      <Label name="_cse_exclude_c12345-r678" mode="ELIMINATE"/>
+      <Label name="blogs" mode="BOOST" weight="0.8"/>
     </BackgroundLabels>
   </Context>
   <LookAndFeel code="2" resultsurl="http://agilitynerd.com/blog/googlesearch.index" adsposition="11" googlebranding="watermark" searchboxsize="31" resultswidth="500" element_layout="1" theme="1" custom_theme="true" text_font="Arial, sans-serif" url_length="full" element_branding="show" enable_cse_thumbnail="true" promotion_url_length="full" ads_layout="1">
-    <Logo />
-    <Colors url="#008000" background="#FFFFFF" border="#336699" title="#0000FF" text="#000000" visited="#663399" light="0000FF" logobg="336699" title_hover="#0000CC" title_active="#0000CC" />
-    <Promotions title_color="#0000CC" title_visited_color="#0000CC" url_color="#008000" background_color="#FFFFFF" border_color="#336699" snippet_color="#000000" title_hover_color="#0000CC" title_active_color="#0000CC" />
-    <SearchControls input_border_color="#D9D9D9" button_border_color="#666666" button_background_color="#CECECE" tab_border_color="#E9E9E9" tab_background_color="#E9E9E9" tab_selected_border_color="#FF9900" tab_selected_background_color="#FFFFFF" />
-    <Results border_color="#FFFFFF" border_hover_color="#FFFFFF" background_color="#FFFFFF" background_hover_color="#FFFFFF" ads_background_color="#FDF6E5" ads_border_color="#FDF6E5" />
+    <Logo/>
+    <Colors url="#008000" background="#FFFFFF" border="#336699" title="#0000FF" text="#000000" visited="#663399" light="0000FF" logobg="336699" title_hover="#0000CC" title_active="#0000CC"/>
+    <Promotions title_color="#0000CC" title_visited_color="#0000CC" url_color="#008000" background_color="#FFFFFF" border_color="#336699" snippet_color="#000000" title_hover_color="#0000CC" title_active_color="#0000CC"/>
+    <SearchControls input_border_color="#D9D9D9" button_border_color="#666666" button_background_color="#CECECE" tab_border_color="#E9E9E9" tab_background_color="#E9E9E9" tab_selected_border_color="#FF9900" tab_selected_background_color="#FFFFFF"/>
+    <Results border_color="#FFFFFF" border_hover_color="#FFFFFF" background_color="#FFFFFF" background_hover_color="#FFFFFF" ads_background_color="#FDF6E5" ads_border_color="#FDF6E5"/>
   </LookAndFeel>
   <AdSense>
-    <Client id="partner-pub-id" />
+    <Client id="partner-pub-id"/>
   </AdSense>
-  <EnterpriseAccount />
-  <ImageSearchSettings enable="true" />
-  <autocomplete_settings />
-  <cse_advance_settings enable_speech="true" />
+  <EnterpriseAccount/>
+  <ImageSearchSettings enable="true"/>
+  <autocomplete_settings/>
+  <cse_advance_settings enable_speech="true"/>
 </CustomSearchEngine>
 """
 
 # Semi customized
-FACETED_XML = """
+FACETED_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
 <GoogleCustomizations version="1.0">
   <CustomSearchEngine id="csekeystring" version="1.0" volunteers="false" keywords="" visible="true" encoding="UTF-8" top_refinements="4">
     <Title>AgilityNerd Dog Agility Search</Title>
@@ -41,7 +42,7 @@ FACETED_XML = """
       <!-- max of FOUR Facets each with at most FOUR FacetItems -->
       <Facet>
         <FacetItem title="Blogs">
-          <Label name="blogs" mode="BOOST" weight="0.8"/>
+          <Label name="blogs" mode="BOOST"/>
         </FacetItem>
         <FacetItem title="Clubs">
           <Label name="club" mode="FILTER"/>
@@ -82,16 +83,16 @@ FACETED_XML = """
         </FacetItem>
       </Facet>
       <BackgroundLabels>
-        <Label name="_cse_csekeystring" mode="FILTER" weight="1" />
-        <Label name="_cse_exclude_csekeystring" mode="ELIMINATE" weight="1" />
+        <Label name="_cse_csekeystring" mode="FILTER" weight="1.0"/>
+        <Label name="_cse_exclude_csekeystring" mode="ELIMINATE" weight="1.0"/>
       </BackgroundLabels>
     </Context>
     <LookAndFeel>
-      <Logo url="http://data.agilitynerd.com/images/AgilityNerd_SideBySide.gif" destination="http://agilitynerd.com" height="51" />
+      <Logo url="http://data.agilitynerd.com/images/AgilityNerd_SideBySide.gif" destination="http://agilitynerd.com" height="51"/>
     </LookAndFeel>
-    <SubscribedLinks />
-    <AdSense />
-    <EnterpriseAccount />
+    <SubscribedLinks/>
+    <AdSense/>
+    <EnterpriseAccount/>
   </CustomSearchEngine>
   <Include type="Annotations" href="http://googility.com/googility_annotations.xml"/>
 </GoogleCustomizations>
@@ -135,57 +136,151 @@ class TestImportCustomSearchEngine(TestCase):
                                  )
         self.assertRaises(IntegrityError, cse.save)
 
-    # def test_gid_populated_from_google_xml(self):
-    #     cse = CustomSearchEngine(gid='c12345-r678',
-    #                              title='Site Search'
-    #                              )
-    #     cse.save()
-    #     handler = CSESAXHandler()
-    #     cse = handler.parseString(CSE_XML)
+    def test_gid_populated_from_google_xml(self):
+        cse = CustomSearchEngine.instantiate_from_stream(CSE_XML)
+        self.assertEqual("c12345-r678", cse.gid)
 
 
-def _extractPathText(xml, path):
+def _extractPath(xml, path):
     doc = ET.fromstring(xml)
-    rowset = doc.xpath(path)
+    return doc.xpath(path)
+
+def _extractPathElementText(xml, path):
+    rowset = _extractPath(xml, path)
     if rowset:
         return rowset[0].text
     return None
+
+def _extractPathAsString(xml, path):
+    rowset = _extractPath(xml, path)
+    if rowset:
+        return ET.tostring(rowset[0], encoding="unicode").strip()
+    return ''
 
 
 class TestCSEUpdateXML(TestCase):
 
     def test_input_matches_output_xml_when_no_changes_to_instance(self):
         cse = CustomSearchEngine(input_xml=CSE_XML)
+        cse.save()
         cse._update_xml()
         self.assertEqual('', cse.title) # no title set so leave XML alone
-        self.assertEqual("AgilityNerd Site Search", _extractPathText(cse.output_xml, "/CustomSearchEngine/Title"))
+        self.assertEqual("AgilityNerd Site Search", _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_when_title_is_changed(self):
         cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=CSE_XML)
+        cse.save()
         cse._update_xml()
-        self.assertEqual(cse.title, _extractPathText(cse.output_xml, "/CustomSearchEngine/Title"))
+        self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_element_when_there_is_no_title_element(self):
-        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"></CustomSearchEngine>"""
+        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
         cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=input_xml)
+        cse.save()
         cse._update_xml()
-        self.assertEqual(cse.title, _extractPathText(cse.output_xml, "/CustomSearchEngine/Title"))
+        self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_description_when_description_is_changed(self):
         cse = CustomSearchEngine(description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=CSE_XML)
+        cse.save()
         cse._update_xml()
-        self.assertEqual(cse.description, _extractPathText(cse.output_xml, "/CustomSearchEngine/Description"))
+        self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_new_description_element_when_there_is_no_description_element(self):
-        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"></CustomSearchEngine>"""
+        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
         cse = CustomSearchEngine(description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=input_xml)
+        cse.save()
         cse._update_xml()
-        self.assertEqual(cse.description, _extractPathText(cse.output_xml, "/CustomSearchEngine/Description"))
+
+        self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
         
+    def test_output_xml_has_new_title_and_description_when_neither_exist(self):
+        input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
+        cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
+                                 description="""Here's a new description in need of escaping: &<>""",
+                                 input_xml=input_xml)
+        cse.save()
+        cse._update_xml()
+
+        self.assertEqual(cse.title, 
+                         _extractPathElementText(cse.output_xml, 
+                                                 "/GoogleCustomizations/CustomSearchEngine/Title"))
+        self.assertEqual(cse.description, 
+                         _extractPathElementText(cse.output_xml, 
+                                                 "/GoogleCustomizations/CustomSearchEngine/Description"))
+
+    def test_output_xml_has_new_background_labels(self):
+        cse = CustomSearchEngine(input_xml=CSE_XML)
+        cse.save()
+        label = Label(name="background",
+                      description="background description",
+                      background=True)
+        label.save()
+        cse.background_labels.add(label)
+        cse._update_xml()
+
+        self.assertEqual(1, 
+                         len(_extractPath(cse.output_xml, 
+                                          "/GoogleCustomizations/CustomSearchEngine/Context/BackgroundLabels")))
+        self.assertEqual(cse.background_labels.all()[0].xml(), 
+                         _extractPathAsString(cse.output_xml, 
+                                              "/GoogleCustomizations/CustomSearchEngine/Context/BackgroundLabels/Label"))
+
+    # def test_output_xml_has_same_facet_labels(self):
+    #     cse = CustomSearchEngine.instantiate_from_stream(FACETED_XML)
+    #     self.assertEqual(FACETED_XML, cse.output_xml)
+
+    def test_output_xml_has_new_facet_labels(self):
+        cse = CustomSearchEngine(input_xml=FACETED_XML)
+        cse.save()
+        label = Label(name="Dogs",
+                      description="Dog refinement",
+                      mode=Label.MODE_FILTER,
+                      weight=0.7)
+        label.save()
+        facet = FacetItem(title="Dogs",
+                          label=label,
+                          cse=cse)
+        facet.save()
+        cse.facetitem_set.add(facet)
+        label = Label(name="Cats",
+                      description="Cat refinement",
+                      mode=Label.MODE_FILTER,
+                      weight=0.7)
+        label.save()
+        facet = FacetItem(title="Cats",
+                          label=label,
+                          cse=cse)
+        facet.save()
+        cse.facetitem_set.add(facet)
+        cse._update_xml()
+
+        self.assertEqual(1, 
+                         len(_extractPath(cse.output_xml, 
+                                          ".//Context/Facet")))
+        self.assertEqual(cse.facetitem_set.all()[0].xml(), 
+                         _extractPathAsString(cse.output_xml, 
+                                              ".//Context/Facet/FacetItem"))
+
+
+class TestCSEAddGoogleCustomization(TestCase):
+
+    def test_missing_google_customizations(self):
+        xml = "<CustomSearchEngine/>"
+        doc = ET.fromstring(xml)
+        new_doc = CustomSearchEngine._add_google_customizations(doc)
+        self.assertEqual("GoogleCustomizations", new_doc.tag)
+
+    def test_has_google_customizations(self):
+        xml = "<GoogleCustomizations/>"
+        doc = ET.fromstring(xml)
+        new_doc = CustomSearchEngine._add_google_customizations(doc)
+        self.assertEqual("GoogleCustomizations", new_doc.tag)
+
 
 class TestCSESAXHandler(TestCase):
 
@@ -204,14 +299,13 @@ class TestCSESAXHandler(TestCase):
 
     def test_description_is_parsed_from_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
-        self.assertEqual(u'Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores'
-,
+        self.assertEqual(u'Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores',
                          self.cse.description)
 
     def test_labels_are_parsed_from_xml(self):
         cse = self.cse
         self.assertEqual(0, cse.facetitem_set.count())
-        self.assertEqual(2, cse.background_labels.count())
+        self.assertEqual(3, cse.background_labels.count())
 
         labels = cse.background_labels.all()
         label_names = [x.name for x in labels]
@@ -221,9 +315,15 @@ class TestCSESAXHandler(TestCase):
         label_modes = [x.mode for x in labels]
         self.assertTrue(Label.MODE_FILTER in label_modes)
         self.assertTrue(Label.MODE_ELIMINATE in label_modes)
+        self.assertTrue(Label.MODE_BOOST in label_modes)
 
-        self.assertTrue(True, labels[0].background)
-        self.assertTrue(True, labels[1].background)
+        self.assertEqual(True, labels[0].background)
+        self.assertEqual(True, labels[1].background)
+        self.assertEqual(True, labels[2].background)
+
+        self.assertEqual(None, labels[0].weight)
+        self.assertEqual(None, labels[1].weight)
+        self.assertEqual(0.8, labels[2].weight)
 
     def test_labels_are_parsed_from_facets_in_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
@@ -251,9 +351,6 @@ class TestCSESAXHandler(TestCase):
         self.cse = self.handler.parseString(FACETED_XML)
         cse = self.cse
         self.assertEqual(12, cse.facetitem_set.count())
-        
-    # def test_output_xml_is_parsed_from_xml(self):
-    #     self.assertEqual(CSE_XML, self.cse.output_xml)
 
 
 class TestLabel(TestCase):
@@ -262,3 +359,20 @@ class TestLabel(TestCase):
         self.assertEqual(Label.MODE_ELIMINATE, Label.get_mode("ELIMINATE"))
         self.assertEqual(Label.MODE_FILTER, Label.get_mode("FILTER"))
         self.assertEqual(Label.MODE_BOOST, Label.get_mode("BOOST"))
+
+    def test_uml_weight_not_displayed_when_no_weight_specified(self):
+        label = Label(name="blog")
+        self.assertEqual('<Label name="blog" mode="FILTER"/>',
+                         label.xml())
+
+    def test_uml_weight_not_displayed_when_weight_specified_and_not_requested(self):
+        label = Label(name="blog",
+                      weight=0.5)
+        self.assertEqual('<Label name="blog" mode="FILTER"/>',
+                         label.xml(complete=False))
+
+    def test_uml_weight_is_displayed(self):
+        label = Label(name="blog",
+                      weight=0.4)
+        self.assertEqual('<Label name="blog" mode="FILTER" weight="0.4"/>',
+                         label.xml())

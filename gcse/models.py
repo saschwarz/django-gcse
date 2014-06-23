@@ -75,6 +75,15 @@ class Label(models.Model):
             if mode_str == mode_string:
                 return mode_char
 
+    def xml(self, complete=True):
+        weight = ''
+        if self.weight and complete:
+            weight = ' weight="%s"' % self.weight
+        params = {"name": self.name,
+                  "mode": self.get_mode_display(),
+                  "weight": weight}
+        return u'<Label name="%(name)s" mode="%(mode)s"%(weight)s/>' % params
+
 
 class FacetItem(models.Model):
     """A named search refinement presented in the search results to CSE users."""
@@ -91,6 +100,9 @@ class FacetItem(models.Model):
 
     def __unicode__(self):
         return u'%s %s' % (self.title, self.label)
+
+    def xml(self):
+        return u'<FacetItem title="%s">%s</FacetItem>' % (self.title, self.label.xml(complete=False))
 
 
 class CustomSearchEngine(TimeStampedModel):
@@ -159,41 +171,81 @@ class CustomSearchEngine(TimeStampedModel):
 
     def facetitems_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
-        labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s', [self.id])
+        labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.id', [self.id])
         return labels
 
-    def _create_or_update_xml_element(self, doc, name):
+    def _create_or_update_xml_element_text(self, doc, name):
         value = getattr(self, name)
         if value:
             capitalize = name.capitalize()
             lower = name.lower()
-            try:
-                el = doc.xpath("/CustomSearchEngine/%s" % capitalize)[0]
-            except IndexError:
-                parent = doc.xpath("/CustomSearchEngine")[0]
-                el = ET.XML("<%s></%s>" %(capitalize, capitalize))
-                parent.insert(1, el)
+            el = doc.find(".//CustomSearchEngine/%s" % capitalize)
+            if el is None:
+                doc = doc.find(".//CustomSearchEngine")
+                el = ET.XML("<%s/>" % capitalize)
+                doc.insert(1, el)
             el.text = value
-        
+
+    def _update_background_labels(self, doc):
+        """Replace the BackgroundLabel in the supplied doc's Context element."""
+        context = doc.xpath(".//Context")[0]
+        for child in context.getchildren():
+            if child.tag == 'BackgroundLabels':
+                context.remove(child)
+        background = ET.XML("<BackgroundLabels />")
+        context.insert(1, background)
+        for label in self.background_labels.all():
+            background.insert(1, ET.XML(label.xml()))
+
+    def _update_facets(self, doc):
+        """
+        Add/replace the Facets in the supplied doc's Context element.
+        TODO: maintain ordering of FacetItems
+        """
+        context = doc.xpath(".//Context")[0]
+        for child in context.getchildren():
+            if child.tag == 'Facet':
+                context.remove(child)
+
+        # Google limits to 16 facet items in groups of 4
+        for i, facet_item in enumerate(self.facetitem_set.all()[:16]):
+            if i % 4 == 0:
+                facet_el = ET.XML("<Facet />")
+                context.insert(1, facet_el)
+            facet_item_el = ET.XML(facet_item.xml())
+            facet_el.insert(i % 4, facet_item_el)
+
+    @classmethod
+    def _add_google_customizations(self, doc):
+        if doc.tag != "GoogleCustomizations":
+            root = ET.XML("<GoogleCustomizations />")
+            root.insert(1, doc)
+            doc = root
+        return doc
+
     def _update_xml(self):
         """Parse the input_xml and update it with the current database values in this instance."""
         doc = ET.fromstring(self.input_xml)
-        self._create_or_update_xml_element(doc, "title")
-        self._create_or_update_xml_element(doc, "description")
+        # handle case where user gives us only CustomSearchEngine without
+        # external Annotations file.
+        doc = self._add_google_customizations(doc)
+        self._create_or_update_xml_element_text(doc, "title")
+        self._create_or_update_xml_element_text(doc, "description")
+
         # update Context's Facet and BackgroundLabels
-        # for elem in rowset.getchildren():
-        #     if int(elem.get("itemID")) not in idlist:
-        #         rowset.remove(elem)
+        self._update_background_labels(doc)
+        self._update_facets(doc)
         
         # Add Include of Annotations
         self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
 
     @classmethod
-    def instantiate_from_stream(stream):
+    def instantiate_from_stream(cls, stream):
         handler = CSESAXHandler()
-        cse = handler.parseString(CSE_XML)
+        cse = handler.parseString(stream)
         cse._update_xml()
         cse.save()
+        return cse
 
 
 class ActiveManager(models.Manager):
@@ -402,6 +454,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
 
     def parse(self, url):
         xml.sax.parse(urlopen(url), self)
+        self.cse.input_xml = stream
         return self.cse
 
     def startElement(self, name, attributes):
