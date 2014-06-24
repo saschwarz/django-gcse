@@ -16,8 +16,8 @@ urlpatterns = patterns('',
 urlpatterns += patterns('gcse.views',
                         url(r'^$', 'index', name='cse_home'),
                         # urls for Google search related resources
-                        url(r'^gcse.xml$', TemplateView.as_view(template_name='gcse/cse.xml'), name='cse'),
-                        url(r'^googility_annotations.xml$', 'indexXML', name='cse_annotations'),
+                        url(r'^(?P<gid>[\w-]+).xml$', TemplateView.as_view(template_name='gcse/cse.xml'), name='cse'),
+                        url(r'^annotations/(?P<gid>[\w-]+).xml$', 'indexXML', name='annotations'),
 
                         url(r'^results.html$', TemplateView.as_view(template_name='gcse/results.html'), name='cse_results'),
                         # urls for browsing, searching, viewing, editing local site

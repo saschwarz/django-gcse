@@ -137,7 +137,7 @@ class TestImportCustomSearchEngine(TestCase):
         self.assertRaises(IntegrityError, cse.save)
 
     def test_gid_populated_from_google_xml(self):
-        cse = CustomSearchEngine.instantiate_from_stream(CSE_XML)
+        cse = CustomSearchEngine.from_string(CSE_XML)
         self.assertEqual("c12345-r678", cse.gid)
 
 
@@ -161,14 +161,16 @@ def _extractPathAsString(xml, path):
 class TestCSEUpdateXML(TestCase):
 
     def test_input_matches_output_xml_when_no_changes_to_instance(self):
-        cse = CustomSearchEngine(input_xml=CSE_XML)
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 input_xml=CSE_XML)
         cse.save()
         cse._update_xml()
         self.assertEqual('', cse.title) # no title set so leave XML alone
         self.assertEqual("AgilityNerd Site Search", _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_when_title_is_changed(self):
-        cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
         cse._update_xml()
@@ -176,14 +178,16 @@ class TestCSEUpdateXML(TestCase):
 
     def test_output_xml_has_new_title_element_when_there_is_no_title_element(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
-        cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
         cse._update_xml()
         self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_description_when_description_is_changed(self):
-        cse = CustomSearchEngine(description="""Here's a new description in need of escaping: &<>""",
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
         cse._update_xml()
@@ -191,7 +195,8 @@ class TestCSEUpdateXML(TestCase):
 
     def test_output_xml_has_new_description_element_when_there_is_no_description_element(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
-        cse = CustomSearchEngine(description="""Here's a new description in need of escaping: &<>""",
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
         cse._update_xml()
@@ -200,7 +205,8 @@ class TestCSEUpdateXML(TestCase):
         
     def test_output_xml_has_new_title_and_description_when_neither_exist(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
-        cse = CustomSearchEngine(title="""Here's a new title in need of escaping: &<>""",
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 title="""Here's a new title in need of escaping: &<>""",
                                  description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
@@ -213,29 +219,26 @@ class TestCSEUpdateXML(TestCase):
                          _extractPathElementText(cse.output_xml, 
                                                  "/GoogleCustomizations/CustomSearchEngine/Description"))
 
-    def test_output_xml_has_new_background_labels(self):
-        cse = CustomSearchEngine(input_xml=CSE_XML)
+    def test_output_xml_has_annotation_include(self):
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 input_xml=FACETED_XML)
         cse.save()
-        label = Label(name="background",
-                      description="background description",
-                      background=True)
-        label.save()
-        cse.background_labels.add(label)
         cse._update_xml()
 
         self.assertEqual(1, 
                          len(_extractPath(cse.output_xml, 
-                                          "/GoogleCustomizations/CustomSearchEngine/Context/BackgroundLabels")))
-        self.assertEqual(cse.background_labels.all()[0].xml(), 
+                                          "/GoogleCustomizations/Include")))
+        self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.xml"/>',
                          _extractPathAsString(cse.output_xml, 
-                                              "/GoogleCustomizations/CustomSearchEngine/Context/BackgroundLabels/Label"))
+                                              "/GoogleCustomizations/Include"))
 
     # def test_output_xml_has_same_facet_labels(self):
-    #     cse = CustomSearchEngine.instantiate_from_stream(FACETED_XML)
+    #     cse = CustomSearchEngine.from_string(FACETED_XML)
     #     self.assertEqual(FACETED_XML, cse.output_xml)
 
     def test_output_xml_has_new_facet_labels(self):
-        cse = CustomSearchEngine(input_xml=FACETED_XML)
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 input_xml=FACETED_XML)
         cse.save()
         label = Label(name="Dogs",
                       description="Dog refinement",
@@ -258,7 +261,38 @@ class TestCSEUpdateXML(TestCase):
         facet.save()
         cse.facetitem_set.add(facet)
         cse._update_xml()
+        self.assertEqual(1, 
+                         len(_extractPath(cse.output_xml, 
+                                          ".//Context/Facet")))
+        self.assertEqual(cse.facetitem_set.all()[0].xml(), 
+                         _extractPathAsString(cse.output_xml, 
+                                              ".//Context/Facet/FacetItem"))
 
+    def test_output_xml_has_new_facet_labels(self):
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 input_xml=FACETED_XML)
+        cse.save()
+        label = Label(name="Dogs",
+                      description="Dog refinement",
+                      mode=Label.MODE_FILTER,
+                      weight=0.7)
+        label.save()
+        facet = FacetItem(title="Dogs",
+                          label=label,
+                          cse=cse)
+        facet.save()
+        cse.facetitem_set.add(facet)
+        label = Label(name="Cats",
+                      description="Cat refinement",
+                      mode=Label.MODE_FILTER,
+                      weight=0.7)
+        label.save()
+        facet = FacetItem(title="Cats",
+                          label=label,
+                          cse=cse)
+        facet.save()
+        cse.facetitem_set.add(facet)
+        cse._update_xml()
         self.assertEqual(1, 
                          len(_extractPath(cse.output_xml, 
                                           ".//Context/Facet")))

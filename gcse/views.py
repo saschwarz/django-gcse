@@ -24,7 +24,7 @@ except ImportError:
     import json
 
 
-def indexXML(request, template='gcse/annotation.xml'):
+def indexXML(request, gid, template='gcse/annotation.xml'):
     """
     Render all the active Annotations that have Google regular expressions.
     """

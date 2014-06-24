@@ -11,7 +11,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-version = django-gcse.__version__
+version = gcse.__version__
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
@@ -32,7 +32,7 @@ setup(
     author_email='steve@agilitynerd.com',
     url='https://github.com/saschwarz/django-gcse',
     packages=[
-        'django-gcse',
+        'gcse',
     ],
     include_package_data=True,
     install_requires=[

@@ -13,6 +13,7 @@ from lxml import etree as ET
 from django.db import models
 from django.db import connection
 from django.utils.translation import ugettext as _
+from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -122,7 +123,7 @@ class CustomSearchEngine(TimeStampedModel):
     described below.
 
     Instances can be created by importing the a CustomSearchEngine XML
-    file or URL using the XXXX and YYYY factory methods.
+    file or URL using the 'from_string' and 'from_url' factory methods.
 
     Alternately, the title and description fields should be populated
     and upon save the 'output_xml' is populated using the
@@ -202,32 +203,44 @@ class CustomSearchEngine(TimeStampedModel):
         Add/replace the Facets in the supplied doc's Context element.
         TODO: maintain ordering of FacetItems
         """
+        NUM_FACET_ITEMS = 4
         context = doc.xpath(".//Context")[0]
         for child in context.getchildren():
             if child.tag == 'Facet':
                 context.remove(child)
 
         # Google limits to 16 facet items in groups of 4
-        for i, facet_item in enumerate(self.facetitem_set.all()[:16]):
-            if i % 4 == 0:
+        # but don't enforce overall limit just keep grouping them.
+        for i, facet_item in enumerate(self.facetitem_set.all()):
+            if i % NUM_FACET_ITEMS == 0:
                 facet_el = ET.XML("<Facet />")
                 context.insert(1, facet_el)
             facet_item_el = ET.XML(facet_item.xml())
-            facet_el.insert(i % 4, facet_item_el)
+            facet_el.insert(i % NUM_FACET_ITEMS, facet_item_el)
 
     @classmethod
-    def _add_google_customizations(self, doc):
+    def _add_google_customizations(cls, doc):
         if doc.tag != "GoogleCustomizations":
             root = ET.XML("<GoogleCustomizations />")
             root.insert(1, doc)
             doc = root
         return doc
 
+    @classmethod
+    def _update_include(cls, doc, annotation_url):
+        for el in doc.findall(".//Include"):
+            el.getparent().remove(el)
+        doc.append(ET.XML('<Include type="Annotations" href="%s"/>' % annotation_url))
+
+    def _annotations_url(self):
+        url = reverse('annotations', args=(self.gid,))
+        return  '//' + Site.objects.get_current().domain + url
+
     def _update_xml(self):
         """Parse the input_xml and update it with the current database values in this instance."""
         doc = ET.fromstring(self.input_xml)
         # handle case where user gives us only CustomSearchEngine without
-        # external Annotations file.
+        # external Annotations file - wrap CSE with GoogleCustomizations element:
         doc = self._add_google_customizations(doc)
         self._create_or_update_xml_element_text(doc, "title")
         self._create_or_update_xml_element_text(doc, "description")
@@ -236,13 +249,22 @@ class CustomSearchEngine(TimeStampedModel):
         self._update_background_labels(doc)
         self._update_facets(doc)
         
-        # Add Include of Annotations
+        # Add Include of Annotations with link keyed on this CSE
+        self._update_include(doc, self._annotations_url())
         self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
 
     @classmethod
-    def instantiate_from_stream(cls, stream):
+    def from_string(cls, string):
         handler = CSESAXHandler()
-        cse = handler.parseString(stream)
+        cse = handler.parseString(string)
+        cse._update_xml()
+        cse.save()
+        return cse
+
+    @classmethod
+    def from_url(cls, url):
+        handler = CSESAXHandler()
+        cse = handler.parse(url)
         cse._update_xml()
         cse.save()
         return cse
@@ -500,6 +522,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         elif name == 'BackgroundLabels':
             self.in_background_label = False
 
+
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     """Create a set of Annotation instances from an XML file."""
 
@@ -547,3 +570,9 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
             # Store in database unescaped - let view(s) escape if needed
             self.curAnnotation.comment = \
                 xml.sax.saxutils.unescape(self.curAnnotation.comment)
+
+# TODO:
+# - update CSE.output_xml on pre-save hook
+# - reloading same GCSE XML file to optionally create new what(?).
+# - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
+# - management command to insert GCSE and Annotations.
