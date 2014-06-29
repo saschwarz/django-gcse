@@ -1,5 +1,5 @@
 django>=1.5.1
-django-stw>=0.2,<0.3
+django-stw>=0.3,<0.4
 django-model-utils>=2.0,<2.1
 django-ordered-model>=0.3,<0.4
 #django-recaptcha==0.0.6
