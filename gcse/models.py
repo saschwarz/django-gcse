@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 try:
     from urllib2 import urlopen
 except ImportError:
@@ -10,16 +11,23 @@ import xml.sax.saxutils
 import xml.sax.handler
 from lxml import etree as ET
 
-from django.db import models
-from django.db import connection
-from django.utils.translation import ugettext as _
+from django.db import models, connection
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils.translation import ugettext as _
 
 from model_utils.models import TimeStampedModel
 
 from .country_field import CountryField
+
+
+settings.GCSE_CONFIG = dict({
+        'NUM_FACET_ITEMS_PER_FACET': 4, 
+        'NUM_ANNOTATIONS_PER_FILE': 1000,
+        },
+        **getattr(settings, 'GCSE_CONFIG' , {}))
 
 
 class Label(models.Model):
@@ -175,6 +183,14 @@ class CustomSearchEngine(TimeStampedModel):
         labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.id', [self.id])
         return labels
 
+    def num_facetitems_labels(self):
+        """Return all the Labels for the FacetItems associated with this instance."""
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.id', [self.id])
+        row = cursor.fetchone()
+        return row[0]
+
     def _create_or_update_xml_element_text(self, doc, name):
         value = getattr(self, name)
         if value:
@@ -203,20 +219,20 @@ class CustomSearchEngine(TimeStampedModel):
         Add/replace the Facets in the supplied doc's Context element.
         TODO: maintain ordering of FacetItems
         """
-        NUM_FACET_ITEMS = 4
+        num_facet_items = settings.GCSE_CONFIG.get('NUM_FACET_ITEMS_PER_FACET')
         context = doc.xpath(".//Context")[0]
         for child in context.getchildren():
             if child.tag == 'Facet':
                 context.remove(child)
 
-        # Google limits to 16 facet items in groups of 4
+        # Google limits to 16 facet items in groups of up to 4
         # but don't enforce overall limit just keep grouping them.
         for i, facet_item in enumerate(self.facetitem_set.all()):
-            if i % NUM_FACET_ITEMS == 0:
+            if i % num_facet_items == 0:
                 facet_el = ET.XML("<Facet />")
                 context.insert(1, facet_el)
             facet_item_el = ET.XML(facet_item.xml())
-            facet_el.insert(i % NUM_FACET_ITEMS, facet_item_el)
+            facet_el.insert(i % num_facet_items, facet_item_el)
 
     @classmethod
     def _add_google_customizations(cls, doc):
@@ -576,3 +592,5 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
 # - management command to insert GCSE and Annotations.
+# - settings configuration for number of annotations per file
+# - create multiple annotation files

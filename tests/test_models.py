@@ -1,7 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+test_models
+-----------
+
+Tests for `django-gcse` model module.
+"""
 from lxml import etree as ET
 
 from django.db import IntegrityError
 from django.test import TestCase
+from django.test.utils import override_settings
 from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem
 
 # Default CSE XML created by google
@@ -101,23 +109,22 @@ FACETED_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
 
 class TestCustomSearchEngine(TestCase):
 
-    def test_adding_labels(self):
+    def test_adding_background_labels(self):
         cse = CustomSearchEngine(gid='c12345-r678',
                                  title='AgilityNerd Site Search'
                                  )
         cse.save()
-        l1 = Label(name="fred")
-        l1.save()
-        l1.mode = Label.MODE_FILTER
+        l1 = Label(name="keystring",
+                   mode=Label.MODE_FILTER)
         l1.save()
         cse.background_labels.add(l1)
-        l2 = Label(name="fred")
-        l2.save()
-        l2.mode = Label.MODE_ELIMINATE
+
+        l2 = Label(name="exclude_keystring",
+                   mode=Label.MODE_ELIMINATE)
         l2.save()
         cse.background_labels.add(l2)
 
-        
+
 class TestImportCustomSearchEngine(TestCase):
 
     def test_insert(self):
@@ -159,6 +166,10 @@ def _extractPathAsString(xml, path):
 
 
 class TestCSEUpdateXML(TestCase):
+
+    def setUp(self):
+        Label.objects.all().delete()
+        FacetItem.objects.all().delete()
 
     def test_input_matches_output_xml_when_no_changes_to_instance(self):
         cse = CustomSearchEngine(gid="c12345-r678",
@@ -202,7 +213,7 @@ class TestCSEUpdateXML(TestCase):
         cse._update_xml()
 
         self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
-        
+
     def test_output_xml_has_new_title_and_description_when_neither_exist(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
         cse = CustomSearchEngine(gid="c12345-r678",
@@ -212,11 +223,11 @@ class TestCSEUpdateXML(TestCase):
         cse.save()
         cse._update_xml()
 
-        self.assertEqual(cse.title, 
-                         _extractPathElementText(cse.output_xml, 
+        self.assertEqual(cse.title,
+                         _extractPathElementText(cse.output_xml,
                                                  "/GoogleCustomizations/CustomSearchEngine/Title"))
-        self.assertEqual(cse.description, 
-                         _extractPathElementText(cse.output_xml, 
+        self.assertEqual(cse.description,
+                         _extractPathElementText(cse.output_xml,
                                                  "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_annotation_include(self):
@@ -225,11 +236,11 @@ class TestCSEUpdateXML(TestCase):
         cse.save()
         cse._update_xml()
 
-        self.assertEqual(1, 
-                         len(_extractPath(cse.output_xml, 
+        self.assertEqual(1,
+                         len(_extractPath(cse.output_xml,
                                           "/GoogleCustomizations/Include")))
         self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.xml"/>',
-                         _extractPathAsString(cse.output_xml, 
+                         _extractPathAsString(cse.output_xml,
                                               "/GoogleCustomizations/Include"))
 
     # def test_output_xml_has_same_facet_labels(self):
@@ -261,11 +272,11 @@ class TestCSEUpdateXML(TestCase):
         facet.save()
         cse.facetitem_set.add(facet)
         cse._update_xml()
-        self.assertEqual(1, 
-                         len(_extractPath(cse.output_xml, 
+        self.assertEqual(1,
+                         len(_extractPath(cse.output_xml,
                                           ".//Context/Facet")))
-        self.assertEqual(cse.facetitem_set.all()[0].xml(), 
-                         _extractPathAsString(cse.output_xml, 
+        self.assertEqual(cse.facetitem_set.all()[0].xml(),
+                         _extractPathAsString(cse.output_xml,
                                               ".//Context/Facet/FacetItem"))
 
     def test_output_xml_has_new_facet_labels(self):
@@ -293,15 +304,49 @@ class TestCSEUpdateXML(TestCase):
         facet.save()
         cse.facetitem_set.add(facet)
         cse._update_xml()
-        self.assertEqual(1, 
-                         len(_extractPath(cse.output_xml, 
+        self.assertEqual(1,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet")),
+                         "should be only one Facet")
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet/FacetItem")),
+                         "should be two FacetItems in Facet")
+        self.assertEqual(cse.facetitem_set.all()[0].xml(),
+                         _extractPathAsString(cse.output_xml,
+                                              ".//Context/Facet/FacetItem[1]"),
+                         "first FacetItem should be first")
+        self.assertEqual(cse.facetitem_set.all()[1].xml(),
+                         _extractPathAsString(cse.output_xml,
+                                              ".//Context/Facet/FacetItem[2]"))
+
+    def test_output_xml_num_facet_items_per_facet(self):
+        cse = CustomSearchEngine.from_string(FACETED_XML)
+        cse.save()
+        with override_settings(GCSE_CONFIG={'NUM_FACET_ITEMS_PER_FACET': 2}):
+            cse._update_xml()
+
+        self.assertEqual(6,
+                         len(_extractPath(cse.output_xml,
                                           ".//Context/Facet")))
-        self.assertEqual(cse.facetitem_set.all()[0].xml(), 
-                         _extractPathAsString(cse.output_xml, 
-                                              ".//Context/Facet/FacetItem"))
-
-
-class TestCSEAddGoogleCustomization(TestCase):
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet[1]/FacetItem")))
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet[2]/FacetItem")))
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet[3]/FacetItem")))
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet[4]/FacetItem")))
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet[5]/FacetItem")))
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          ".//Context/Facet[6]/FacetItem")))
 
     def test_missing_google_customizations(self):
         xml = "<CustomSearchEngine/>"
@@ -394,18 +439,18 @@ class TestLabel(TestCase):
         self.assertEqual(Label.MODE_FILTER, Label.get_mode("FILTER"))
         self.assertEqual(Label.MODE_BOOST, Label.get_mode("BOOST"))
 
-    def test_uml_weight_not_displayed_when_no_weight_specified(self):
+    def test_xml_weight_not_displayed_when_no_weight_specified(self):
         label = Label(name="blog")
         self.assertEqual('<Label name="blog" mode="FILTER"/>',
                          label.xml())
 
-    def test_uml_weight_not_displayed_when_weight_specified_and_not_requested(self):
+    def test_xml_weight_not_displayed_when_weight_specified_and_not_requested(self):
         label = Label(name="blog",
                       weight=0.5)
         self.assertEqual('<Label name="blog" mode="FILTER"/>',
                          label.xml(complete=False))
 
-    def test_uml_weight_is_displayed(self):
+    def test_xml_weight_is_displayed(self):
         label = Label(name="blog",
                       weight=0.4)
         self.assertEqual('<Label name="blog" mode="FILTER" weight="0.4"/>',
