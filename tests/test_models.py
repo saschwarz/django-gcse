@@ -239,9 +239,26 @@ class TestCSEUpdateXML(TestCase):
         self.assertEqual(1,
                          len(_extractPath(cse.output_xml,
                                           "/GoogleCustomizations/Include")))
-        self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.xml"/>',
+        self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.0.xml"/>',
                          _extractPathAsString(cse.output_xml,
                                               "/GoogleCustomizations/Include"))
+
+    def test_output_xml_has_annotation_includes(self):
+        cse = CustomSearchEngine(gid="c12345-r678",
+                                 input_xml=FACETED_XML)
+        cse.save()
+        cse.annotation_count = lambda: 2000
+        cse._update_xml()
+
+        self.assertEqual(2,
+                         len(_extractPath(cse.output_xml,
+                                          "/GoogleCustomizations/Include")))
+        self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.0.xml"/>',
+                         _extractPathAsString(cse.output_xml,
+                                              "/GoogleCustomizations/Include[1]"))
+        self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.1.xml"/>',
+                         _extractPathAsString(cse.output_xml,
+                                              "/GoogleCustomizations/Include[2]"))
 
     # def test_output_xml_has_same_facet_labels(self):
     #     cse = CustomSearchEngine.from_string(FACETED_XML)
@@ -323,7 +340,8 @@ class TestCSEUpdateXML(TestCase):
     def test_output_xml_num_facet_items_per_facet(self):
         cse = CustomSearchEngine.from_string(FACETED_XML)
         cse.save()
-        with override_settings(GCSE_CONFIG={'NUM_FACET_ITEMS_PER_FACET': 2}):
+        with override_settings(GCSE_CONFIG={'NUM_FACET_ITEMS_PER_FACET': 2,
+                                            'NUM_ANNOTATIONS_PER_FILE': 1000}):
             cse._update_xml()
 
         self.assertEqual(6,
