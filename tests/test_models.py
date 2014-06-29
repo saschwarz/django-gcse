@@ -347,6 +347,12 @@ class TestCSEUpdateXML(TestCase):
         self.assertEqual(2,
                          len(_extractPath(cse.output_xml,
                                           ".//Context/Facet[6]/FacetItem")))
+        self.assertEqual(cse.facetitem_set.all()[0].xml(),
+                         _extractPathAsString(cse.output_xml,
+                                              ".//Context/Facet[1]/FacetItem[1]"))
+        self.assertEqual(cse.facetitem_set.all()[1].xml(),
+                         _extractPathAsString(cse.output_xml,
+                                              ".//Context/Facet[1]/FacetItem[2]"))
 
     def test_missing_google_customizations(self):
         xml = "<CustomSearchEngine/>"

@@ -1,9 +1,10 @@
 django>=1.5.1
-django-stw
-django-model-utils
+django-stw>=0.2,<0.3
+django-model-utils>=2.0,<2.1
+django-ordered-model>=0.3,<0.4
 #django-recaptcha==0.0.6
 # version that supports django 1.6+
 -e git://github.com/saschwarz/django-recaptcha.git#egg=django-recaptcha
 -e git+https://bitbucket.org/absolwenciifpw/django-mailhide/master.zip#egg=django-mailhide
-lxml==3.3.5
+lxml>=3.3.5,<3.4
 pycrypto

@@ -19,6 +19,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext as _
 
 from model_utils.models import TimeStampedModel
+from ordered_model.models import OrderedModel
 
 from .country_field import CountryField
 
@@ -94,7 +95,7 @@ class Label(models.Model):
         return u'<Label name="%(name)s" mode="%(mode)s"%(weight)s/>' % params
 
 
-class FacetItem(models.Model):
+class FacetItem(OrderedModel):
     """A named search refinement presented in the search results to CSE users."""
     title = models.CharField(max_length=128,
                              help_text=_('Refinement title displayed in search results.'))
@@ -103,9 +104,10 @@ class FacetItem(models.Model):
                               help_text=_('The label associated with this refinement facet.'))
     cse = models.ForeignKey('CustomSearchEngine',
                             help_text=_('The Custom Search Engine associated with this refinement facet.'))
+    order_with_respect_to = 'cse'
 
-    class Meta:
-        ordering = ["title"]
+    class Meta(OrderedModel.Meta):
+        pass
 
     def __unicode__(self):
         return u'%s %s' % (self.title, self.label)
@@ -230,9 +232,9 @@ class CustomSearchEngine(TimeStampedModel):
         for i, facet_item in enumerate(self.facetitem_set.all()):
             if i % num_facet_items == 0:
                 facet_el = ET.XML("<Facet />")
-                context.insert(1, facet_el)
+                context.append(facet_el)
             facet_item_el = ET.XML(facet_item.xml())
-            facet_el.insert(i % num_facet_items, facet_item_el)
+            facet_el.append(facet_item_el)
 
     @classmethod
     def _add_google_customizations(cls, doc):
@@ -482,6 +484,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         self.cse = None
         self.name = ''
         self.attrs = {}
+        self.facet_index = 0
         self.facet_item = None
         self.in_background_label = False
 
@@ -505,6 +508,9 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
             title = attributes["title"]
             facet, created = FacetItem.objects.get_or_create(title=title,
                                                              cse=self.cse)
+            facet.order = self.facet_index
+            facet.save()
+            self.facet_index += 1
             self.cse.facetitem_set.add(facet)
             self.facet_item = facet
         elif name == 'BackgroundLabels':
