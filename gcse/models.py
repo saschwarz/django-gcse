@@ -20,6 +20,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext as _
 
 from model_utils.models import TimeStampedModel
+from model_utils.managers import InheritanceManager
 from ordered_model.models import OrderedModel
 
 from .country_field import CountryField
@@ -180,8 +181,12 @@ class CustomSearchEngine(TimeStampedModel):
                                                related_name='cse_background_labels',
                                                help_text=_('Non-visible Labels for this search engine'))
 
+    def annotations(self):
+        return Annotation.objects.filter(status=Annotation.STATUS_ACTIVE, 
+                                         labels__in=self.background_labels.all()).select_subclasses()
+
     def annotation_count(self):
-        return Annotation.objects.filter(labels__in=self.background_labels.all()).count()
+        return self.annotations().count()
 
     def facetitems_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
@@ -292,10 +297,10 @@ class CustomSearchEngine(TimeStampedModel):
 class ActiveManager(models.Manager):
     def get_queryset(self):
         return super(ActiveManager, self).get_queryset().\
-            filter(status=AnnotationBase.STATUS_ACTIVE)
+            filter(status=Annotation.STATUS_ACTIVE)
 
 
-class AnnotationBase(TimeStampedModel):
+class Annotation(TimeStampedModel):
     """
     Abstract base class upon which Annotation entries and local "Place"
     entries can be created.
@@ -351,22 +356,11 @@ class AnnotationBase(TimeStampedModel):
                                        related_name='newer_versions',
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
-    objects = models.Manager()
-    active = ActiveManager()
-
-    class Meta:
-        abstract = True
+    objects = InheritanceManager()
+# SAS    active = ActiveManager()
 
 
-class Annotation(AnnotationBase):
-    """
-    Concrete class representing an Annotation in the Google annotations file.
-    https://developers.google.com/custom-search/docs/annotations
-    """
-    pass
-
-
-class Place(AnnotationBase):
+class Place(Annotation):
     """
     Concrete class representation of a physical place, organization, business
     that can be represented in an Annotation and/or on a Google map
