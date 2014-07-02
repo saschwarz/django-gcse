@@ -567,7 +567,7 @@ class TestCSEAddingPlaces(TestCase):
 
 class TestAnnotationManager(TestCase):
 
-    def test_active_manager_annotations(self):
+    def test_manager_annotations(self):
         active = Annotation.objects.create(comment="Active Annotation",
                                            status=Annotation.STATUS.active)
         submitted = Annotation.objects.create(comment="Submitted Annotation",
@@ -577,8 +577,12 @@ class TestAnnotationManager(TestCase):
         
         self.assertEqual(1, Annotation.objects.active().count())
         self.assertEqual(active, Annotation.objects.active().all()[0])
+        self.assertEqual(1, Annotation.objects.submitted().count())
+        self.assertEqual(submitted, Annotation.objects.submitted().all()[0])
+        self.assertEqual(1, Annotation.objects.deleted().count())
+        self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
 
-    def test_active_manager_places(self):
+    def test_manager_places(self):
         active = Place.objects.create(comment="Active Place",
                                       status=Annotation.STATUS.active)
         submitted = Place.objects.create(comment="Submitted Place",
@@ -588,25 +592,8 @@ class TestAnnotationManager(TestCase):
 
         self.assertEqual(1, Annotation.objects.active().count())
         self.assertEqual(active, Annotation.objects.active().all()[0])
-
-    def test_submitted_manager_annotations(self):
-        active = Annotation.objects.create(comment="Active Annotation",
-                                           status=Annotation.STATUS.active)
-        submitted = Annotation.objects.create(comment="Submitted Annotation",
-                                              status=Annotation.STATUS.submitted)
-        deleted = Annotation.objects.create(comment="Deleted Annotation",
-                                            status=Annotation.STATUS.deleted)
-        
         self.assertEqual(1, Annotation.objects.submitted().count())
         self.assertEqual(submitted, Annotation.objects.submitted().all()[0])
+        self.assertEqual(1, Annotation.objects.deleted().count())
+        self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
 
-    def test_submitted_manager_places(self):
-        submitted = Place.objects.create(comment="Active Place",
-                                      status=Annotation.STATUS.active)
-        submitted = Place.objects.create(comment="Submitted Place",
-                                         status=Annotation.STATUS.submitted)
-        deleted = Place.objects.create(comment="Deleted Place",
-                                       status=Annotation.STATUS.deleted)
-
-        self.assertEqual(1, Annotation.objects.submitted().count())
-        self.assertEqual(submitted, Annotation.objects.submitted().all()[0])
