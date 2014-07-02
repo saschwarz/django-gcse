@@ -20,7 +20,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext as _
 
 from model_utils.models import TimeStampedModel
+from model_utils import Choices
 from model_utils.managers import InheritanceManager
+from model_utils.managers import QueryManager
+
 from ordered_model.models import OrderedModel
 
 from .country_field import CountryField
@@ -40,20 +43,15 @@ class Label(models.Model):
     name = models.CharField(max_length=128,
                             blank=False,
                             help_text=_('Google search refinement name.'))
-    MODE_ELIMINATE = 'E'
-    MODE_FILTER = 'F'
-    MODE_BOOST = 'B'
-    MODE_CHOICES = ((MODE_ELIMINATE, 'ELIMINATE'),
-                    (MODE_FILTER, 'FILTER'),
-                    (MODE_BOOST, 'BOOST'),
-                    )
+    MODE = Choices(('E', 'eliminate', 'ELIMINATE'),
+                   ('F', 'filter', 'FILTER'),
+                   ('B', 'boost', 'BOOST'))
     # TODO SAS this need a migration for googility.com
-    mode = models.CharField(
-        verbose_name=_('status'),
-        max_length=1,
-        choices=MODE_CHOICES,
-        default=MODE_FILTER,
-        help_text=_('Controls whether an Annotation is promoted, demoted, or excluded'))
+    mode = models.CharField(verbose_name=_('mode'),
+                            max_length=1,
+                            choices=MODE,
+                            default=MODE.filter,
+                            help_text=_('Controls whether an Annotation is promoted, demoted, or excluded'))
     # TODO SAS this need a migration for googility.com
     weight = models.FloatField(null=True, blank=True,
                                validators=[MinValueValidator(-1),
@@ -83,7 +81,7 @@ class Label(models.Model):
 
     @classmethod
     def get_mode(cls, mode_string):
-        for mode_char, mode_str in cls.MODE_CHOICES:
+        for mode_char, mode_str in cls.MODE:
             if mode_str == mode_string:
                 return mode_char
 
@@ -182,7 +180,7 @@ class CustomSearchEngine(TimeStampedModel):
                                                help_text=_('Non-visible Labels for this search engine'))
 
     def annotations(self):
-        return Annotation.objects.filter(status=Annotation.STATUS_ACTIVE, 
+        return Annotation.objects.filter(status=Annotation.STATUS.active, 
                                          labels__in=self.background_labels.all()).select_subclasses()
 
     def annotation_count(self):
@@ -294,10 +292,16 @@ class CustomSearchEngine(TimeStampedModel):
         return cse
 
 
-class ActiveManager(models.Manager):
-    def get_queryset(self):
-        return super(ActiveManager, self).get_queryset().\
-            filter(status=Annotation.STATUS_ACTIVE)
+class AnnotationManager(InheritanceManager):
+
+    def active(self):
+        return self.get_queryset().select_subclasses().filter(status=Annotation.STATUS.active)
+
+    def submitted(self):
+        return self.get_queryset().select_subclasses().filter(status=Annotation.STATUS.submitted)
+
+    def deleted(self):
+        return self.get_queryset().select_subclasses().filter(status=Annotation.STATUS.deleted)
 
 
 class Annotation(TimeStampedModel):
@@ -329,18 +333,13 @@ class Annotation(TimeStampedModel):
                                           MaxValueValidator(1)],
                               help_text=_('Score value to influence label score - leave blank for default.'))
     # If the site uses supplied views for user moderated submissions:
-    STATUS_SUBMITTED = 'S'
-    STATUS_ACTIVE = 'A'
-    STATUS_DELETED = 'D'
-    STATUS_CHOICES = (
-        (STATUS_SUBMITTED, _('Submitted')),
-        (STATUS_ACTIVE, _('Active')),
-        (STATUS_DELETED, _('Deleted')),
-    )
+    STATUS = Choices(('S', 'submitted', _('Submitted')),
+                     ('A', 'active', _('Active')),
+                     ('D', 'deleted', _('Deleted')))
     status = models.CharField(verbose_name=_('status'),
                               max_length=1,
-                              choices=STATUS_CHOICES,
-                              default=STATUS_SUBMITTED)
+                              choices=STATUS,
+                              default=STATUS.submitted)
     # TODO SAS migration to remove this field
     # feed_label = models.ForeignKey(Label,
     #                                verbose_name=_('Feed Label'),
@@ -356,8 +355,7 @@ class Annotation(TimeStampedModel):
                                        related_name='newer_versions',
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
-    objects = InheritanceManager()
-# SAS    active = ActiveManager()
+    objects = AnnotationManager()
 
 
 class Place(Annotation):
@@ -593,5 +591,4 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
 # - management command to insert GCSE and Annotations.
-# - settings configuration for number of annotations per file
-# - create multiple annotation files
+# - create multiple annotation files as paginated view

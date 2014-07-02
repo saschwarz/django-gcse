@@ -115,12 +115,12 @@ class TestCustomSearchEngine(TestCase):
                                  )
         cse.save()
         l1 = Label(name="keystring",
-                   mode=Label.MODE_FILTER)
+                   mode=Label.MODE.filter)
         l1.save()
         cse.background_labels.add(l1)
 
         l2 = Label(name="exclude_keystring",
-                   mode=Label.MODE_ELIMINATE)
+                   mode=Label.MODE.eliminate)
         l2.save()
         cse.background_labels.add(l2)
 
@@ -270,7 +270,7 @@ class TestCSEUpdateXML(TestCase):
         cse.save()
         label = Label(name="Dogs",
                       description="Dog refinement",
-                      mode=Label.MODE_FILTER,
+                      mode=Label.MODE.filter,
                       weight=0.7)
         label.save()
         facet = FacetItem(title="Dogs",
@@ -280,7 +280,7 @@ class TestCSEUpdateXML(TestCase):
         cse.facetitem_set.add(facet)
         label = Label(name="Cats",
                       description="Cat refinement",
-                      mode=Label.MODE_FILTER,
+                      mode=Label.MODE.filter,
                       weight=0.7)
         label.save()
         facet = FacetItem(title="Cats",
@@ -302,7 +302,7 @@ class TestCSEUpdateXML(TestCase):
         cse.save()
         label = Label(name="Dogs",
                       description="Dog refinement",
-                      mode=Label.MODE_FILTER,
+                      mode=Label.MODE.filter,
                       weight=0.7)
         label.save()
         facet = FacetItem(title="Dogs",
@@ -312,7 +312,7 @@ class TestCSEUpdateXML(TestCase):
         cse.facetitem_set.add(facet)
         label = Label(name="Cats",
                       description="Cat refinement",
-                      mode=Label.MODE_FILTER,
+                      mode=Label.MODE.filter,
                       weight=0.7)
         label.save()
         facet = FacetItem(title="Cats",
@@ -416,9 +416,9 @@ class TestCSESAXHandler(TestCase):
         self.assertTrue("_cse_exclude_c12345-r678" in label_names)
 
         label_modes = [x.mode for x in labels]
-        self.assertTrue(Label.MODE_FILTER in label_modes)
-        self.assertTrue(Label.MODE_ELIMINATE in label_modes)
-        self.assertTrue(Label.MODE_BOOST in label_modes)
+        self.assertTrue(Label.MODE.filter in label_modes)
+        self.assertTrue(Label.MODE.eliminate in label_modes)
+        self.assertTrue(Label.MODE.boost in label_modes)
 
         self.assertEqual(True, labels[0].background)
         self.assertEqual(True, labels[1].background)
@@ -438,9 +438,9 @@ class TestCSESAXHandler(TestCase):
                          label_names)
 
         label_modes = [x.mode for x in labels]
-        self.assertTrue(Label.MODE_FILTER in label_modes)
-        self.assertFalse(Label.MODE_ELIMINATE in label_modes)
-        self.assertTrue(Label.MODE_BOOST in label_modes)
+        self.assertTrue(Label.MODE.filter in label_modes)
+        self.assertFalse(Label.MODE.eliminate in label_modes)
+        self.assertTrue(Label.MODE.boost in label_modes)
 
         self.assertEqual(1, len([x for x in labels if x.weight==0.8]))
 
@@ -459,9 +459,9 @@ class TestCSESAXHandler(TestCase):
 class TestLabel(TestCase):
 
     def test_get_mode(self):
-        self.assertEqual(Label.MODE_ELIMINATE, Label.get_mode("ELIMINATE"))
-        self.assertEqual(Label.MODE_FILTER, Label.get_mode("FILTER"))
-        self.assertEqual(Label.MODE_BOOST, Label.get_mode("BOOST"))
+        self.assertEqual(Label.MODE.eliminate, Label.get_mode("ELIMINATE"))
+        self.assertEqual(Label.MODE.filter, Label.get_mode("FILTER"))
+        self.assertEqual(Label.MODE.boost, Label.get_mode("BOOST"))
 
     def test_xml_weight_not_displayed_when_no_weight_specified(self):
         label = Label(name="blog")
@@ -481,19 +481,19 @@ class TestLabel(TestCase):
                          label.xml())
 
 
-class TestAddingAnnotations(TestCase):
+class TestCSEAddingAnnotations(TestCase):
 
     def setUp(self):
         self.cse = CustomSearchEngine.from_string(FACETED_XML)
 
     def test_annotation_with_STATUS_ACTIVE_without_labels_not_in_cse(self):
         Annotation.objects.create(comment="Active Annotation",
-                                  status=Annotation.STATUS_ACTIVE)
+                                  status=Annotation.STATUS.active)
         self.assertEqual(0, self.cse.annotation_count())
 
     def test_annotation_with_STATUS_ACTIVE_without_matching_label_not_in_cse(self):
         annotation = Annotation.objects.create(comment="Active Annotation",
-                                               status=Annotation.STATUS_ACTIVE)
+                                               status=Annotation.STATUS.active)
         label = Label.objects.create()
         annotation.labels.add(label)
         annotation.save()
@@ -501,21 +501,21 @@ class TestAddingAnnotations(TestCase):
 
     def test_annotation_with_matching_label_and_STATUS_SUBMITTED_not_in_cse(self):
         annotation = Annotation.objects.create(comment="Active Annotation",
-                                               status=Annotation.STATUS_SUBMITTED)
+                                               status=Annotation.STATUS.submitted)
         annotation.labels.add(self.cse.background_labels.all()[0])
         annotation.save()
         self.assertEqual(0, self.cse.annotation_count())
 
     def test_annotation_with_matching_label_and_STATUS_DELETED_not_in_cse(self):
         annotation = Annotation.objects.create(comment="Active Annotation",
-                                               status=Annotation.STATUS_DELETED)
+                                               status=Annotation.STATUS.deleted)
         annotation.labels.add(self.cse.background_labels.all()[0])
         annotation.save()
         self.assertEqual(0, self.cse.annotation_count())
 
     def test_annotation_with_matching_label_and_STATUS_ACTIVE_in_cse(self):
         annotation = Annotation.objects.create(comment="Active Annotation",
-                                               status=Annotation.STATUS_ACTIVE)
+                                               status=Annotation.STATUS.active)
         annotation.labels.add(self.cse.background_labels.all()[0])
         annotation.save()
         self.assertEqual(1, self.cse.annotation_count())
@@ -523,19 +523,19 @@ class TestAddingAnnotations(TestCase):
                          annotation)
 
 
-class TestAddingAnnotationsPlaces(TestCase):
+class TestCSEAddingPlaces(TestCase):
 
     def setUp(self):
         self.cse = CustomSearchEngine.from_string(FACETED_XML)
 
     def test_place_with_STATUS_ACTIVE_without_labels_not_in_cse(self):
         Place.objects.create(comment="Active Place",
-                             status=Annotation.STATUS_ACTIVE)
+                             status=Annotation.STATUS.active)
         self.assertEqual(0, self.cse.annotation_count())
 
     def test_place_with_STATUS_ACTIVE_without_matching_label_not_in_cse(self):
         place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS_ACTIVE)
+                                     status=Annotation.STATUS.active)
         label = Label.objects.create()
         place.labels.add(label)
         place.save()
@@ -543,23 +543,70 @@ class TestAddingAnnotationsPlaces(TestCase):
 
     def test_place_with_matching_label_and_STATUS_SUBMITTED_not_in_cse(self):
         place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS_SUBMITTED)
+                                     status=Annotation.STATUS.submitted)
         place.labels.add(self.cse.background_labels.all()[0])
         place.save()
         self.assertEqual(0, self.cse.annotation_count())
 
     def test_place_with_matching_label_and_STATUS_DELETED_not_in_cse(self):
         place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS_DELETED)
+                                     status=Annotation.STATUS.deleted)
         place.labels.add(self.cse.background_labels.all()[0])
         place.save()
         self.assertEqual(0, self.cse.annotation_count())
 
     def test_place_with_matching_label_and_STATUS_ACTIVE_in_cse(self):
         place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS_ACTIVE)
+                                     status=Annotation.STATUS.active)
         place.labels.add(self.cse.background_labels.all()[0])
         place.save()
         self.assertEqual(1, self.cse.annotation_count())
         self.assertEqual(self.cse.annotations()[0],
                          place)
+
+
+class TestAnnotationManager(TestCase):
+
+    def test_active_manager_annotations(self):
+        active = Annotation.objects.create(comment="Active Annotation",
+                                           status=Annotation.STATUS.active)
+        submitted = Annotation.objects.create(comment="Submitted Annotation",
+                                              status=Annotation.STATUS.submitted)
+        deleted = Annotation.objects.create(comment="Deleted Annotation",
+                                            status=Annotation.STATUS.deleted)
+        
+        self.assertEqual(1, Annotation.objects.active().count())
+        self.assertEqual(active, Annotation.objects.active().all()[0])
+
+    def test_active_manager_places(self):
+        active = Place.objects.create(comment="Active Place",
+                                      status=Annotation.STATUS.active)
+        submitted = Place.objects.create(comment="Submitted Place",
+                                         status=Annotation.STATUS.submitted)
+        deleted = Place.objects.create(comment="Deleted Place",
+                                       status=Annotation.STATUS.deleted)
+
+        self.assertEqual(1, Annotation.objects.active().count())
+        self.assertEqual(active, Annotation.objects.active().all()[0])
+
+    def test_submitted_manager_annotations(self):
+        active = Annotation.objects.create(comment="Active Annotation",
+                                           status=Annotation.STATUS.active)
+        submitted = Annotation.objects.create(comment="Submitted Annotation",
+                                              status=Annotation.STATUS.submitted)
+        deleted = Annotation.objects.create(comment="Deleted Annotation",
+                                            status=Annotation.STATUS.deleted)
+        
+        self.assertEqual(1, Annotation.objects.submitted().count())
+        self.assertEqual(submitted, Annotation.objects.submitted().all()[0])
+
+    def test_submitted_manager_places(self):
+        submitted = Place.objects.create(comment="Active Place",
+                                      status=Annotation.STATUS.active)
+        submitted = Place.objects.create(comment="Submitted Place",
+                                         status=Annotation.STATUS.submitted)
+        deleted = Place.objects.create(comment="Deleted Place",
+                                       status=Annotation.STATUS.deleted)
+
+        self.assertEqual(1, Annotation.objects.submitted().count())
+        self.assertEqual(submitted, Annotation.objects.submitted().all()[0])

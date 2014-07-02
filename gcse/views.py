@@ -29,7 +29,7 @@ def indexXML(request, gid, index, template='gcse/annotation.xml'):
     Render all the active Annotations for the CSE Google Background labels
     for the given index.
 
-    TODO: IMPLEMENT
+    TODO: IMPLEMENT PAGING
     """
     return render_to_response(
         template,
