@@ -10,7 +10,7 @@ from lxml import etree as ET
 from django.db import IntegrityError
 from django.test import TestCase
 from django.test.utils import override_settings
-from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, Place
+from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, Place, AnnotationSAXHandler
 
 # Default CSE XML created by google
 CSE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
@@ -106,6 +106,34 @@ FACETED_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
 </GoogleCustomizations>
 """
 
+ANNOTATION_XML = """<?xml version="1.0" encoding="UTF-8" ?>
+<Annotations start="0" num="7" total="7">
+  <Annotation about="tech.agilitynerd.com/author/" timestamp="0x0004d956807a35fd" href="Chx0ZWNoLmFnaWxpdHluZXJkLmNvbS9hdXRob3IvEP3r6IPoqrYC">
+    <Label name="_cse_exclude_keystring" />
+    <AdditionalData attribute="original_url" value="tech.agilitynerd.com/author/" />
+  </Annotation>
+  <Annotation about="tech.agilitynerd.com/archives.html" timestamp="0x0004d9567c1f41da" href="CiJ0ZWNoLmFnaWxpdHluZXJkLmNvbS9hcmNoaXZlcy5odG1sENqD_eDnqrYC">
+    <Label name="_cse_exclude_keystring" />
+    <AdditionalData attribute="original_url" value="tech.agilitynerd.com/archives.html" />
+  </Annotation>
+  <Annotation about="tech.agilitynerd.com/category/" timestamp="0x0004d829da16938d" href="Ch50ZWNoLmFnaWxpdHluZXJkLmNvbS9jYXRlZ29yeS8Qjafa0J2FtgI">
+    <Label name="_cse_exclude_keystring" />
+    <AdditionalData attribute="original_url" value="tech.agilitynerd.com/category/" />
+  </Annotation>
+  <Annotation about="tech.agilitynerd.com/tag/" timestamp="0x0004d829d8c7d8fd" href="Chl0ZWNoLmFnaWxpdHluZXJkLmNvbS90YWcvEP2xn8adhbYC">
+    <Label name="_cse_exclude_keystring" />
+    <AdditionalData attribute="original_url" value="tech.agilitynerd.com/tag/" />
+  </Annotation>
+  <Annotation about="tech.agilitynerd.com/*" score="1" timestamp="0x0004d825f3ed22b2" href="ChZ0ZWNoLmFnaWxpdHluZXJkLmNvbS8qELLFtJ_fhLYC">
+    <Label name="_cse_adifferentkeystring" />
+    <AdditionalData attribute="original_url" value="tech.agilitynerd.com" />
+  </Annotation>
+  <Annotation about="tech.agilitynerd.com/*">
+    <Label name="_cse_keystring" />
+    <AdditionalData attribute="original_url" value="tech.agilitynerd.com/*" />
+  </Annotation>
+</Annotations>
+"""
 
 class TestCustomSearchEngine(TestCase):
 
@@ -166,10 +194,6 @@ def _extractPathAsString(xml, path):
 
 
 class TestCSEUpdateXML(TestCase):
-
-    def setUp(self):
-        Label.objects.all().delete()
-        FacetItem.objects.all().delete()
 
     def test_input_matches_output_xml_when_no_changes_to_instance(self):
         cse = CustomSearchEngine(gid="c12345-r678",
@@ -597,3 +621,47 @@ class TestAnnotationManager(TestCase):
         self.assertEqual(1, Annotation.objects.deleted().count())
         self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
 
+
+class TestAnnotationSAXHandler(TestCase):
+
+    def setUp(self):
+        self.handler = AnnotationSAXHandler()
+
+    def test_empty_annotations_produces_no_annotations(self):
+        self.assertEqual([], self.handler.parseString('<?xml version="1.0" encoding="UTF-8" ?><Annotations></Annotations>'))
+
+    def test_parse_annotations(self):
+        annotations = self.handler.parseString(ANNOTATION_XML)
+        self.assertEqual(6, len(annotations))
+
+        a0 = annotations[0]
+        self.assertEqual("tech.agilitynerd.com/author/", a0.about)
+        self.assertEqual("tech.agilitynerd.com/author/", a0.original_url)
+        self.assertEqual("_cse_exclude_keystring", a0.labels.all()[0].name)
+
+        a1 = annotations[1]
+        self.assertEqual("tech.agilitynerd.com/archives.html", a1.about)
+        self.assertEqual("tech.agilitynerd.com/archives.html", a1.original_url)
+        self.assertEqual("_cse_exclude_keystring", a1.labels.all()[0].name)
+
+        a2 = annotations[2]
+        self.assertEqual("tech.agilitynerd.com/category/", a2.about)
+        self.assertEqual("_cse_exclude_keystring", a2.labels.all()[0].name)
+        self.assertEqual("tech.agilitynerd.com/category/", a2.original_url)
+
+        a3 = annotations[3]
+        self.assertEqual("tech.agilitynerd.com/tag/", a3.about)
+        self.assertEqual("tech.agilitynerd.com/tag/", a3.original_url)
+        self.assertEqual("_cse_exclude_keystring", a3.labels.all()[0].name)
+
+        a4 = annotations[4]
+        self.assertEqual("tech.agilitynerd.com/*", a4.about)
+        # strip trailing asterisk
+        self.assertEqual("tech.agilitynerd.com", a4.original_url)
+        self.assertEqual("_cse_adifferentkeystring", a4.labels.all()[0].name)
+
+        a5 = annotations[5]
+        self.assertEqual("tech.agilitynerd.com/*", a5.about)
+        # strip trailing asterisk
+        self.assertEqual("tech.agilitynerd.com/", a5.original_url)
+        self.assertEqual("_cse_keystring", a5.labels.all()[0].name)

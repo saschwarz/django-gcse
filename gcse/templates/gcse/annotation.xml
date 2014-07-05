@@ -1,18 +1,18 @@
-<Annotations>
+<?xml version="1.0" encoding="UTF-8" ?>
+<Annotations start="" num="" total="">
 {% spaceless %}
-{% if annotations %}
     {% for annotation in annotations %}
     <Annotation about="{{ annotation.about }}">
-	<Label name="{{annotation.feed_label.name}}" />
         {% for label in annotation.labels.all %}
 	<Label name="{{label.name}}" />
         {% endfor %}
-	{% comment %}
+        {% if annotation.original_url %}
         <AdditionalData attribute="original_url" value="{{annotation.original_url}}"/>
+        {% endif %}
+        {% if annotation.comment %}
         <Comment>{{annotation.comment}}</Comment>
-	{% endcomment %}
+        {% endif %}
     </Annotation>
     {% endfor %}
-{% endif %}
 {% endspaceless %}
 </Annotations>

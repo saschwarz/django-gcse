@@ -5,8 +5,9 @@ except ImportError:
     from urllib.request import urlopen
 
 from string import ascii_letters
-
+import datetime
 import math
+
 from lxml import etree as ET
 import xml.sax
 import xml.sax.saxutils
@@ -17,6 +18,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 
 from model_utils.models import TimeStampedModel
@@ -329,6 +331,7 @@ class Annotation(TimeStampedModel):
     # TODO SAS Need googility migration for this field
     # https://developers.google.com/custom-search/docs/ranking#score
     score = models.FloatField(null=True, blank=True,
+                              default=1,
                               validators=[MinValueValidator(-1),
                                           MaxValueValidator(1)],
                               help_text=_('Score value to influence label score - leave blank for default.'))
@@ -539,7 +542,17 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
 
 
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
-    """Create a set of Annotation instances from an XML file."""
+    """
+    Create a set of Annotation instances from an XML file.  Finds or
+    creates related Labels by name only - doesn't keep them unique to
+    a specific CustomSearchEngine.
+
+    Could be implemented by passing a CSE's Label(s) into this handler
+    and adding only those Label instances to each Annotation. If not
+    in the supplied Labels then the db would be searched for Label's
+    with those names. If more than one is found raise an assertion(?)
+    add them all?
+    """
 
     def __init__(self):
         self.curAnnotation = None
@@ -549,14 +562,25 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 
     def parseString(self, stream):
         xml.sax.parseString(stream, self)
+        return self.annotations
 
     def parse(self, url):
         xml.sax.parse(urlopen(url), self)
+        return self.annotations
+
+    def _convert_google_timestamp(self, tstring):
+        if tstring:
+            adate = datetime.datetime.fromtimestamp(int(tstring, 16)/1000000)
+        else:
+            adate= datetime.datetime.now()
+        return timezone.make_aware(adate, timezone.get_current_timezone())
 
     def startElement(self, name, attributes):
         if name == "Annotation":
             self.curAnnotation, created = Annotation.objects.\
-                get_or_create(about=attributes["about"])
+                get_or_create(about=attributes["about"],
+                              score=attributes.get("score"),
+                              created=self._convert_google_timestamp(attributes.get("timestamp")))
         elif name == "AdditionalData":
             if attributes['attribute'] == 'original_url':
                 original_url = attributes['value']
@@ -579,7 +603,7 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         if name == "Annotation":
             self.curAnnotation.save()
             self.annotations.append(self.curAnnotation)
-            self.curAnnotations = None
+            self.curAnnotation = None
         elif name == "Comment":
             self.inComment = False
             # Store in database unescaped - let view(s) escape if needed
