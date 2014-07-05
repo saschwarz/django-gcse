@@ -581,6 +581,8 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
                 get_or_create(about=attributes["about"],
                               score=attributes.get("score"),
                               created=self._convert_google_timestamp(attributes.get("timestamp")))
+            # imports are always active
+            self.curAnnotation.status = Annotation.STATUS.active
         elif name == "AdditionalData":
             if attributes['attribute'] == 'original_url':
                 original_url = attributes['value']
@@ -616,3 +618,4 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
 # - management command to insert GCSE and Annotations.
 # - create multiple annotation files as paginated view
+# - import of CSE to optionally import linked Annotations.

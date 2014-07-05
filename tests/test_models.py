@@ -131,6 +131,7 @@ ANNOTATION_XML = """<?xml version="1.0" encoding="UTF-8" ?>
   <Annotation about="tech.agilitynerd.com/*">
     <Label name="_cse_keystring" />
     <AdditionalData attribute="original_url" value="tech.agilitynerd.com/*" />
+    <Comment>here's a comment</Comment>
   </Annotation>
 </Annotations>
 """
@@ -637,31 +638,38 @@ class TestAnnotationSAXHandler(TestCase):
         a0 = annotations[0]
         self.assertEqual("tech.agilitynerd.com/author/", a0.about)
         self.assertEqual("tech.agilitynerd.com/author/", a0.original_url)
+        self.assertEqual("", a0.comment)
         self.assertEqual("_cse_exclude_keystring", a0.labels.all()[0].name)
 
         a1 = annotations[1]
         self.assertEqual("tech.agilitynerd.com/archives.html", a1.about)
         self.assertEqual("tech.agilitynerd.com/archives.html", a1.original_url)
+        self.assertEqual("", a1.comment)
         self.assertEqual("_cse_exclude_keystring", a1.labels.all()[0].name)
 
         a2 = annotations[2]
         self.assertEqual("tech.agilitynerd.com/category/", a2.about)
-        self.assertEqual("_cse_exclude_keystring", a2.labels.all()[0].name)
         self.assertEqual("tech.agilitynerd.com/category/", a2.original_url)
+        self.assertEqual("", a2.comment)
+        self.assertEqual("_cse_exclude_keystring", a2.labels.all()[0].name)
 
         a3 = annotations[3]
         self.assertEqual("tech.agilitynerd.com/tag/", a3.about)
         self.assertEqual("tech.agilitynerd.com/tag/", a3.original_url)
+        self.assertEqual("", a3.comment)
         self.assertEqual("_cse_exclude_keystring", a3.labels.all()[0].name)
 
         a4 = annotations[4]
         self.assertEqual("tech.agilitynerd.com/*", a4.about)
         # strip trailing asterisk
         self.assertEqual("tech.agilitynerd.com", a4.original_url)
+        self.assertEqual("", a4.comment)
         self.assertEqual("_cse_adifferentkeystring", a4.labels.all()[0].name)
 
         a5 = annotations[5]
         self.assertEqual("tech.agilitynerd.com/*", a5.about)
         # strip trailing asterisk
         self.assertEqual("tech.agilitynerd.com/", a5.original_url)
+        self.assertEqual("here's a comment", a5.comment)
+        self.assertEqual(Annotation.STATUS.active, a5.status)
         self.assertEqual("_cse_keystring", a5.labels.all()[0].name)
