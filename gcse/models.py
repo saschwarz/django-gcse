@@ -181,6 +181,17 @@ class CustomSearchEngine(TimeStampedModel):
                                                related_name='cse_background_labels',
                                                help_text=_('Non-visible Labels for this search engine'))
 
+    DEFAULT_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+    <CustomSearchEngine encoding="ISO-8859-1" domain="www.google.com" safesearch="true">
+      <Context/>
+      <Logo/>
+      <AdSense/>
+      <EnterpriseAccount/>
+      <ImageSearchSettings enable="true"/>
+      <autocomplete_settings/>
+      <cse_advance_settings enable_speech="true"/>
+    </CustomSearchEngine>"""
+
     def annotations(self):
         return Annotation.objects.filter(status=Annotation.STATUS.active, 
                                          labels__in=self.background_labels.all()).select_subclasses()
@@ -262,6 +273,8 @@ class CustomSearchEngine(TimeStampedModel):
 
     def _update_xml(self):
         """Parse the input_xml and update it with the current database values in this instance."""
+        if not self.input_xml:
+            self.input_xml = self.DEFAULT_XML
         doc = ET.fromstring(self.input_xml)
         # handle case where user gives us only CustomSearchEngine without
         # external Annotations file - wrap CSE with GoogleCustomizations element:
@@ -277,11 +290,14 @@ class CustomSearchEngine(TimeStampedModel):
         self._update_include(doc)
         self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
 
+    def save(self, *args, **kwargs):
+        super(CustomSearchEngine, self).save(*args, **kwargs)
+        self._update_xml()
+
     @classmethod
     def from_string(cls, string):
         handler = CSESAXHandler()
         cse = handler.parseString(string)
-        cse._update_xml()
         cse.save()
         return cse
 
@@ -289,7 +305,6 @@ class CustomSearchEngine(TimeStampedModel):
     def from_url(cls, url):
         handler = CSESAXHandler()
         cse = handler.parse(url)
-        cse._update_xml()
         cse.save()
         return cse
 
@@ -613,7 +628,6 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
                 xml.sax.saxutils.unescape(self.curAnnotation.comment)
 
 # TODO:
-# - update CSE.output_xml on pre-save hook
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
 # - management command to insert GCSE and Annotations.

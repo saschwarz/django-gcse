@@ -200,7 +200,6 @@ class TestCSEUpdateXML(TestCase):
         cse = CustomSearchEngine(gid="c12345-r678",
                                  input_xml=CSE_XML)
         cse.save()
-        cse._update_xml()
         self.assertEqual('', cse.title) # no title set so leave XML alone
         self.assertEqual("AgilityNerd Site Search", _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
@@ -209,7 +208,6 @@ class TestCSEUpdateXML(TestCase):
                                  title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
-        cse._update_xml()
         self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_element_when_there_is_no_title_element(self):
@@ -218,7 +216,6 @@ class TestCSEUpdateXML(TestCase):
                                  title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
-        cse._update_xml()
         self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_description_when_description_is_changed(self):
@@ -226,7 +223,6 @@ class TestCSEUpdateXML(TestCase):
                                  description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
-        cse._update_xml()
         self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_new_description_element_when_there_is_no_description_element(self):
@@ -235,7 +231,6 @@ class TestCSEUpdateXML(TestCase):
                                  description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
-        cse._update_xml()
 
         self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
 
@@ -246,7 +241,6 @@ class TestCSEUpdateXML(TestCase):
                                  description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
-        cse._update_xml()
 
         self.assertEqual(cse.title,
                          _extractPathElementText(cse.output_xml,
@@ -259,7 +253,6 @@ class TestCSEUpdateXML(TestCase):
         cse = CustomSearchEngine(gid="c12345-r678",
                                  input_xml=FACETED_XML)
         cse.save()
-        cse._update_xml()
 
         self.assertEqual(1,
                          len(_extractPath(cse.output_xml,
@@ -271,9 +264,8 @@ class TestCSEUpdateXML(TestCase):
     def test_output_xml_has_annotation_includes(self):
         cse = CustomSearchEngine(gid="c12345-r678",
                                  input_xml=FACETED_XML)
-        cse.save()
         cse.annotation_count = lambda: 2000
-        cse._update_xml()
+        cse.save()
 
         self.assertEqual(2,
                          len(_extractPath(cse.output_xml,
@@ -313,7 +305,7 @@ class TestCSEUpdateXML(TestCase):
                           cse=cse)
         facet.save()
         cse.facetitem_set.add(facet)
-        cse._update_xml()
+        cse.save()
         self.assertEqual(1,
                          len(_extractPath(cse.output_xml,
                                           ".//Context/Facet")))
@@ -345,7 +337,7 @@ class TestCSEUpdateXML(TestCase):
                           cse=cse)
         facet.save()
         cse.facetitem_set.add(facet)
-        cse._update_xml()
+        cse.save()
         self.assertEqual(1,
                          len(_extractPath(cse.output_xml,
                                           ".//Context/Facet")),
@@ -367,7 +359,7 @@ class TestCSEUpdateXML(TestCase):
         cse.save()
         with override_settings(GCSE_CONFIG={'NUM_FACET_ITEMS_PER_FACET': 2,
                                             'NUM_ANNOTATIONS_PER_FILE': 1000}):
-            cse._update_xml()
+            cse.save()
 
         self.assertEqual(6,
                          len(_extractPath(cse.output_xml,
