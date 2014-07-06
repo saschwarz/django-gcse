@@ -181,15 +181,29 @@ class CustomSearchEngine(TimeStampedModel):
                                                related_name='cse_background_labels',
                                                help_text=_('Non-visible Labels for this search engine'))
 
-    DEFAULT_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
-    <CustomSearchEngine encoding="ISO-8859-1" domain="www.google.com" safesearch="true">
-      <Context/>
-      <Logo/>
-      <AdSense/>
-      <EnterpriseAccount/>
-      <ImageSearchSettings enable="true"/>
-      <autocomplete_settings/>
-      <cse_advance_settings enable_speech="true"/>
+    DEFAULT_XML = """<?xml version="1.0" encoding="UTF-8" ?>
+    <CustomSearchEngine id="rdfdpnhicea" language="en" encoding="UTF-8" enable_suggest="true">
+      <Title>test</Title>
+      <Context>
+        <BackgroundLabels>
+          <Label name="_cse_rdfdpnhicea" mode="FILTER" />
+          <Label name="_cse_exclude_rdfdpnhicea" mode="ELIMINATE" />
+        </BackgroundLabels>
+      </Context>
+      <LookAndFeel nonprofit="false" element_layout="8" theme="7" text_font="Arial, sans-serif" url_length="full" element_branding="show" enable_cse_thumbnail="true" promotion_url_length="full">
+        <Logo />
+        <Colors url="#008000" background="#FFFFFF" border="#FFFFFF" title="#0000CC" text="#000000" visited="#0000CC" title_hover="#0000CC" title_active="#0000CC" />
+        <Promotions title_color="#0000CC" title_visited_color="#0000CC" url_color="#008000" background_color="#FFFFFF" border_color="#336699" snippet_color="#000000" title_hover_color="#0000CC" title_active_color="#0000CC" />
+        <SearchControls input_border_color="#D9D9D9" button_border_color="#666666" button_background_color="#CECECE" tab_border_color="#E9E9E9" tab_background_color="#E9E9E9" tab_selected_border_color="#FF9900" tab_selected_background_color="#FFFFFF" />
+        <Results border_color="#FFFFFF" border_hover_color="#FFFFFF" background_color="#FFFFFF" background_hover_color="#FFFFFF" ads_background_color="" ads_border_color="" />
+      </LookAndFeel>
+      <AdSense />
+      <EnterpriseAccount />
+      <ImageSearchSettings enable="false" />
+      <autocomplete_settings />
+      <sort_by_keys label="Relevance" key="" />
+      <sort_by_keys label="Date" key="date" />
+      <cse_advance_settings enable_speech="true" />
     </CustomSearchEngine>"""
 
     def annotations(self):
@@ -273,9 +287,12 @@ class CustomSearchEngine(TimeStampedModel):
 
     def _update_xml(self):
         """Parse the input_xml and update it with the current database values in this instance."""
+        input_xml = self.input_xml
         if not self.input_xml:
-            self.input_xml = self.DEFAULT_XML
-        doc = ET.fromstring(self.input_xml)
+            # need to replace id attribute with id of this CSE
+            input_xml = self.DEFAULT_XML
+            
+        doc = ET.fromstring(input_xml)
         # handle case where user gives us only CustomSearchEngine without
         # external Annotations file - wrap CSE with GoogleCustomizations element:
         doc = self._add_google_customizations(doc)
@@ -291,8 +308,14 @@ class CustomSearchEngine(TimeStampedModel):
         self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
 
     def save(self, *args, **kwargs):
-        super(CustomSearchEngine, self).save(*args, **kwargs)
+        if not self.id:
+            # need id so foreign key/m2m relations are satisfied
+            # on first insert.
+            super(CustomSearchEngine, self).save(*args, **kwargs)
         self._update_xml()
+        # guaranteed to be an update now
+        kwargs.update({'force_insert': False, 'force_update': True})
+        super(CustomSearchEngine, self).save(*args, **kwargs)
 
     @classmethod
     def from_string(cls, string):
