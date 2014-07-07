@@ -9,7 +9,7 @@ python:
 
 env:
   - DJANGO=https://github.com/django/django/archive/master.tar.gz
-  - DJANGO=django>=1.6
+  - DJANGO=django>=1.6,<1.7
   - DJANGO=django>=1.5,<1.6
 
 install:
@@ -20,8 +20,6 @@ script:
   - coverage run --source gcse runtests.py
   - coverage report
 
-after_success:
-  coveralls
-
-# report coverage to coverall.io
-after_success: coveralls
+# report coverage to coveralls.io
+after_success: 
+  - coveralls
