@@ -683,3 +683,24 @@ class TestAnnotationParsing(TestCase):
         self.assertEqual("here's a comment", a5.comment)
         self.assertEqual(Annotation.STATUS.active, a5.status)
         self.assertEqual("_cse_keystring", a5.labels.all()[0].name)
+
+
+class AnnotationSAXHandlerTests(TestCase):
+
+    def testParseWithAmpersand(self):
+        str = '''<Annotations file="./clubsxml">
+  <Annotation about="www.luckydogagility.com/*">
+      <Label name="_cse_kueofys2mdy" />
+      <Label name="facility" />
+      <AdditionalData attribute="original_url" value="http://www.luckydogagility.com/" />
+      <Comment>Lucky Dog &amp; Friends Agility</Comment>
+  </Annotation>
+  </Annotations>
+  '''
+        curHandler = AnnotationSAXHandler()
+        curHandler.parseString(str)
+
+        self.assertEqual(len(curHandler.annotations), 1)
+        # is ampersand no longer encoded?
+        self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
+

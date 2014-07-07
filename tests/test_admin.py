@@ -5,55 +5,8 @@ from django.test.utils import override_settings
 from gcse import models, views
 
 
-class AnnotationHandlerTest(TestCase):
-
-    def testParseWithAmpersand(self):
-        str = '''<Annotations file="./clubsxml">
-  <Annotation about="www.luckydogagility.com/*">
-      <Label name="_cse_kueofys2mdy" />
-      <Label name="facility" />
-      <AdditionalData attribute="original_url" value="http://www.luckydogagility.com/" />
-      <Comment>Lucky Dog &amp; Friends Agility</Comment>
-  </Annotation>
-  </Annotations>
-  '''
-        curHandler = models.AnnotationSAXHandler()
-        xml.sax.parseString(str, curHandler)
-        # print curHandler.annotations
-        self.assertEqual(len(curHandler.annotations), 1)
-        # is ampersand no longer encoded?
-        self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
-
-    def testWithMakeAnnotations(self):
-        str = '''<Annotation about="www.google.com/cse/tools/makeannotations?url=http%3A%2F%2Fwww.pacngorec.com%2Fpacngorec_home.htm&amp;pattern=exact&amp;label=_cse_kueofys2mdy&amp;label=_csefeed_kueofys2mdy" timestamp="0x000451ea1aeb78b6" href="CqABd3d3Lmdvb2dsZS5jb20vY3NlL3Rvb2xzL21ha2Vhbm5vdGF0aW9ucz91cmw9aHR0cCUzQSUyRiUyRnd3dy5wYWNuZ29yZWMuY29tJTJGcGFjbmdvcmVjX2hvbWUuaHRtJnBhdHRlcm49ZXhhY3QmbGFiZWw9X2NzZV9rdWVvZnlzMm1keSZsYWJlbD1fY3NlZmVlZF9rdWVvZnlzMm1keRC28a3Xob2UAg" feed="true">
-    <Label name="_cse_kueofys2mdy" />
-    <Label name="equipment"/>
-    <AdditionalData attribute="original_url" value="http://www.pacngorec.com/pacngorec_home.htm" />
-    <Comment>Pac 'n Go</Comment>
-  </Annotation>'''
-        curHandler = models.AnnotationSAXHandler()
-        xml.sax.parseString(str, curHandler)
-        self.assertEqual(len(curHandler.annotations), 1)
-        annotation = curHandler.annotations[0]
-        self.assertEqual(2, len(annotation.labels.all()))
-
-    def testWithErrorOnOriginalURL(self):
-        str = '''<Annotation about="agilitynerd.com/*" timestamp="0x000420938c4e0bb7" href="ChFhZ2lsaXR5bmVyZC5jb20vKhC3l7jiuJKIAg">
-    <Label name="_cse_kueofys2mdy" />
-    <Label name="blog" />
-    <Label name="video" />
-    <AdditionalData attribute="original_url" value="http://agilitynerd.com/*" />
-    <Comment>AgilityNerd</Comment>
-  </Annotation>'''
-        curHandler = models.AnnotationSAXHandler()
-        xml.sax.parseString(str, curHandler)
-        self.assertEqual(len(curHandler.annotations), 1)
-        # make sure asterisk is removed from original_url
-        annotation = curHandler.annotations[0]
-        self.assertEqual(annotation.original_url, "http://agilitynerd.com/")
-
-
 class PlaceTest(TestCase):
+
     def setUp(self):
         backgroundLabel = models.Label(name="background 1",
                                        description="background 1 desc",
@@ -86,9 +39,9 @@ class PlaceTest(TestCase):
         self.annotation.country = "USA"
         self.assertTrue(self.annotation.hasAddress())
 
-    def testShouldHaveAddress(self):
-        # have one label with a physical address so should pass
-        self.assertTrue(self.annotation.shouldHaveAddress())
+    # def testShouldHaveAddress(self):
+    #     # have one label with a physical address so should pass
+    #     self.assertTrue(self.annotation.shouldHaveAddress())
 
 
 class ViewLabels(TestCase):
