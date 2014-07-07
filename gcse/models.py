@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 try:
-    from urllib2 import urlopen
+    import urllib2 as urllib
 except ImportError:
-    from urllib.request import urlopen
+    import urllib.request as urllib
 
 from string import ascii_letters
 import datetime
@@ -310,7 +310,7 @@ class CustomSearchEngine(TimeStampedModel):
     def save(self, *args, **kwargs):
         if not self.id:
             # need id so foreign key/m2m relations are satisfied
-            # on first insert.
+            # when inserting them inside _update_xml()
             super(CustomSearchEngine, self).save(*args, **kwargs)
         self._update_xml()
         # guaranteed to be an update now
@@ -397,6 +397,18 @@ class Annotation(TimeStampedModel):
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
     objects = AnnotationManager()
+
+    @classmethod
+    def from_string(cls, string):
+        handler = AnnotationSAXHandler()
+        annotations = handler.parseString(string)
+        return annotations
+
+    @classmethod
+    def from_url(cls, url):
+        handler = AnnotationSAXHandler()
+        annotations = handler.parse(url)
+        return annotations
 
 
 class Place(Annotation):
@@ -528,7 +540,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         return self.cse
 
     def parse(self, url):
-        xml.sax.parse(urlopen(url), self)
+        xml.sax.parseString(urllib.urlopen(url), self)
         self.cse.input_xml = stream
         return self.cse
 
@@ -582,14 +594,14 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
 class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     """
     Create a set of Annotation instances from an XML file.  Finds or
-    creates related Labels by name only - doesn't keep them unique to
-    a specific CustomSearchEngine.
+    creates related Labels by name, score and timestamp - doesn't keep
+    them unique to a specific CustomSearchEngine.
 
-    Could be implemented by passing a CSE's Label(s) into this handler
-    and adding only those Label instances to each Annotation. If not
-    in the supplied Labels then the db would be searched for Label's
-    with those names. If more than one is found raise an assertion(?)
-    add them all?
+    Uniqueness could be implemented by passing a CSE's Label(s) into
+    this handler and adding only those Label instances to each
+    Annotation. If not in the supplied Labels then the db would be
+    searched for Label's with those names. If more than one is found
+    raise an assertion?, add them all?
     """
 
     def __init__(self):
@@ -603,7 +615,7 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         return self.annotations
 
     def parse(self, url):
-        xml.sax.parse(urlopen(url), self)
+        xml.sax.parseString(urllib.urlopen(url), self)
         return self.annotations
 
     def _convert_google_timestamp(self, tstring):

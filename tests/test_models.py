@@ -6,6 +6,7 @@ test_models
 Tests for `django-gcse` model module.
 """
 from lxml import etree as ET
+import mock
 
 from django.db import IntegrityError
 from django.test import TestCase
@@ -172,9 +173,16 @@ class TestImportCustomSearchEngine(TestCase):
                                  )
         self.assertRaises(IntegrityError, cse.save)
 
-    def test_gid_populated_from_google_xml(self):
+    def test_gid_populated_from_google_xml_as_string(self):
         cse = CustomSearchEngine.from_string(CSE_XML)
         self.assertEqual("c12345-r678", cse.gid)
+
+    def test_gid_populated_from_google_xml_as_url(self):
+        with mock.patch('urllib2.urlopen') as urlopen:
+            urlopen.return_value = CSE_XML
+
+            cse = CustomSearchEngine.from_url("http://example.com/ignored_url")
+            self.assertEqual("c12345-r678", cse.gid)
 
 
 def _extractPath(xml, path):
@@ -276,10 +284,6 @@ class TestCSEUpdateXML(TestCase):
         self.assertEqual('<Include type="Annotations" href="//example.com/annotations/c12345-r678.1.xml"/>',
                          _extractPathAsString(cse.output_xml,
                                               "/GoogleCustomizations/Include[2]"))
-
-    # def test_output_xml_has_same_facet_labels(self):
-    #     cse = CustomSearchEngine.from_string(FACETED_XML)
-    #     self.assertEqual(FACETED_XML, cse.output_xml)
 
     def test_output_xml_has_new_facet_labels(self):
         cse = CustomSearchEngine(gid="c12345-r678",
@@ -615,7 +619,7 @@ class TestAnnotationManager(TestCase):
         self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
 
 
-class TestAnnotationSAXHandler(TestCase):
+class TestAnnotationParsing(TestCase):
 
     def setUp(self):
         self.handler = AnnotationSAXHandler()
@@ -623,8 +627,22 @@ class TestAnnotationSAXHandler(TestCase):
     def test_empty_annotations_produces_no_annotations(self):
         self.assertEqual([], self.handler.parseString('<?xml version="1.0" encoding="UTF-8" ?><Annotations></Annotations>'))
 
-    def test_parse_annotations(self):
+    def test_parse_annotations_from_string(self):
+        annotations = Annotation.from_string(ANNOTATION_XML)
+        self._validate(annotations)
+
+    def test_parse_annotations_using_sax_handler(self):
         annotations = self.handler.parseString(ANNOTATION_XML)
+        self._validate(annotations)
+
+    def test_parse_annotations_from_url(self):
+        with mock.patch('urllib2.urlopen') as urlopen:
+            urlopen.return_value = ANNOTATION_XML
+
+            annotations = Annotation.from_url("http://ignoredurl.com")
+            self._validate(annotations)
+
+    def _validate(self, annotations):
         self.assertEqual(6, len(annotations))
 
         a0 = annotations[0]
