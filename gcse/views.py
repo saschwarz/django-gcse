@@ -309,7 +309,7 @@ def ajax_annotation(request, label):
         try:
             total = query.all().extra(where=fields, params = values).count()
             rta = query.all().extra(where=fields, params = values)
-        except Exception, e:
+        except Exception as e:
             data = '{"total":%(pages)s, "page":%(page)s, "records":%(total)s, "rows":%(rta)s }'\
                 % {'pages':0, 'page':0, 'total':0, 'rta':None}
             return HttpResponse(data, mimetype="application/json")

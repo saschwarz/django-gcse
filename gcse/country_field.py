@@ -251,7 +251,7 @@ COUNTRIES = (
 
 def isValidCountry(field_data, all_data):
     if not field_data in [lang[0] for lang in COUNTRIES]:
-        raise ValidationError, _("This value must be in COUNTRIES setting in localflavor.generic package.")
+        raise ValidationError(_("This value must be in COUNTRIES setting in localflavor.generic package."))
 
 class CountryField(models.CharField):
     def __init__(self, *args, **kwargs):

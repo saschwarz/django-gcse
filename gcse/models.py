@@ -540,7 +540,8 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         return self.cse
 
     def parse(self, url):
-        xml.sax.parseString(urllib.urlopen(url), self)
+        stream = urllib.urlopen(url)
+        xml.sax.parseString(stream, self)
         self.cse.input_xml = stream
         return self.cse
 
