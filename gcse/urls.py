@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
-from feeds import RssLatestFeed, AtomLatestFeed
+from .feeds import RssLatestFeed, AtomLatestFeed
 
 
 feeds = {

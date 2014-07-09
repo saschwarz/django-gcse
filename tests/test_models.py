@@ -5,6 +5,8 @@ test_models
 
 Tests for `django-gcse` model module.
 """
+from __future__ import unicode_literals
+from io import StringIO
 from lxml import etree as ET
 import mock
 
@@ -14,8 +16,8 @@ from django.test.utils import override_settings
 from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, Place, AnnotationSAXHandler
 
 # Default CSE XML created by google
-CSE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
-<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true">
+CSE_XML = b"""<?xml version="1.0"  encoding="utf-8" ?>
+<CustomSearchEngine id="c12345-r678" keywords="" language="en" domain="www.google.com" safesearch="true" encoding="utf-8">
   <Title>AgilityNerd Site Search</Title>
   <Context>
     <BackgroundLabels>
@@ -38,13 +40,12 @@ CSE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
   <ImageSearchSettings enable="true"/>
   <autocomplete_settings/>
   <cse_advance_settings enable_speech="true"/>
-</CustomSearchEngine>
-"""
+</CustomSearchEngine>"""
 
 # Semi customized
-FACETED_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+FACETED_XML = b"""<?xml version=\'1.0\' encoding="utf-8" ?>
 <GoogleCustomizations version="1.0">
-  <CustomSearchEngine id="csekeystring" version="1.0" volunteers="false" keywords="" visible="true" encoding="UTF-8" top_refinements="4">
+  <CustomSearchEngine id="csekeystring" version="1.0" encoding="utf-8" volunteers="false" keywords="" visible="true" top_refinements="4">
     <Title>AgilityNerd Dog Agility Search</Title>
     <Description>Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores</Description>
     <Context refinementsTitle="Refine results for $q:">
@@ -104,10 +105,9 @@ FACETED_XML = """<?xml version=\'1.0\' encoding=\'UTF-8\'?>
     <EnterpriseAccount/>
   </CustomSearchEngine>
   <Include type="Annotations" href="http://googility.com/googility_annotations.xml"/>
-</GoogleCustomizations>
-"""
+</GoogleCustomizations>"""
 
-ANNOTATION_XML = """<?xml version="1.0" encoding="UTF-8" ?>
+ANNOTATION_XML = b"""<?xml version="1.0" encoding="utf-8" ?>
 <Annotations start="0" num="7" total="7">
   <Annotation about="tech.agilitynerd.com/author/" timestamp="0x0004d956807a35fd" href="Chx0ZWNoLmFnaWxpdHluZXJkLmNvbS9hdXRob3IvEP3r6IPoqrYC">
     <Label name="_cse_exclude_keystring" />
@@ -134,8 +134,8 @@ ANNOTATION_XML = """<?xml version="1.0" encoding="UTF-8" ?>
     <AdditionalData attribute="original_url" value="tech.agilitynerd.com/*" />
     <Comment>here's a comment</Comment>
   </Annotation>
-</Annotations>
-"""
+</Annotations>"""
+
 
 class TestCustomSearchEngine(TestCase):
 
@@ -176,13 +176,6 @@ class TestImportCustomSearchEngine(TestCase):
     def test_gid_populated_from_google_xml_as_string(self):
         cse = CustomSearchEngine.from_string(CSE_XML)
         self.assertEqual("c12345-r678", cse.gid)
-
-    def test_gid_populated_from_google_xml_as_url(self):
-        with mock.patch('urllib2.urlopen') as urlopen:
-            urlopen.return_value = CSE_XML
-
-            cse = CustomSearchEngine.from_url("http://example.com/ignored_url")
-            self.assertEqual("c12345-r678", cse.gid)
 
 
 def _extractPath(xml, path):
@@ -469,7 +462,9 @@ class TestCSESAXHandler(TestCase):
                          set([x.name for x in cse.background_labels.all()]))
 
     def test_input_xml_is_parsed_from_xml(self):
-        self.assertEqual(CSE_XML, self.cse.input_xml)
+        expected = CSE_XML.replace(b'version="1.0"  encoding="utf-8" ', b"version=\'1.0\' encoding=\'utf-8\'")
+        self.assertEqual(expected,
+                         self.cse.input_xml)
 
     def test_facet_items_are_parsed_from_xml(self):
         self.cse = self.handler.parseString(FACETED_XML)
@@ -625,7 +620,7 @@ class TestAnnotationParsing(TestCase):
         self.handler = AnnotationSAXHandler()
 
     def test_empty_annotations_produces_no_annotations(self):
-        self.assertEqual([], self.handler.parseString('<?xml version="1.0" encoding="UTF-8" ?><Annotations></Annotations>'))
+        self.assertEqual([], self.handler.parseString('<Annotations></Annotations>'))
 
     def test_parse_annotations_from_string(self):
         annotations = Annotation.from_string(ANNOTATION_XML)
@@ -634,13 +629,6 @@ class TestAnnotationParsing(TestCase):
     def test_parse_annotations_using_sax_handler(self):
         annotations = self.handler.parseString(ANNOTATION_XML)
         self._validate(annotations)
-
-    def test_parse_annotations_from_url(self):
-        with mock.patch('urllib2.urlopen') as urlopen:
-            urlopen.return_value = ANNOTATION_XML
-
-            annotations = Annotation.from_url("http://ignoredurl.com")
-            self._validate(annotations)
 
     def _validate(self, annotations):
         self.assertEqual(6, len(annotations))
@@ -688,19 +676,16 @@ class TestAnnotationParsing(TestCase):
 class AnnotationSAXHandlerTests(TestCase):
 
     def testParseWithAmpersand(self):
-        str = '''<Annotations file="./clubsxml">
+        xml = '''<Annotations file="./clubsxml">
   <Annotation about="www.luckydogagility.com/*">
       <Label name="_cse_kueofys2mdy" />
       <Label name="facility" />
       <AdditionalData attribute="original_url" value="http://www.luckydogagility.com/" />
       <Comment>Lucky Dog &amp; Friends Agility</Comment>
   </Annotation>
-  </Annotations>
-  '''
+  </Annotations>'''
         curHandler = AnnotationSAXHandler()
-        curHandler.parseString(str)
-
-        self.assertEqual(len(curHandler.annotations), 1)
+        annotations = curHandler.parseString(xml)
+        self.assertEqual(len(annotations), 1)
         # is ampersand no longer encoded?
         self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
-

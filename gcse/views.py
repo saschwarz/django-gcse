@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcse.models import Annotation, Label
 from gcse.forms import PlaceForm
-from model_fields import get_labels_for
+from .model_fields import get_labels_for
 #from recaptcha.client import captcha
 
 try:

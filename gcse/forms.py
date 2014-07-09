@@ -1,13 +1,13 @@
 from itertools import chain
 from django import forms
 from django.forms import ModelForm
-from django.utils.encoding import force_unicode
+from django.utils.encoding import smart_text
 from django.utils.html import conditional_escape
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
-from django.utils.encoding import smart_unicode
-from models import Annotation, Label, Place
-from model_fields import get_labels_for
+
+from .models import Annotation, Label, Place
+from .model_fields import get_labels_for
 
 
 class ImportForm(forms.Form):
@@ -30,10 +30,10 @@ class SpecialMultipleChoiceField(forms.MultipleChoiceField):
             if type(v) in (tuple, list):
                 # This is an optgroup, so look inside the group for options
                 for k2, v2 in v:
-                    if value == smart_unicode(k2):
+                    if value == smart_text(k2):
                         return True
             else:
-                if value == smart_unicode(k):
+                if value == smart_text(k):
                     return True
         return False
 
@@ -50,7 +50,7 @@ class SpecialCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
         final_attrs = self.build_attrs(attrs, name=name)
         output = [u'<ul>']
         # Normalize to strings
-        str_values = set([force_unicode(v) for v in value])
+        str_values = set([smart_text(v) for v in value])
         for i, (option_value, option_label, option_help) in enumerate(chain(self.choices, choices)):
             # If an ID attribute was given, add a numeric index as a suffix,
             # so that the checkboxes don't all have the same ID attribute.
@@ -62,10 +62,10 @@ class SpecialCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
 
             cb = forms.CheckboxInput(final_attrs,
                                      check_test=lambda value: value in str_values)
-            option_value = force_unicode(option_value)
-            option_help = force_unicode(option_help)
+            option_value = smart_text(option_value)
+            option_help = smart_text(option_help)
             rendered_cb = cb.render(name, option_value)
-            option_label = conditional_escape(force_unicode(option_label))
+            option_label = conditional_escape(smart_text(option_label))
             output.append(u'''<li><label%s>%s %s</label><br/><span class="help">%s</span></li>''' % (label_for, rendered_cb, option_label.capitalize(), option_help))
         output.append(u'</ul>')
         return mark_safe(u'\n'.join(output))

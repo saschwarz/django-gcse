@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-try:
-    import urllib2 as urllib
-except ImportError:
-    import urllib.request as urllib
+from __future__ import unicode_literals
 
 from string import ascii_letters
 import datetime
 import math
+from io import StringIO
 
 from lxml import etree as ET
-import xml.sax
+import lxml.sax
 import xml.sax.saxutils
 import xml.sax.handler
 
@@ -20,6 +18,7 @@ from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 from django.utils.translation import ugettext as _
+from django.utils.encoding import python_2_unicode_compatible
 
 from model_utils.models import TimeStampedModel
 from model_utils import Choices
@@ -38,6 +37,7 @@ settings.GCSE_CONFIG = dict({
         **getattr(settings, 'GCSE_CONFIG' , {}))
 
 
+@python_2_unicode_compatible
 class Label(models.Model):
     """Labels associated with an Annotation. Used to refine search results.
     https://developers.google.com/custom-search/docs/ranking#labels
@@ -78,7 +78,7 @@ class Label(models.Model):
     class Meta:
         ordering = ["name"]
 
-    def __unicode__(self):
+    def __str__(self):
         return "name: %s id: %s mode: %s weight: %s" % (self.name, self.id, self.mode, self.weight)
 
     @classmethod
@@ -94,9 +94,10 @@ class Label(models.Model):
         params = {"name": self.name,
                   "mode": self.get_mode_display(),
                   "weight": weight}
-        return u'<Label name="%(name)s" mode="%(mode)s"%(weight)s/>' % params
+        return '<Label name="%(name)s" mode="%(mode)s"%(weight)s/>' % params
 
 
+@python_2_unicode_compatible
 class FacetItem(OrderedModel):
     """A named search refinement presented in the search results to CSE users."""
     title = models.CharField(max_length=128,
@@ -111,11 +112,11 @@ class FacetItem(OrderedModel):
     class Meta(OrderedModel.Meta):
         pass
 
-    def __unicode__(self):
-        return u'%s %s' % (self.title, self.label)
+    def __str__(self):
+        return '%s %s' % (self.title, self.label)
 
     def xml(self):
-        return u'<FacetItem title="%s">%s</FacetItem>' % (self.title, self.label.xml(complete=False))
+        return '<FacetItem title="%s">%s</FacetItem>' % (self.title, self.label.xml(complete=False))
 
 
 class CustomSearchEngine(TimeStampedModel):
@@ -181,8 +182,8 @@ class CustomSearchEngine(TimeStampedModel):
                                                related_name='cse_background_labels',
                                                help_text=_('Non-visible Labels for this search engine'))
 
-    DEFAULT_XML = """<?xml version="1.0" encoding="UTF-8" ?>
-    <CustomSearchEngine id="rdfdpnhicea" language="en" encoding="UTF-8" enable_suggest="true">
+    DEFAULT_XML = b"""<?xml version="1.0" encoding="utf-8" ?>
+    <CustomSearchEngine id="rdfdpnhicea" language="en" encoding="utf-8" enable_suggest="true">
       <Title>test</Title>
       <Context>
         <BackgroundLabels>
@@ -318,9 +319,9 @@ class CustomSearchEngine(TimeStampedModel):
         super(CustomSearchEngine, self).save(*args, **kwargs)
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, xml):
         handler = CSESAXHandler()
-        cse = handler.parseString(string)
+        cse = handler.parseString(xml)
         cse.save()
         return cse
 
@@ -399,9 +400,9 @@ class Annotation(TimeStampedModel):
     objects = AnnotationManager()
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, xml):
         handler = AnnotationSAXHandler()
-        annotations = handler.parseString(string)
+        annotations = handler.parseString(xml)
         return annotations
 
     @classmethod
@@ -411,6 +412,7 @@ class Annotation(TimeStampedModel):
         return annotations
 
 
+@python_2_unicode_compatible
 class Place(Annotation):
     """
     Concrete class representation of a physical place, organization, business
@@ -466,7 +468,7 @@ class Place(Annotation):
     class Meta:
         ordering = ["about"]
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.comment, self.id)
 
     def get_absolute_url(self):
@@ -534,25 +536,28 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         self.facet_item = None
         self.in_background_label = False
 
-    def parseString(self, stream):
-        xml.sax.parseString(stream, self)
-        self.cse.input_xml = stream
+    def _parse(self, tree):
+        lxml.sax.saxify(tree, self)
+        self.cse.input_xml = lxml.etree.tostring(tree, xml_declaration=True, encoding="utf-8")
         return self.cse
+
+    def parseString(self, xml):
+        tree = lxml.etree.fromstring(xml)
+        return self._parse(tree)
 
     def parse(self, url):
-        stream = urllib.urlopen(url)
-        xml.sax.parseString(stream, self)
-        self.cse.input_xml = stream
-        return self.cse
+        tree = lxml.etree.parse(url)
+        return self._parse(tree)
 
-    def startElement(self, name, attributes):
+    def startElementNS(self, ns_name, qname, attributes):
+        uri, name = ns_name
         self.name = name
         self.attrs[name] = ''
         if name == "CustomSearchEngine":
             self.cse, created = CustomSearchEngine.objects.\
-                get_or_create(gid=attributes["id"])
+                get_or_create(gid=attributes[(None, "id")])
         elif name == "FacetItem":
-            title = attributes["title"]
+            title = attributes[(None, "title")]
             facet, created = FacetItem.objects.get_or_create(title=title,
                                                              cse=self.cse)
             facet.order = self.facet_index
@@ -564,13 +569,13 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
             self.in_background_label = True
         elif name == "Label":
             # Try to find existing label
-            lname = attributes['name']
+            lname = attributes[(None, 'name')]
             label, created = Label.objects.get_or_create(name=lname)
             # don't overwrite local label configurations
             if created:
-                label.mode = Label.get_mode(attributes['mode'])
-                if 'weight' in attributes:
-                    label.weight = float(attributes['weight'])
+                label.mode = Label.get_mode(attributes[(None, 'mode')])
+                if (None, 'weight') in attributes:
+                    label.weight = float(attributes[(None, 'weight')])
                 label.background = self.in_background_label
                 label.save()
                 if label.background:
@@ -583,7 +588,8 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
     def characters(self, data):
         self.attrs[self.name] += data
 
-    def endElement(self, name):
+    def endElementNS(self, ns_name, qname):
+        uri, name = ns_name
         if name == 'Title':
             self.cse.title = self.attrs[name]
         elif name == 'Description':
@@ -611,12 +617,14 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         self.inComment = False
         self.annotations = []
 
-    def parseString(self, stream):
-        xml.sax.parseString(stream, self)
+    def parseString(self, xml):
+        tree = lxml.etree.fromstring(xml)
+        lxml.sax.saxify(tree, self)
         return self.annotations
 
     def parse(self, url):
-        xml.sax.parseString(urllib.urlopen(url), self)
+        tree = lxml.etree.parse(url)
+        lxml.sax.saxify(stream, self)
         return self.annotations
 
     def _convert_google_timestamp(self, tstring):
@@ -626,17 +634,18 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
             adate= datetime.datetime.now()
         return timezone.make_aware(adate, timezone.get_current_timezone())
 
-    def startElement(self, name, attributes):
+    def startElementNS(self, ns_name, qname, attributes):
+        uri, name = ns_name
         if name == "Annotation":
             self.curAnnotation, created = Annotation.objects.\
-                get_or_create(about=attributes["about"],
-                              score=attributes.get("score"),
-                              created=self._convert_google_timestamp(attributes.get("timestamp")))
+                get_or_create(about=attributes[(None, "about")],
+                              score=attributes.get((None, "score")),
+                              created=self._convert_google_timestamp(attributes.get((None, "timestamp"))))
             # imports are always active
             self.curAnnotation.status = Annotation.STATUS.active
         elif name == "AdditionalData":
-            if attributes['attribute'] == 'original_url':
-                original_url = attributes['value']
+            if attributes[(None, 'attribute')] == 'original_url':
+                original_url = attributes[(None, 'value')]
                 # created some input data which had an asterisk at the end
                 self.curAnnotation.original_url = original_url.rstrip("*")
         elif name == "Comment":
@@ -644,7 +653,7 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
             self.curAnnotation.comment = ''
         elif name == "Label":
             # Try to find existing label
-            lname = attributes['name']
+            lname = attributes[(None, 'name')]
             label, created = Label.objects.get_or_create(name=lname)
             self.curAnnotation.labels.add(label)
 
@@ -652,7 +661,8 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         if self.inComment:
             self.curAnnotation.comment += data
 
-    def endElement(self, name):
+    def endElementNS(self, ns_name, qname):
+        uri, name = ns_name
         if name == "Annotation":
             self.curAnnotation.save()
             self.annotations.append(self.curAnnotation)

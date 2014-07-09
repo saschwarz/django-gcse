@@ -1,7 +1,8 @@
 from django.contrib.syndication.views import Feed
-from models import Annotation
 from django.utils.feedgenerator import Atom1Feed
 from datetime import datetime
+
+from .models import Annotation
 
 
 class RssLatestFeed(Feed):

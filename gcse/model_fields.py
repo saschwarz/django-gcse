@@ -1,6 +1,7 @@
 # From http://nathanostgard.com/archives/2007/7/25/field-labels-in-templates/
 from string import capwords
 
+
 def get_labels_for(model, cap=True, esc=True):
   from django.template.defaultfilters import capfirst
   from django.utils.html import escape
