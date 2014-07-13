@@ -411,6 +411,32 @@ class Annotation(TimeStampedModel):
         annotations = handler.parse(url)
         return annotations
 
+    @classmethod
+    def alpha_list(cls, selection=None):
+        """Return a list of the case insensitive matches of Annotation
+        comment's first letters. For use in the view to give alpha based
+        tabs for browsing"""
+        cursor = connection.cursor()
+        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM "
+                       "gcse_annotation order by substr(comment, 1, 1)")
+        existent = [str(i[0]) for i in cursor.fetchall()]
+        results = []
+        for i in ascii_letters[26:] + "0123456789":
+            style = ''
+            if i == selection:
+                style = "selected"
+            elif i in existent:
+                style = "active"
+            results.append({'i': i, 'style': style})
+        return results
+
+    def labels_as_links(self):
+        return "&nbsp;".join(
+            ['<a href="%s?label=%s">%s</a>' % (
+                reverse('browse_by_label'), l.name, l.name)
+             for l in self.labels.all()]
+            )
+
 
 @python_2_unicode_compatible
 class Place(Annotation):
@@ -497,32 +523,6 @@ class Place(Annotation):
 
     def address(self):
         return " ".join([self.address1, self.city, self.state, self.country])
-
-    @classmethod
-    def alpha_list(cls, selection=None):
-        """Return a list of the case insensitive matches of Annotation
-        comment's first letters. For use in the view to give alpha based
-        tabs for browsing"""
-        cursor = connection.cursor()
-        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM "
-                       "gcse_annotation order by substr(comment, 1, 1)")
-        existent = [str(i[0]) for i in cursor.fetchall()]
-        results = []
-        for i in ascii_letters[26:] + "0123456789":
-            style = ''
-            if i == selection:
-                style = "selected"
-            elif i in existent:
-                style = "active"
-            results.append({'i': i, 'style': style})
-        return results
-
-    def labels_as_links(self):
-        return "&nbsp;".join(
-            ['<a href="%s?label=%s">%s</a>' % (
-                reverse('browse_by_label'), l.name, l.name)
-             for l in self.labels.all()]
-            )
 
 
 class CSESAXHandler(xml.sax.handler.ContentHandler):
@@ -617,14 +617,17 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
         self.inComment = False
         self.annotations = []
 
+    def _parse(self, tree):
+        lxml.sax.saxify(tree, self)
+
     def parseString(self, xml):
         tree = lxml.etree.fromstring(xml)
-        lxml.sax.saxify(tree, self)
+        self._parse(tree)
         return self.annotations
 
     def parse(self, url):
         tree = lxml.etree.parse(url)
-        lxml.sax.saxify(stream, self)
+        self._parse(tree)
         return self.annotations
 
     def _convert_google_timestamp(self, tstring):

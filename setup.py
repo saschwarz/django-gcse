@@ -4,7 +4,7 @@
 import os
 import sys
 
-import django-gcse
+import gcse
 
 try:
     from setuptools import setup

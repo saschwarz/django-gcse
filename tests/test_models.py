@@ -689,3 +689,130 @@ class AnnotationSAXHandlerTests(TestCase):
         self.assertEqual(len(annotations), 1)
         # is ampersand no longer encoded?
         self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
+
+
+class AnnotationsAlphaList(TestCase):
+    
+    def setUp(self):
+        pass
+
+    def test_no_annotations_no_active_letter(self):
+        results = Annotation.alpha_list()
+        self.assertEqual([{'i': 'A', 'style': ''},
+                          {'i': 'B', 'style': ''},
+                          {'i': 'C', 'style': ''},
+                          {'i': 'D', 'style': ''},
+                          {'i': 'E', 'style': ''},
+                          {'i': 'F', 'style': ''},
+                          {'i': 'G', 'style': ''},
+                          {'i': 'H', 'style': ''},
+                          {'i': 'I', 'style': ''},
+                          {'i': 'J', 'style': ''},
+                          {'i': 'K', 'style': ''},
+                          {'i': 'L', 'style': ''},
+                          {'i': 'M', 'style': ''},
+                          {'i': 'N', 'style': ''},
+                          {'i': 'O', 'style': ''},
+                          {'i': 'P', 'style': ''},
+                          {'i': 'Q', 'style': ''},
+                          {'i': 'R', 'style': ''},
+                          {'i': 'S', 'style': ''},
+                          {'i': 'T', 'style': ''},
+                          {'i': 'U', 'style': ''},
+                          {'i': 'V', 'style': ''},
+                          {'i': 'W', 'style': ''},
+                          {'i': 'X', 'style': ''},
+                          {'i': 'Y', 'style': ''},
+                          {'i': 'Z', 'style': ''},
+                          {'i': '0', 'style': ''},
+                          {'i': '1', 'style': ''},
+                          {'i': '2', 'style': ''},
+                          {'i': '3', 'style': ''},
+                          {'i': '4', 'style': ''},
+                          {'i': '5', 'style': ''},
+                          {'i': '6', 'style': ''},
+                          {'i': '7', 'style': ''},
+                          {'i': '8', 'style': ''},
+                          {'i': '9', 'style': ''}], results)
+
+    def test_two_annotations_two_active_letters(self):
+        f = Annotation.objects.create(comment="Fun with Python")
+        five = Annotation.objects.create(comment="5 Python Anti-Patterns")
+        results = Annotation.alpha_list()
+        self.assertEqual([{'i': 'A', 'style': ''},
+                          {'i': 'B', 'style': ''},
+                          {'i': 'C', 'style': ''},
+                          {'i': 'D', 'style': ''},
+                          {'i': 'E', 'style': ''},
+                          {'i': 'F', 'style': 'active'},
+                          {'i': 'G', 'style': ''},
+                          {'i': 'H', 'style': ''},
+                          {'i': 'I', 'style': ''},
+                          {'i': 'J', 'style': ''},
+                          {'i': 'K', 'style': ''},
+                          {'i': 'L', 'style': ''},
+                          {'i': 'M', 'style': ''},
+                          {'i': 'N', 'style': ''},
+                          {'i': 'O', 'style': ''},
+                          {'i': 'P', 'style': ''},
+                          {'i': 'Q', 'style': ''},
+                          {'i': 'R', 'style': ''},
+                          {'i': 'S', 'style': ''},
+                          {'i': 'T', 'style': ''},
+                          {'i': 'U', 'style': ''},
+                          {'i': 'V', 'style': ''},
+                          {'i': 'W', 'style': ''},
+                          {'i': 'X', 'style': ''},
+                          {'i': 'Y', 'style': ''},
+                          {'i': 'Z', 'style': ''},
+                          {'i': '0', 'style': ''},
+                          {'i': '1', 'style': ''},
+                          {'i': '2', 'style': ''},
+                          {'i': '3', 'style': ''},
+                          {'i': '4', 'style': ''},
+                          {'i': '5', 'style': 'active'},
+                          {'i': '6', 'style': ''},
+                          {'i': '7', 'style': ''},
+                          {'i': '8', 'style': ''},
+                          {'i': '9', 'style': ''}], results)
+
+    def test_two_annotations_two_active_letters_one_inactive_selected(self):
+        f = Annotation.objects.create(comment="Fun with Python")
+        five = Annotation.objects.create(comment="5 Python Anti-Patterns")
+        results = Annotation.alpha_list(selection="B")
+        self.assertEqual([{'i': 'A', 'style': ''},
+                          {'i': 'B', 'style': 'selected'},
+                          {'i': 'C', 'style': ''},
+                          {'i': 'D', 'style': ''},
+                          {'i': 'E', 'style': ''},
+                          {'i': 'F', 'style': 'active'},
+                          {'i': 'G', 'style': ''},
+                          {'i': 'H', 'style': ''},
+                          {'i': 'I', 'style': ''},
+                          {'i': 'J', 'style': ''},
+                          {'i': 'K', 'style': ''},
+                          {'i': 'L', 'style': ''},
+                          {'i': 'M', 'style': ''},
+                          {'i': 'N', 'style': ''},
+                          {'i': 'O', 'style': ''},
+                          {'i': 'P', 'style': ''},
+                          {'i': 'Q', 'style': ''},
+                          {'i': 'R', 'style': ''},
+                          {'i': 'S', 'style': ''},
+                          {'i': 'T', 'style': ''},
+                          {'i': 'U', 'style': ''},
+                          {'i': 'V', 'style': ''},
+                          {'i': 'W', 'style': ''},
+                          {'i': 'X', 'style': ''},
+                          {'i': 'Y', 'style': ''},
+                          {'i': 'Z', 'style': ''},
+                          {'i': '0', 'style': ''},
+                          {'i': '1', 'style': ''},
+                          {'i': '2', 'style': ''},
+                          {'i': '3', 'style': ''},
+                          {'i': '4', 'style': ''},
+                          {'i': '5', 'style': 'active'},
+                          {'i': '6', 'style': ''},
+                          {'i': '7', 'style': ''},
+                          {'i': '8', 'style': ''},
+                          {'i': '9', 'style': ''}], results)
