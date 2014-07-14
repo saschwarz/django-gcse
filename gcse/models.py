@@ -400,14 +400,14 @@ class Annotation(TimeStampedModel):
     objects = AnnotationManager()
 
     @classmethod
-    def from_string(cls, xml):
-        handler = AnnotationSAXHandler()
+    def from_string(cls, xml, klass=Annotation):
+        handler = AnnotationSAXHandler(klass=klass)
         annotations = handler.parseString(xml)
         return annotations
 
     @classmethod
     def from_url(cls, url):
-        handler = AnnotationSAXHandler()
+        handler = AnnotationSAXHandler(klass=klass)
         annotations = handler.parse(url)
         return annotations
 
@@ -611,7 +611,8 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     raise an assertion?, add them all?
     """
 
-    def __init__(self):
+    def __init__(self, klass=Annotation):
+        self.klass = klass
         self.curAnnotation = None
         self.curLabel = None
         self.inComment = False
@@ -640,7 +641,7 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
     def startElementNS(self, ns_name, qname, attributes):
         uri, name = ns_name
         if name == "Annotation":
-            self.curAnnotation, created = Annotation.objects.\
+            self.curAnnotation, created = self.klass.objects.\
                 get_or_create(about=attributes[(None, "about")],
                               score=attributes.get((None, "score")),
                               created=self._convert_google_timestamp(attributes.get((None, "timestamp"))))
