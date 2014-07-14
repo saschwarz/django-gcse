@@ -590,7 +590,7 @@ class TestAnnotationManager(TestCase):
                                               status=Annotation.STATUS.submitted)
         deleted = Annotation.objects.create(comment="Deleted Annotation",
                                             status=Annotation.STATUS.deleted)
-        
+
         self.assertEqual(1, Annotation.objects.active().count())
         self.assertEqual(active, Annotation.objects.active().all()[0])
         self.assertEqual(1, Annotation.objects.submitted().count())
@@ -691,10 +691,18 @@ class AnnotationSAXHandlerTests(TestCase):
         self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
 
 
+class AnnotationsLabels(TestCase):
+
+    def test_labels_as_links(self):
+        active = Annotation.objects.create(comment="Active Annotation",
+                                           status=Annotation.STATUS.active)
+        label = Label.objects.create(name="Label & Name")
+        active.labels.add(label)
+        self.assertEqual('<a class="label-link" href="/site/label/Label%20%26%20Name">Label & Name</a>',
+                         active.labels_as_links())
+
+
 class AnnotationsAlphaList(TestCase):
-    
-    def setUp(self):
-        pass
 
     def test_no_annotations_no_active_letter(self):
         results = Annotation.alpha_list()

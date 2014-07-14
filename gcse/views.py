@@ -244,6 +244,10 @@ def browse_by_label_grid(request, label, template='gcse/browse_by_label_grid.htm
                               {'label': label},
                               context_instance=RequestContext(request))
 
+def browse_label(request, label, template='gcse/browse_label.html'):
+    pass
+
+
 # How to use jqGrid. First version
 # ---------------------------------
 

@@ -431,9 +431,9 @@ class Annotation(TimeStampedModel):
         return results
 
     def labels_as_links(self):
-        return "&nbsp;".join(
-            ['<a href="%s?label=%s">%s</a>' % (
-                reverse('browse_by_label'), l.name, l.name)
+        return "".join(
+            ['<a class="label-link" href="%s">%s</a>' % (
+                reverse('browse_label', args=(l.name,)), l.name)
              for l in self.labels.all()]
             )
 
