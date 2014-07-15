@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Annotations start="" num="" total="">
+<Annotations start="{{ page_obj.start_index }}" num="{{ page_obj.end_index }}" total="{{ page_obj.paginator.count }}">
 {% spaceless %}
     {% for annotation in annotations %}
     <Annotation about="{{ annotation.about }}">

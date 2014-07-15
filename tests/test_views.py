@@ -1,32 +1,63 @@
 from django.test import TestCase
 from django.test.client import Client
+from django.test.utils import override_settings
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from gcse.models import Label, Annotation
+from gcse.models import CustomSearchEngine, Label, Annotation
+from gcse.views import CSEAnnotations
 
 
-# class ViewsTemplatesTestCase(TestCase):
+class ViewsTemplatesTestCase(TestCase):
 
-#     def setUp(self):
-#         self.client = Client()
-#         self.ROOT_URLCONF = settings.ROOT_URLCONF
-#         self.TEMPLATE_CONTEXT_PROCESSORS = settings.TEMPLATE_CONTEXT_PROCESSORS
-#         settings.TEMPLATE_CONTEXT_PROCESSORS = ()
-#         self.label = Label(name='name', description='description')
-#         self.label.save()
-#         self.annotation = Annotation(comment='Site Name', original_url='http://example.com/')
-#         self.annotation.save()
-#         self.annotation.labels.add(self.label)
-#         self.annotation.save()
+    def setUp(self):
+        self.client = Client()
+        self.ROOT_URLCONF = settings.ROOT_URLCONF
+        self.TEMPLATE_CONTEXT_PROCESSORS = settings.TEMPLATE_CONTEXT_PROCESSORS
+        settings.TEMPLATE_CONTEXT_PROCESSORS = ()
 
-#     def tearDown(self):
-#         settings.ROOT_URLCONF = self.ROOT_URLCONF
-#         settings.TEMPLATE_CONTEXT_PROCESSORS = self.TEMPLATE_CONTEXT_PROCESSORS
+        self.label = Label(name='name', description='description')
+        self.label.save()
+        self.annotation = Annotation(comment='Site Name', 
+                                     original_url='http://example.com/',
+                                     status=Annotation.STATUS.active)
+        self.annotation.save()
+        self.annotation.labels.add(self.label)
+        self.annotation.save()
+        self.cse = CustomSearchEngine.objects.create(gid="12345678", title="CSE 1234568")
+        self.cse.background_labels.add(self.label)
+        self.cse.save()
+        self.old_pagination = CSEAnnotations.paginate_by
 
-#     def test_annotations(self):
-#         response = self.client.get(reverse('cse_annotations'))
-#         self.assertEquals(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/annotation.xml')
+    def tearDown(self):
+        settings.ROOT_URLCONF = self.ROOT_URLCONF
+        settings.TEMPLATE_CONTEXT_PROCESSORS = self.TEMPLATE_CONTEXT_PROCESSORS
+        CSEAnnotations.paginate_by = self.old_pagination
+
+    def test_annotations(self):
+        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation.xml')
+        self.assertContains(response, '<Annotations start="1" num="1" total="1">', count=1)
+
+    def test_multiple_page_annotations(self):
+        annotation = Annotation(comment='Site Name 2', 
+                                original_url='http://example.com/',
+                                status=Annotation.STATUS.active)
+        annotation.save()
+        annotation.labels.add(self.label)
+
+        CSEAnnotations.paginate_by = 1 # one per page
+
+        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation.xml')
+        self.assertContains(response, '<Annotations start="1" num="1" total="2">', count=1)
+        # get page 2
+        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 2)))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation.xml')
+        self.assertContains(response, '<Annotations start="2" num="2" total="2">', count=1)
 
 #     def test_results(self):
 #         response = self.client.get(reverse('cse_results'))

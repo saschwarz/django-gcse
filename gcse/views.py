@@ -7,13 +7,14 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.cache import never_cache
+from django.views.generic import (DetailView,ListView, TemplateView)
 from django.core.mail import mail_managers
 from django.core import urlresolvers
 from django.contrib.sites.models import Site
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from gcse.models import Annotation, Label
+from gcse.models import CustomSearchEngine, Annotation, Label
 from gcse.forms import PlaceForm
 from .model_fields import get_labels_for
 #from recaptcha.client import captcha
@@ -24,18 +25,20 @@ except ImportError:
     import json
 
 
-def indexXML(request, gid, index, template='gcse/annotation.xml'):
+class CSEAnnotations(ListView):
     """
-    Render all the active Annotations for the CSE Google Background labels
-    for the given index.
+    Generate paginated Annotation XML for a specified CustomSearchEngine.
+    """
+    model = CustomSearchEngine
+    context_object_name = 'annotations'
+    slug_url_kwarg = 'gid'
+    template_name = 'gcse/annotation.xml'
+    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_FILE')
 
-    TODO: IMPLEMENT PAGING
-    """
-    return render_to_response(
-        template,
-        {'annotations': Annotation.active.exclude(about=''),
-         }
-        )
+    def get_queryset(self):
+        cse = get_object_or_404(CustomSearchEngine,
+                                gid=self.kwargs['gid'])
+        return cse.annotations()
 
 
 def index(request, num_annotations=5, template='index.html'):

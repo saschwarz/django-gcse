@@ -283,7 +283,7 @@ class CustomSearchEngine(TimeStampedModel):
             doc.append(ET.XML('<Include type="Annotations" href="%s"/>' % annotation_url))
 
     def _annotations_url(self, index):
-        url = reverse('annotations', args=(self.gid, index))
+        url = reverse('cse_annotations', args=(self.gid, index))
         return  '//' + Site.objects.get_current().domain + url
 
     def _update_xml(self):
@@ -400,13 +400,19 @@ class Annotation(TimeStampedModel):
     objects = AnnotationManager()
 
     @classmethod
-    def from_string(cls, xml, klass=Annotation):
+    def from_string(cls, xml, klass=None):
+        # allow use as Annotation subclass factory
+        if klass is None:
+            klass = cls
         handler = AnnotationSAXHandler(klass=klass)
         annotations = handler.parseString(xml)
         return annotations
 
     @classmethod
-    def from_url(cls, url):
+    def from_url(cls, url, klass=None):
+        # allow use as Annotation subclass factory
+        if klass is None:
+            klass = cls
         handler = AnnotationSAXHandler(klass=klass)
         annotations = handler.parse(url)
         return annotations
@@ -681,5 +687,4 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
 # - management command to insert GCSE and Annotations.
-# - create multiple annotation files as paginated view
 # - import of CSE to optionally import linked Annotations.
