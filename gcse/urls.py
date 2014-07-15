@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
 from .feeds import RssLatestFeed, AtomLatestFeed
-from .views import (CSEAnnotations,)
+from .views import (CSEAnnotations, CustomSearchEngineDetail)
+
 
 feeds = {
     'rss': RssLatestFeed,
@@ -16,7 +17,9 @@ urlpatterns = patterns('',
 urlpatterns += patterns('gcse.views',
                         url(r'^$', 'index', name='home'),
                         # urls for Google search related resources
-                        url(r'^(?P<gid>[\w-]+).xml$', TemplateView.as_view(template_name='gcse/cse.xml'), name='cse'),
+                        url(r'^(?P<gid>[\w-]+).xml$', 
+                            CustomSearchEngineDetail.as_view(),
+                            name='cse'),
                         url(r'^annotations/(?P<gid>[\w-]+).(?P<page>\w+).xml$', 
                             CSEAnnotations.as_view(), 
                             name='cse_annotations'),

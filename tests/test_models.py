@@ -197,19 +197,26 @@ def _extractPathAsString(xml, path):
 
 class TestCSEUpdateXML(TestCase):
 
-    def test_input_matches_output_xml_when_no_changes_to_instance(self):
-        cse = CustomSearchEngine(gid="c12345-r678",
+    def test_output_xml_has_new_gid_when_no_changes_to_instance(self):
+        cse = CustomSearchEngine(gid="c12345-r999",
                                  input_xml=CSE_XML)
         cse.save()
+        self.assertEqual('c12345-r999', 
+                         _extractPath(cse.output_xml,
+                                      "/GoogleCustomizations/CustomSearchEngine")[0].attrib['id'])
+
         self.assertEqual('', cse.title) # no title set so leave XML alone
-        self.assertEqual("AgilityNerd Site Search", _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
+        self.assertEqual("AgilityNerd Site Search", 
+                         _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_when_title_is_changed(self):
         cse = CustomSearchEngine(gid="c12345-r678",
                                  title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
-        self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
+        self.assertEqual(cse.title, 
+                         _extractPathElementText(cse.output_xml, 
+                                                 "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_element_when_there_is_no_title_element(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
@@ -217,14 +224,18 @@ class TestCSEUpdateXML(TestCase):
                                  title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
-        self.assertEqual(cse.title, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
+        self.assertEqual(cse.title, 
+                         _extractPathElementText(cse.output_xml, 
+                                                 "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_description_when_description_is_changed(self):
         cse = CustomSearchEngine(gid="c12345-r678",
                                  description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
-        self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
+        self.assertEqual(cse.description, 
+                         _extractPathElementText(cse.output_xml, 
+                                                 "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_new_description_element_when_there_is_no_description_element(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""
@@ -233,7 +244,9 @@ class TestCSEUpdateXML(TestCase):
                                  input_xml=input_xml)
         cse.save()
 
-        self.assertEqual(cse.description, _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Description"))
+        self.assertEqual(cse.description, 
+                         _extractPathElementText(cse.output_xml, 
+                                                 "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_new_title_and_description_when_neither_exist(self):
         input_xml = """<CustomSearchEngine id="c12345-r678" keywords="" language="en" encoding="ISO-8859-1" domain="www.google.com" safesearch="true"><Context/></CustomSearchEngine>"""

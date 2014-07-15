@@ -31,7 +31,7 @@ from .country_field import CountryField
 
 
 settings.GCSE_CONFIG = dict({
-        'NUM_FACET_ITEMS_PER_FACET': 4, 
+        'NUM_FACET_ITEMS_PER_FACET': 4,
         'NUM_ANNOTATIONS_PER_FILE': 1000,
         },
         **getattr(settings, 'GCSE_CONFIG' , {}))
@@ -208,8 +208,8 @@ class CustomSearchEngine(TimeStampedModel):
     </CustomSearchEngine>"""
 
     def annotations(self):
-        return Annotation.objects.filter(status=Annotation.STATUS.active, 
-                                         labels__in=self.background_labels.all()).select_subclasses()
+        return Annotation.objects.filter(status=Annotation.STATUS.active,
+                                         labels__in=self.background_labels.all()).select_subclasses().order_by('id')
 
     def annotation_count(self):
         return self.annotations().count()
@@ -270,6 +270,10 @@ class CustomSearchEngine(TimeStampedModel):
             doc = root
         return doc
 
+    def _update_gid(self, doc):
+        el = doc.xpath(".//CustomSearchEngine")[0]
+        el.attrib['id'] = self.gid
+
     def _update_include(self, doc):
         for el in doc.findall(".//Include"):
             el.getparent().remove(el)
@@ -287,23 +291,24 @@ class CustomSearchEngine(TimeStampedModel):
         return  '//' + Site.objects.get_current().domain + url
 
     def _update_xml(self):
-        """Parse the input_xml and update it with the current database values in this instance."""
+        """Parse the input_xml and update output_xml with the values in this instance."""
         input_xml = self.input_xml
         if not self.input_xml:
             # need to replace id attribute with id of this CSE
             input_xml = self.DEFAULT_XML
-            
+
         doc = ET.fromstring(input_xml)
         # handle case where user gives us only CustomSearchEngine without
         # external Annotations file - wrap CSE with GoogleCustomizations element:
         doc = self._add_google_customizations(doc)
+        self._update_gid(doc)
         self._create_or_update_xml_element_text(doc, "title")
         self._create_or_update_xml_element_text(doc, "description")
 
         # update Context's Facet and BackgroundLabels
         self._update_background_labels(doc)
         self._update_facets(doc)
-        
+
         # Add Include of Annotations with link keyed on this CSE
         self._update_include(doc)
         self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
@@ -688,3 +693,5 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
 # - management command to insert GCSE and Annotations.
 # - import of CSE to optionally import linked Annotations.
+# - CSE output_xml of Included Annotation files can change as Annotations are added/deleted
+#   need either update on Annotation create/delete or dynamically update output_xml on GET.

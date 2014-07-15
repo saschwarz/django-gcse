@@ -7,7 +7,8 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.cache import never_cache
-from django.views.generic import (DetailView,ListView, TemplateView)
+from django.views.generic.base import View
+from django.views.generic import (DetailView, ListView, TemplateView)
 from django.core.mail import mail_managers
 from django.core import urlresolvers
 from django.contrib.sites.models import Site
@@ -23,6 +24,16 @@ try:
     from django.utils import simplejson as json
 except ImportError:
     import json
+
+
+class CustomSearchEngineDetail(View):
+    """
+    Have CustomSearchEngine model
+    """
+    def get(self, request, *args, **kwargs):
+        cse = get_object_or_404(CustomSearchEngine,
+                                gid=kwargs['gid'])
+        return HttpResponse(cse.output_xml)
 
 
 class CSEAnnotations(ListView):
