@@ -29,6 +29,11 @@ class ViewsTemplatesTestCase(TestCase):
         self.cse.save()
         self.old_pagination = CSEAnnotations.paginate_by
 
+    def tearDown(self):
+        settings.ROOT_URLCONF = self.ROOT_URLCONF
+        settings.TEMPLATE_CONTEXT_PROCESSORS = self.TEMPLATE_CONTEXT_PROCESSORS
+        CSEAnnotations.paginate_by = self.old_pagination
+
     def _add_annotation(self):
         annotation = Annotation(comment='Site Name 2', 
                                 original_url='http://example.com/',
@@ -36,18 +41,13 @@ class ViewsTemplatesTestCase(TestCase):
         annotation.save()
         annotation.labels.add(self.label)
 
-    def tearDown(self):
-        settings.ROOT_URLCONF = self.ROOT_URLCONF
-        settings.TEMPLATE_CONTEXT_PROCESSORS = self.TEMPLATE_CONTEXT_PROCESSORS
-        CSEAnnotations.paginate_by = self.old_pagination
-
-    def test_annotations(self):
+    def test_annotations_xml(self):
         response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
         self.assertEqual(200, response.status_code)
         self.assertTemplateUsed(response, 'gcse/annotation.xml')
         self.assertContains(response, '<Annotations start="1" num="1" total="1">', count=1)
 
-    def test_multiple_page_annotations(self):
+    def test_multiple_page_annotations_xml(self):
         self._add_annotation()
         CSEAnnotations.paginate_by = 1 # one per page
 
@@ -64,12 +64,8 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, '<Annotations start="2" num="2" total="2">', count=1)
         self.assertContains(response, '<Comment>Site Name 2</Comment>', count=1)
 
-#     def test_results(self):
-#         response = self.client.get(reverse('cse_results'))
-#         self.assertEquals(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/results.html')
 
-    def test_cse(self):
+    def test_cse_xml(self):
         response = self.client.get(reverse('cse', args=(self.cse.gid,)))
         self.assertEqual(200, response.status_code)
         self.assertContains(response, 
@@ -77,20 +73,18 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, 
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.0.xml"/>')
 
-    def test_cse_multiple_annotations(self):
+    def test_cse_xml_multiple_annotations(self):
         self._add_annotation()
         # force update of CSE... change to signal on Annotation insert/delete?
         with override_settings(GCSE_CONFIG={'NUM_FACET_ITEMS_PER_FACET': 2,
                                             'NUM_ANNOTATIONS_PER_FILE': 1}):
-            self.cse.save()
+            response = self.client.get(reverse('cse', args=(self.cse.gid,)))
 
-        response = self.client.get(reverse('cse', args=(self.cse.gid,)))
         self.assertEqual(200, response.status_code)
         self.assertContains(response, 
                             '<CustomSearchEngine id="g123-456-AZ0" language="en" encoding="utf-8" enable_suggest="true">')
         self.assertContains(response, 
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.0.xml"/>')
-        print(response.content)
         self.assertContains(response, 
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.1.xml"/>')
 
@@ -103,6 +97,11 @@ class ViewsTemplatesTestCase(TestCase):
 #         response = self.client.get(reverse('cse_search'))
 #         self.assertEquals(200, response.status_code)
 #         self.assertTemplateUsed(response, 'gcse/search.html')
+
+#     def test_results(self):
+#         response = self.client.get(reverse('cse_results'))
+#         self.assertEquals(200, response.status_code)
+#         self.assertTemplateUsed(response, 'gcse/results.html')
 
 #     def test_edit(self):
 #         response = self.client.get(reverse('cse_edit', kwargs={"id":self.annotation.id}))

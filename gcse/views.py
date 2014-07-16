@@ -28,11 +28,13 @@ except ImportError:
 
 class CustomSearchEngineDetail(View):
     """
-    Have CustomSearchEngine model
+    Generate CustomSearchEngine XML with updated Annotation Include elements.
     """
     def get(self, request, *args, **kwargs):
         cse = get_object_or_404(CustomSearchEngine,
                                 gid=kwargs['gid'])
+        if cse.update_output_xml_includes():
+            cse.update()
         return HttpResponse(cse.output_xml)
 
 

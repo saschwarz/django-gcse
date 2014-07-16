@@ -274,17 +274,29 @@ class CustomSearchEngine(TimeStampedModel):
         el = doc.xpath(".//CustomSearchEngine")[0]
         el.attrib['id'] = self.gid
 
-    def _update_include(self, doc):
-        for el in doc.findall(".//Include"):
-            el.getparent().remove(el)
-        # add an include for each index of Annotations
+    def update_output_xml_includes(self):
+        doc = lxml.etree.fromstring(bytes(self.output_xml, encoding="utf-8"))
+        if self._update_includes(doc, force_update=False):
+            self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
+            return True
+        return False
+
+    def _update_includes(self, doc, force_update=True):
+        existing = doc.findall(".//Include")
         num_annotations = self.annotation_count()
         per_file = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_FILE')
         # always at least one annotation file - even if empty
         num_files = max(1, int(math.ceil(num_annotations / per_file)))
+        if not force_update and len(existing) == num_files:
+            return False
+        # remove existing include
+        for el in existing:
+            el.getparent().remove(el)
+        # add an include for each index of Annotations
         for i in range(num_files):
             annotation_url = self._annotations_url(i)
             doc.append(ET.XML('<Include type="Annotations" href="%s"/>' % annotation_url))
+        return True
 
     def _annotations_url(self, index):
         url = reverse('cse_annotations', args=(self.gid, index))
@@ -310,9 +322,12 @@ class CustomSearchEngine(TimeStampedModel):
         self._update_facets(doc)
 
         # Add Include of Annotations with link keyed on this CSE
-        self._update_include(doc)
+        self._update_includes(doc)
         self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
 
+    def update(self):
+        super(CustomSearchEngine, self).save()
+        
     def save(self, *args, **kwargs):
         if not self.id:
             # need id so foreign key/m2m relations are satisfied
@@ -360,10 +375,9 @@ class Annotation(TimeStampedModel):
                                blank=False,
                                help_text=_('Name/title of the site'))
     # allow blank for non-internet sites
-    original_url = models.CharField(verbose_name=_('Web Site URL'),
-                                    max_length=256,
-                                    blank=True,
-                                    help_text=_('URL of the site'))
+    original_url = models.URLField(verbose_name=_('Web Site URL'),
+                                   blank=True,
+                                   help_text=_('URL of the site'))
     # allow blank for non-internet sites
     about = models.CharField(verbose_name=_('Google Regexp'),
                              max_length=512,
