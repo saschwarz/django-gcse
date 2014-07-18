@@ -1,3 +1,5 @@
+import re
+
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404
@@ -5,17 +7,49 @@ from django.contrib import admin
 from django.forms import ModelForm, CharField, Textarea
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.template.loader import render_to_string
-from gcse.models import Label, Annotation
+from gcse.models import Label, Annotation, CustomSearchEngine
 
 
-admin.site.register(Label)
+class CustomSearchEngineForm(ModelForm):
+ 
+    def clean_input_xml(self):
+        # strip xml encoding so lxml is happy
+        input_xml = self.cleaned_data["input_xml"]
+        print(input_xml)
+        if not input_xml:
+            return ""
+        result = re.sub(r'<\?xml.*\?>\r?\n?', '', input_xml)
+        return result
+
+    class Meta:
+        model = CustomSearchEngine
+
+
+class CustomSearchEngineAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'gid')
+    save_on_top = True
+    readonly_fields = ('output_xml',)
+    form = CustomSearchEngineForm
+
+admin.site.register(CustomSearchEngine, CustomSearchEngineAdmin)
+
+
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'background', 'mode', 'weight', )
+    list_filter = ('mode',)
+    save_on_top = True
+
+    class Meta:
+        model = Label
+
+admin.site.register(Label, LabelAdmin)
 
 
 class AnnotationAdminForm(ModelForm):
     # Only allow non hidden fields to be selected as Labels
-    labels = ModelMultipleChoiceField(Label.objects.filter(hidden=False))
+    labels = ModelMultipleChoiceField(Label.objects.filter(background=False))
     # Only allow hidden fields to be selected as Feed Labels
-    feed_label = ModelChoiceField(Label.objects.filter(hidden=True), label='Feed Label')
+    feed_label = ModelChoiceField(Label.objects.filter(background=True), label='Feed Label')
     description = CharField(widget=Textarea(attrs={'rows':5, 'cols':60}), required=False)
 
     class Meta:
@@ -51,7 +85,7 @@ class AnnotationModelAdmin(admin.ModelAdmin):
 
 
 class AnnotationAdmin(AnnotationModelAdmin):
-    list_display = ('comment', 'status', 'modified', 'created', 'lat')
+    list_display = ('comment', 'status', 'modified', 'created',)
     list_filter = ('status', 'labels', 'created', 'modified')
     search_fields = ['comment', 'about']
     save_on_top = True

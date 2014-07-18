@@ -1,36 +1,31 @@
 {% extends "gcse/base.html" %}
 {% load setting %}
-{% block title %}{% site "name" %} - Browse Places Alphabetically{% endblock %}
+{% block title %}{% site "name" %} - Browse Alphabetically{% endblock %}
 
 {% block content %}
-<h1>Browse Places in {% site "name" %}</h1>
-<p>These <span class="place tip">Places</span> are currently in the {% site "name" %} search database. You can also <a href="{% url 'cse_browse_by_label' %}">browse Places by label</a>.</p>
-<table class="alphaNav">
+<h1>Browse Alphabetically</h1>
+<p>These <span class="annotation tip">Annotations</span> are currently in the {% site "name" %} search database. You can also <a href="{% url 'cse_browse_labels' %}">browse Annotations by label</a>.</p>
+{% block alpha-nav %}
+<ul class="alpha-nav pagination">
 <colgroup>{% for i in index %}<col width="1*" />{%endfor%}</colgroup>
-<tbody><tr>
 {% for i in index %}
-{% if i.style %}<td class="{{i.style}}"><a href="?q={{i.i}}">{{i.i}}</a></td>
-{% else %}<td>{{i.i}}</td>
-{% endif %}
+<li class="{{i.style}}"><a href="?q={{i.i}}">{{i.i}}</a></li>
 {% endfor%}
-</tr></tbody></table>
-<table class="searchResults" style="width:100%"><tbody>
-  <tr><th style="text-align:center">Name</th><th style="text-align:center">Labels</th><th style="text-align:center">City / Town</th><th style="text-align:center">State / Province</th></tr>
-    {% for site in annotations.object_list %}
-        <tr class="{% cycle 'odd' 'even' %}"><td><a href="{{site.get_absolute_url}}">{{ site.comment|escape }}</a></td><td>{{site.labels_as_links|safe}}</td><td class="city">{{site.city|default_if_none:"&nbsp;"}}</td><td class="state">{{site.state|default_if_none:"&nbsp;"}}</td></tr>
+</ul>
+{% endblock alpha-nav %}
+<table class="table search-results">  
+  <tbody>
+    <tr><th>Name</th><th>Labels</th><th>URL</th></tr>
+    {% for site in annotation_list %}
+    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{{site.get_absolute_url}}">{{ site.comment|escape }}</a></td><td>{{site.labels_as_links|safe}}</td><td><a href="{{site.original_url}}">{{site.original_url}}</a></td></tr>
     {% endfor %}
-</tbody></table>
-<div class="pagination">
-    <span class="step-links">
-        {% if annotations.has_previous %}
-            <a href="?q={{query|escape}}&page={{ annotations.previous_page_number }}">previous</a>
-        {% endif %}
-        <span class="current">
-            Page {{ annotations.number }} of {{ annotations.paginator.num_pages }}
-        </span>
-        {% if annotations.has_next %}
-            <a href="?q={{query|escape}}&page={{ annotations.next_page_number }}">next</a>
-        {% endif %}
-    </span>
-</div>
+  </tbody>  
+</table>
+{% block pagination %}
+<ul class="pager">
+  <li class="previous"> {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">previous</a>{% endif %}</li>
+  <li class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</li>
+  <li class="next">{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">next</a>{% endif %}</li>
+</ul>
+{% endblock pagination %}
 {% endblock %}

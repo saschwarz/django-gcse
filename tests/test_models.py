@@ -16,8 +16,7 @@ from django.test.utils import override_settings
 from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, Place, AnnotationSAXHandler
 
 # Default CSE XML created by google
-CSE_XML = b"""<?xml version="1.0"  encoding="utf-8" ?>
-<CustomSearchEngine id="c12345-r678" keywords="" language="en" domain="www.google.com" safesearch="true" encoding="utf-8">
+CSE_XML = b"""<CustomSearchEngine id="c12345-r678" keywords="" language="en" domain="www.google.com" safesearch="true" encoding="utf-8">
   <Title>AgilityNerd Site Search</Title>
   <Context>
     <BackgroundLabels>
@@ -43,8 +42,7 @@ CSE_XML = b"""<?xml version="1.0"  encoding="utf-8" ?>
 </CustomSearchEngine>"""
 
 # Semi customized
-FACETED_XML = b"""<?xml version=\'1.0\' encoding="utf-8" ?>
-<GoogleCustomizations version="1.0">
+FACETED_XML = b"""<GoogleCustomizations version="1.0">
   <CustomSearchEngine id="csekeystring" version="1.0" encoding="utf-8" volunteers="false" keywords="" visible="true" top_refinements="4">
     <Title>AgilityNerd Dog Agility Search</Title>
     <Description>Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores</Description>
@@ -107,8 +105,7 @@ FACETED_XML = b"""<?xml version=\'1.0\' encoding="utf-8" ?>
   <Include type="Annotations" href="http://googility.com/googility_annotations.xml"/>
 </GoogleCustomizations>"""
 
-ANNOTATION_XML = b"""<?xml version="1.0" encoding="utf-8" ?>
-<Annotations start="0" num="7" total="7">
+ANNOTATION_XML = b"""<Annotations start="0" num="7" total="7">
   <Annotation about="tech.agilitynerd.com/author/" timestamp="0x0004d956807a35fd" href="Chx0ZWNoLmFnaWxpdHluZXJkLmNvbS9hdXRob3IvEP3r6IPoqrYC">
     <Label name="_cse_exclude_keystring" />
     <AdditionalData attribute="original_url" value="tech.agilitynerd.com/author/" />
@@ -475,7 +472,7 @@ class TestCSESAXHandler(TestCase):
                          set([x.name for x in cse.background_labels.all()]))
 
     def test_input_xml_is_parsed_from_xml(self):
-        expected = CSE_XML.replace(b'version="1.0"  encoding="utf-8" ', b"version=\'1.0\' encoding=\'utf-8\'")
+        expected = CSE_XML
         self.assertEqual(expected,
                          self.cse.input_xml)
 
@@ -719,121 +716,121 @@ class AnnotationsAlphaList(TestCase):
 
     def test_no_annotations_no_active_letter(self):
         results = Annotation.alpha_list()
-        self.assertEqual([{'i': 'A', 'style': ''},
-                          {'i': 'B', 'style': ''},
-                          {'i': 'C', 'style': ''},
-                          {'i': 'D', 'style': ''},
-                          {'i': 'E', 'style': ''},
-                          {'i': 'F', 'style': ''},
-                          {'i': 'G', 'style': ''},
-                          {'i': 'H', 'style': ''},
-                          {'i': 'I', 'style': ''},
-                          {'i': 'J', 'style': ''},
-                          {'i': 'K', 'style': ''},
-                          {'i': 'L', 'style': ''},
-                          {'i': 'M', 'style': ''},
-                          {'i': 'N', 'style': ''},
-                          {'i': 'O', 'style': ''},
-                          {'i': 'P', 'style': ''},
-                          {'i': 'Q', 'style': ''},
-                          {'i': 'R', 'style': ''},
-                          {'i': 'S', 'style': ''},
-                          {'i': 'T', 'style': ''},
-                          {'i': 'U', 'style': ''},
-                          {'i': 'V', 'style': ''},
-                          {'i': 'W', 'style': ''},
-                          {'i': 'X', 'style': ''},
-                          {'i': 'Y', 'style': ''},
-                          {'i': 'Z', 'style': ''},
-                          {'i': '0', 'style': ''},
-                          {'i': '1', 'style': ''},
-                          {'i': '2', 'style': ''},
-                          {'i': '3', 'style': ''},
-                          {'i': '4', 'style': ''},
-                          {'i': '5', 'style': ''},
-                          {'i': '6', 'style': ''},
-                          {'i': '7', 'style': ''},
-                          {'i': '8', 'style': ''},
-                          {'i': '9', 'style': ''}], results)
+        self.assertEqual([{'i': 'A', 'style': 'disabled'},
+                          {'i': 'B', 'style': 'disabled'},
+                          {'i': 'C', 'style': 'disabled'},
+                          {'i': 'D', 'style': 'disabled'},
+                          {'i': 'E', 'style': 'disabled'},
+                          {'i': 'F', 'style': 'disabled'},
+                          {'i': 'G', 'style': 'disabled'},
+                          {'i': 'H', 'style': 'disabled'},
+                          {'i': 'I', 'style': 'disabled'},
+                          {'i': 'J', 'style': 'disabled'},
+                          {'i': 'K', 'style': 'disabled'},
+                          {'i': 'L', 'style': 'disabled'},
+                          {'i': 'M', 'style': 'disabled'},
+                          {'i': 'N', 'style': 'disabled'},
+                          {'i': 'O', 'style': 'disabled'},
+                          {'i': 'P', 'style': 'disabled'},
+                          {'i': 'Q', 'style': 'disabled'},
+                          {'i': 'R', 'style': 'disabled'},
+                          {'i': 'S', 'style': 'disabled'},
+                          {'i': 'T', 'style': 'disabled'},
+                          {'i': 'U', 'style': 'disabled'},
+                          {'i': 'V', 'style': 'disabled'},
+                          {'i': 'W', 'style': 'disabled'},
+                          {'i': 'X', 'style': 'disabled'},
+                          {'i': 'Y', 'style': 'disabled'},
+                          {'i': 'Z', 'style': 'disabled'},
+                          {'i': '0', 'style': 'disabled'},
+                          {'i': '1', 'style': 'disabled'},
+                          {'i': '2', 'style': 'disabled'},
+                          {'i': '3', 'style': 'disabled'},
+                          {'i': '4', 'style': 'disabled'},
+                          {'i': '5', 'style': 'disabled'},
+                          {'i': '6', 'style': 'disabled'},
+                          {'i': '7', 'style': 'disabled'},
+                          {'i': '8', 'style': 'disabled'},
+                          {'i': '9', 'style': 'disabled'}], results)
 
     def test_two_annotations_two_active_letters(self):
         f = Annotation.objects.create(comment="Fun with Python")
         five = Annotation.objects.create(comment="5 Python Anti-Patterns")
         results = Annotation.alpha_list()
-        self.assertEqual([{'i': 'A', 'style': ''},
-                          {'i': 'B', 'style': ''},
-                          {'i': 'C', 'style': ''},
-                          {'i': 'D', 'style': ''},
-                          {'i': 'E', 'style': ''},
+        self.assertEqual([{'i': 'A', 'style': 'disabled'},
+                          {'i': 'B', 'style': 'disabled'},
+                          {'i': 'C', 'style': 'disabled'},
+                          {'i': 'D', 'style': 'disabled'},
+                          {'i': 'E', 'style': 'disabled'},
                           {'i': 'F', 'style': 'active'},
-                          {'i': 'G', 'style': ''},
-                          {'i': 'H', 'style': ''},
-                          {'i': 'I', 'style': ''},
-                          {'i': 'J', 'style': ''},
-                          {'i': 'K', 'style': ''},
-                          {'i': 'L', 'style': ''},
-                          {'i': 'M', 'style': ''},
-                          {'i': 'N', 'style': ''},
-                          {'i': 'O', 'style': ''},
-                          {'i': 'P', 'style': ''},
-                          {'i': 'Q', 'style': ''},
-                          {'i': 'R', 'style': ''},
-                          {'i': 'S', 'style': ''},
-                          {'i': 'T', 'style': ''},
-                          {'i': 'U', 'style': ''},
-                          {'i': 'V', 'style': ''},
-                          {'i': 'W', 'style': ''},
-                          {'i': 'X', 'style': ''},
-                          {'i': 'Y', 'style': ''},
-                          {'i': 'Z', 'style': ''},
-                          {'i': '0', 'style': ''},
-                          {'i': '1', 'style': ''},
-                          {'i': '2', 'style': ''},
-                          {'i': '3', 'style': ''},
-                          {'i': '4', 'style': ''},
+                          {'i': 'G', 'style': 'disabled'},
+                          {'i': 'H', 'style': 'disabled'},
+                          {'i': 'I', 'style': 'disabled'},
+                          {'i': 'J', 'style': 'disabled'},
+                          {'i': 'K', 'style': 'disabled'},
+                          {'i': 'L', 'style': 'disabled'},
+                          {'i': 'M', 'style': 'disabled'},
+                          {'i': 'N', 'style': 'disabled'},
+                          {'i': 'O', 'style': 'disabled'},
+                          {'i': 'P', 'style': 'disabled'},
+                          {'i': 'Q', 'style': 'disabled'},
+                          {'i': 'R', 'style': 'disabled'},
+                          {'i': 'S', 'style': 'disabled'},
+                          {'i': 'T', 'style': 'disabled'},
+                          {'i': 'U', 'style': 'disabled'},
+                          {'i': 'V', 'style': 'disabled'},
+                          {'i': 'W', 'style': 'disabled'},
+                          {'i': 'X', 'style': 'disabled'},
+                          {'i': 'Y', 'style': 'disabled'},
+                          {'i': 'Z', 'style': 'disabled'},
+                          {'i': '0', 'style': 'disabled'},
+                          {'i': '1', 'style': 'disabled'},
+                          {'i': '2', 'style': 'disabled'},
+                          {'i': '3', 'style': 'disabled'},
+                          {'i': '4', 'style': 'disabled'},
                           {'i': '5', 'style': 'active'},
-                          {'i': '6', 'style': ''},
-                          {'i': '7', 'style': ''},
-                          {'i': '8', 'style': ''},
-                          {'i': '9', 'style': ''}], results)
+                          {'i': '6', 'style': 'disabled'},
+                          {'i': '7', 'style': 'disabled'},
+                          {'i': '8', 'style': 'disabled'},
+                          {'i': '9', 'style': 'disabled'}], results)
 
     def test_two_annotations_two_active_letters_one_inactive_selected(self):
         f = Annotation.objects.create(comment="Fun with Python")
         five = Annotation.objects.create(comment="5 Python Anti-Patterns")
         results = Annotation.alpha_list(selection="B")
-        self.assertEqual([{'i': 'A', 'style': ''},
+        self.assertEqual([{'i': 'A', 'style': 'disabled'},
                           {'i': 'B', 'style': 'selected'},
-                          {'i': 'C', 'style': ''},
-                          {'i': 'D', 'style': ''},
-                          {'i': 'E', 'style': ''},
+                          {'i': 'C', 'style': 'disabled'},
+                          {'i': 'D', 'style': 'disabled'},
+                          {'i': 'E', 'style': 'disabled'},
                           {'i': 'F', 'style': 'active'},
-                          {'i': 'G', 'style': ''},
-                          {'i': 'H', 'style': ''},
-                          {'i': 'I', 'style': ''},
-                          {'i': 'J', 'style': ''},
-                          {'i': 'K', 'style': ''},
-                          {'i': 'L', 'style': ''},
-                          {'i': 'M', 'style': ''},
-                          {'i': 'N', 'style': ''},
-                          {'i': 'O', 'style': ''},
-                          {'i': 'P', 'style': ''},
-                          {'i': 'Q', 'style': ''},
-                          {'i': 'R', 'style': ''},
-                          {'i': 'S', 'style': ''},
-                          {'i': 'T', 'style': ''},
-                          {'i': 'U', 'style': ''},
-                          {'i': 'V', 'style': ''},
-                          {'i': 'W', 'style': ''},
-                          {'i': 'X', 'style': ''},
-                          {'i': 'Y', 'style': ''},
-                          {'i': 'Z', 'style': ''},
-                          {'i': '0', 'style': ''},
-                          {'i': '1', 'style': ''},
-                          {'i': '2', 'style': ''},
-                          {'i': '3', 'style': ''},
-                          {'i': '4', 'style': ''},
+                          {'i': 'G', 'style': 'disabled'},
+                          {'i': 'H', 'style': 'disabled'},
+                          {'i': 'I', 'style': 'disabled'},
+                          {'i': 'J', 'style': 'disabled'},
+                          {'i': 'K', 'style': 'disabled'},
+                          {'i': 'L', 'style': 'disabled'},
+                          {'i': 'M', 'style': 'disabled'},
+                          {'i': 'N', 'style': 'disabled'},
+                          {'i': 'O', 'style': 'disabled'},
+                          {'i': 'P', 'style': 'disabled'},
+                          {'i': 'Q', 'style': 'disabled'},
+                          {'i': 'R', 'style': 'disabled'},
+                          {'i': 'S', 'style': 'disabled'},
+                          {'i': 'T', 'style': 'disabled'},
+                          {'i': 'U', 'style': 'disabled'},
+                          {'i': 'V', 'style': 'disabled'},
+                          {'i': 'W', 'style': 'disabled'},
+                          {'i': 'X', 'style': 'disabled'},
+                          {'i': 'Y', 'style': 'disabled'},
+                          {'i': 'Z', 'style': 'disabled'},
+                          {'i': '0', 'style': 'disabled'},
+                          {'i': '1', 'style': 'disabled'},
+                          {'i': '2', 'style': 'disabled'},
+                          {'i': '3', 'style': 'disabled'},
+                          {'i': '4', 'style': 'disabled'},
                           {'i': '5', 'style': 'active'},
-                          {'i': '6', 'style': ''},
-                          {'i': '7', 'style': ''},
-                          {'i': '8', 'style': ''},
-                          {'i': '9', 'style': ''}], results)
+                          {'i': '6', 'style': 'disabled'},
+                          {'i': '7', 'style': 'disabled'},
+                          {'i': '8', 'style': 'disabled'},
+                          {'i': '9', 'style': 'disabled'}], results)

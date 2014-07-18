@@ -42,16 +42,40 @@ class CSEAnnotations(ListView):
     """
     Generate paginated Annotation XML for a specified CustomSearchEngine.
     """
-    model = CustomSearchEngine
     context_object_name = 'annotations'
+    model = CustomSearchEngine
+    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_FILE')
     slug_url_kwarg = 'gid'
     template_name = 'gcse/annotation.xml'
-    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_FILE')
 
     def get_queryset(self):
         cse = get_object_or_404(CustomSearchEngine,
                                 gid=self.kwargs['gid'])
         return cse.annotations()
+
+
+class AnnotationsList(ListView):
+    """
+    Render all the Annotations in alphabetical order in a paged manner.
+    """
+    context_object_name = 'annotation_list'
+    model = Annotation
+    paginate_by = 20
+    template_name = 'gcse/browse.html'
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', 'A')
+        qset = (
+            Q(comment__istartswith=query)
+            )
+        return Annotation.objects.active().filter(qset).distinct().order_by('comment')
+
+    def get_context_data(self, **kwargs):
+        context = super(AnnotationsList, self).get_context_data(**kwargs)
+        query = self.request.GET.get('q', 'A')
+        context['index'] = Annotation.alpha_list(query)
+        context['query'] = query
+        return context
 
 
 def index(request, num_annotations=5, template='index.html'):
@@ -228,177 +252,8 @@ def results(request, template='gcse/results.html'):
     return render_to_response(template,
                               context_instance=RequestContext(request))
 
-def browse_by_label_tabbed(request, template='gcse/browse_by_label_tabbed.html'):
-    labels = [
-        ('club', 'clubs'),
-        ('equipment', 'equipment'),
-        ('blog', 'blogs'),
-        ('facility', 'facilities'),
-        ('forum', 'forums'),
-        ('general', 'general'),
-        ('organization', 'orgs'),
-        ('rental', 'rentals'),
-        ('service', 'services'),
-        ('store', 'stores'),
-        ('training', 'training'),
-        ('video', 'videos'),
-        ]
-    tab_index = 0
-    tab = request.GET.get('label', None)
-    if tab:
-        for index, (singular, plural) in enumerate(labels):
-            if (tab == singular):
-                tab_index = index
-                break;
-    return render_to_response(template,
-                              {"labels":labels,
-                               "label":tab_index},
-                              context_instance=RequestContext(request))
-
-def browse_by_label_grid(request, label, template='gcse/browse_by_label_grid.html'):
-    return render_to_response(template,
-                              {'label': label},
-                              context_instance=RequestContext(request))
-
 def browse_label(request, label, template='gcse/browse_label.html'):
     pass
 
-
-# How to use jqGrid. First version
-# ---------------------------------
-
-def jqfilter(op,field):
-    """We need to make the conversion from the search parameters that
-    jqgrid sends and the sql ones.
-    I you send a non existing condition it would apply the equal one"""
-
-    jqgrid = {'bw': ("%s like %%s", "%s%%"  ),
-              'eq': ("%s = %%s",    "%s"    ),
-              'gt': ("%s > %%s",    "%s"    ),
-              'ge': ("%s >= %%s",   "%s"    ),
-              'ne': ("%s <> %%s",   "%s"    ),
-              'lt': ("%s < %%s",    "%s"    ),
-              'le': ("%s <= %%s",   "%s"    ),
-              'ew': ("%s like %%s", "%%%s"  ),
-              'cn': ("%s like %%s", "%%%s%%")
-              }
-    try:
-        condition, template = jqgrid[op]
-    except:
-        condition, template = jqgrid['eq']
-    return condition % field, template
-
-class AjaxViewAnnotation:
-    def __init__(self, annotation):
-        self.state = annotation.state
-        self.city = annotation.city
-        self.comment = '<a href="%s">%s</a>' % (reverse('cse_view', kwargs={'id':annotation.id}), annotation.comment)
-        self.labels = " ".join([l.name for l in annotation.labels.all()])
-
-    @classmethod
-    def json_encoder(cls, inst):
-        return {'fields':{'comment':inst.comment, 'labels':inst.labels, 'city':inst.city, 'state':inst.state}}
-
-
-def ajax_annotation(request, label):
-    """Ajax needed by  jqgrid. This is not generic nor the best code you can have
-    but for teaching purposes I prefer to sacrifice style.
-
-    This code takes a python object, Person in our case and deals with pagination,
-    and filters as is sent by jqGrid.
-    """
-    try:
-        order = "id" if (request.GET.get('sidx')=="" or None) else request.GET.get('sidx')
-        sort_order = "" if request.GET.get('sord') == "asc" else "-"
-        order = sort_order+order
-        page = int(request.GET.get('page'))
-        rows = int(request.GET.get('rows'))
-    except Exception:
-        raise Http404
-    # Here goes the model.
-    query = Annotation.active.filter(Q(labels__name__exact=label))
-
-    # We compute what we are going to present in the grid
-    if request.GET.get('_search')=='true':
-        # We're on searching mode
-        searchField = request.GET.get('searchField')
-        searchOp = request.GET.get('searchOper')
-        field, template = jqfilter(searchOp, searchField)
-        fields = [ field ]
-        values = [ template  % request.GET.get('searchString')]
-        try:
-            total = query.all().extra(where=fields, params = values).count()
-            rta = query.all().extra(where=fields, params = values)
-        except Exception as e:
-            data = '{"total":%(pages)s, "page":%(page)s, "records":%(total)s, "rows":%(rta)s }'\
-                % {'pages':0, 'page':0, 'total':0, 'rta':None}
-            return HttpResponse(data, mimetype="application/json")
-    else:
-        # Normal mode, so no filters applied
-        rta = query.all()
-        total = query.all().count()
-
-    # Page calculation
-    remainder = 1 if total % rows >0 else 0
-    pages = total / rows  + remainder
-    if page > pages:
-        page = 1
-
-    # Get just the data we needo for our page
-    rta = rta.order_by(order)[(page-1)*rows:page*rows]
-
-    # We build the json that jqgrid likes best :)
-    rows = json.dumps([AjaxViewAnnotation(a) for a in rta], default=AjaxViewAnnotation.json_encoder)
-    query = '{"total":%(pages)s, "page":%(page)s, "records":%(total)s, "rows":%(rta)s }' % {'pages':pages, 'page':page, 'total':total, 'rta':rows}
-    return HttpResponse(query, mimetype='application/json')
-
-def browse_by_label(request, label, template='gcse/browse_by_label_div.html'):
-    query_set = Annotation.active.filter(labels__name__exact=label).distinct().order_by('comment')
-    paginator = Paginator(query_set, 20)
-
-    # Make sure page request is an int. If not, deliver first page.
-    try:
-        page = int(request.GET.get('page', '1'))
-    except ValueError:
-        page = 1
-
-    # If page request (9999) is out of range, deliver last page of results.
-    try:
-        annotations = paginator.page(page)
-    except (EmptyPage, InvalidPage):
-        annotations = paginator.page(paginator.num_pages)
-    return render_to_response(template,
-                              {"annotations": annotations,
-                               "label":label
-                               },
-                              context_instance=RequestContext(request))
-
-
-def browse(request, q="A", num=20, template='gcse/browse.html'):
-    """Render the Annotations in alphabetical order in a paged manner"""
-    query = request.GET.get('q', q)
-    if query:
-        qset = (
-            Q(comment__istartswith=query)
-        )
-        paginator = Paginator(Annotation.active.filter(qset).distinct().order_by('comment'), num)
-    else:
-        paginator = Paginator([], num)
-
-    # Make sure page request is an int. If not, deliver first page.
-    try:
-        page = int(request.GET.get('page', '1'))
-    except ValueError:
-        page = 1
-
-    # If page request (9999) is out of range, deliver last page of results.
-    try:
-        annotations = paginator.page(page)
-    except (EmptyPage, InvalidPage):
-        annotations = paginator.page(paginator.num_pages)
-    index = Annotation.alpha_list(query)
-    return render_to_response(template,
-                              {'annotations': annotations,
-                               'index': index,
-                               'query': query},
-                              context_instance=RequestContext(request))
+def browse_labels(request, label, template='gcse/browse_label.html'):
+    pass

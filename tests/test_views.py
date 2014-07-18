@@ -18,7 +18,7 @@ class ViewsTemplatesTestCase(TestCase):
 
         self.label = Label(name='name', description='description')
         self.label.save()
-        self.annotation = Annotation(comment='Site Name', 
+        self.annotation = Annotation(comment='A Site Name', 
                                      original_url='http://example.com/',
                                      status=Annotation.STATUS.active)
         self.annotation.save()
@@ -40,30 +40,6 @@ class ViewsTemplatesTestCase(TestCase):
                                 status=Annotation.STATUS.active)
         annotation.save()
         annotation.labels.add(self.label)
-
-    def test_annotations_xml(self):
-        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
-        self.assertEqual(200, response.status_code)
-        self.assertTemplateUsed(response, 'gcse/annotation.xml')
-        self.assertContains(response, '<Annotations start="1" num="1" total="1">', count=1)
-
-    def test_multiple_page_annotations_xml(self):
-        self._add_annotation()
-        CSEAnnotations.paginate_by = 1 # one per page
-
-        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
-        self.assertEqual(200, response.status_code)
-        self.assertTemplateUsed(response, 'gcse/annotation.xml')
-        self.assertContains(response, '<Annotations start="1" num="1" total="2">', count=1)
-        self.assertContains(response, '<Comment>Site Name</Comment>', count=1)
-
-        # get page 2
-        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 2)))
-        self.assertEqual(200, response.status_code)
-        self.assertTemplateUsed(response, 'gcse/annotation.xml')
-        self.assertContains(response, '<Annotations start="2" num="2" total="2">', count=1)
-        self.assertContains(response, '<Comment>Site Name 2</Comment>', count=1)
-
 
     def test_cse_xml(self):
         response = self.client.get(reverse('cse', args=(self.cse.gid,)))
@@ -88,10 +64,35 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, 
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.1.xml"/>')
 
-#     def test_browse(self):
-#         response = self.client.get(reverse('cse_browse'))
-#         self.assertEquals(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/browse.html')
+    def test_annotations_xml(self):
+        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation.xml')
+        self.assertContains(response, '<Annotations start="1" num="1" total="1">', count=1)
+
+    def test_multiple_page_annotations_xml(self):
+        self._add_annotation()
+        CSEAnnotations.paginate_by = 1 # one per page
+
+        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation.xml')
+        self.assertContains(response, '<Annotations start="1" num="1" total="2">', count=1)
+        self.assertContains(response, '<Comment>A Site Name</Comment>', count=1)
+
+        # get page 2
+        response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 2)))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation.xml')
+        self.assertContains(response, '<Annotations start="2" num="2" total="2">', count=1)
+        self.assertContains(response, '<Comment>Site Name 2</Comment>', count=1)
+
+    def test_browse(self):
+        response = self.client.get(reverse('cse_browse'))
+        self.assertEquals(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/browse.html')
+        self.assertContains(response, 'A Site Name')
+        self.assertContains(response, 'Page 1 of 1')
 
 #     def test_search(self):
 #         response = self.client.get(reverse('cse_search'))

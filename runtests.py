@@ -1,3 +1,4 @@
+import os
 import sys
 from optparse import OptionParser
 
@@ -24,7 +25,10 @@ try:
         NOSE_ARGS=['-s'],
         GOOGLE_MAPS_API_KEY='',
         SHRINK_THE_WEB={'stwaccesskeyid': '',
-                        }
+                        },
+        TEMPLATE_DIRS=(
+            os.path.join('.', 'demo', 'templates'),
+            )
     )
 
     from django_nose import NoseTestSuiteRunner

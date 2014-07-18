@@ -79,7 +79,7 @@ class Label(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return "name: %s id: %s mode: %s weight: %s" % (self.name, self.id, self.mode, self.weight)
+        return "%s %s weight: %s" % (self.name, self.get_mode_display(), self.weight)
 
     @classmethod
     def get_mode(cls, mode_string):
@@ -175,14 +175,17 @@ class CustomSearchEngine(TimeStampedModel):
     gid = models.CharField(max_length=32, unique=True)
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=256)
-    input_xml = models.TextField(max_length=4096)
-    output_xml = models.TextField(max_length=4096)
+    input_xml = models.TextField(max_length=4096,
+                                 blank=True)
+    output_xml = models.TextField(max_length=4096,
+                                  blank=True)
 
     background_labels = models.ManyToManyField(Label,
                                                related_name='cse_background_labels',
-                                               help_text=_('Non-visible Labels for this search engine'))
+                                               blank=True,
+                                               help_text=_('Labels for this search engine'))
 
-    DEFAULT_XML = b"""<?xml version="1.0" encoding="utf-8" ?>
+    DEFAULT_XML = b"""<?xml version="1.0"?>
     <CustomSearchEngine id="rdfdpnhicea" language="en" encoding="utf-8" enable_suggest="true">
       <Title>test</Title>
       <Context>
@@ -275,9 +278,9 @@ class CustomSearchEngine(TimeStampedModel):
         el.attrib['id'] = self.gid
 
     def update_output_xml_includes(self):
-        doc = lxml.etree.fromstring(bytes(self.output_xml, encoding="utf-8"))
+        doc = lxml.etree.fromstring(self.output_xml)
         if self._update_includes(doc, force_update=False):
-            self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
+            self.output_xml = ET.tostring(doc, encoding='UTF-8')
             return True
         return False
 
@@ -308,7 +311,9 @@ class CustomSearchEngine(TimeStampedModel):
         if not self.input_xml:
             # need to replace id attribute with id of this CSE
             input_xml = self.DEFAULT_XML
-
+            self.input_xml = input_xml
+        
+        # since lxml doesn't trust encoding directives remove them
         doc = ET.fromstring(input_xml)
         # handle case where user gives us only CustomSearchEngine without
         # external Annotations file - wrap CSE with GoogleCustomizations element:
@@ -323,7 +328,7 @@ class CustomSearchEngine(TimeStampedModel):
 
         # Add Include of Annotations with link keyed on this CSE
         self._update_includes(doc)
-        self.output_xml = ET.tostring(doc, encoding='UTF-8', xml_declaration=True)
+        self.output_xml = ET.tostring(doc, encoding='UTF-8')
 
     def update(self):
         super(CustomSearchEngine, self).save()
@@ -337,6 +342,9 @@ class CustomSearchEngine(TimeStampedModel):
         # guaranteed to be an update now
         kwargs.update({'force_insert': False, 'force_update': True})
         super(CustomSearchEngine, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s" % (self.title,)
 
     @classmethod
     def from_string(cls, xml):
@@ -452,6 +460,8 @@ class Annotation(TimeStampedModel):
                 style = "selected"
             elif i in existent:
                 style = "active"
+            else:
+                style="disabled"
             results.append({'i': i, 'style': style})
         return results
 
@@ -563,7 +573,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
 
     def _parse(self, tree):
         lxml.sax.saxify(tree, self)
-        self.cse.input_xml = lxml.etree.tostring(tree, xml_declaration=True, encoding="utf-8")
+        self.cse.input_xml = lxml.etree.tostring(tree)
         return self.cse
 
     def parseString(self, xml):
