@@ -1,0 +1,287 @@
+<?xml version="1.0"?>
+<opml version="1.1">
+  <head>
+    <title>Planet Django</title>
+    <dateModified>Sat, 08 Mar 2014 20:57:35 +0000</dateModified>
+    <ownerName>Adomas Paltanavičius</ownerName>
+    <ownerEmail>adomas.paltanavicius@gmail.com</ownerEmail>
+  </head>
+  <body>
+    <outline type="rss" text="2General" xmlUrl="http://www.2general.com/blog/django.rss.html" title="2General: Django" />
+    <outline type="rss" text="Aaron Krill" xmlUrl="http://wp.krillr.com/topics/django/feed/" title="Aaron Krill" />
+    <outline type="rss" text="Abhinay Omkar" xmlUrl="http://blog.abhiomkar.in/tag/django/feed/" title="Abhinay's Code Blog » django" />
+    <outline type="rss" text="Adam Smith" xmlUrl="http://www.stonemind.net/blog/category/talk-nerdy-to-me/django/feed/" title="stonemind consulting » django" />
+    <outline type="rss" text="Adrian Holovaty" xmlUrl="http://www.holovaty.com/rss/" title="Holovaty.com" />
+    <outline type="rss" text="Alberto García Hierro" xmlUrl="http://fi.am/feeds/tag/django/en/" title="Alberto García Hierro" />
+    <outline type="rss" text="Alex Clark" xmlUrl="http://feeds.feedburner.com/aclark/django" title="Alex Clark - Python Web Developer &amp;amp; Musician" />
+    <outline type="rss" text="Alex Gaynor" xmlUrl="http://lazypython.blogspot.com/feeds/posts/default/-/django" title="Lazy Pythonista" />
+    <outline type="rss" text="Alex Koshelev" xmlUrl="http://webnewage.org/feeds/atom/tag/django/" title="Александр Кошелев | Последние записи с тегом 'django' | webnewage.org" />
+    <outline type="rss" text="Alexander Todorov" xmlUrl="http://atodorov.org/blog/categories/django/atom.xml" title="Category: Django | atodorov.org - you can logoff, but you can never leave" />
+    <outline type="rss" text="Alexis Bellido" xmlUrl="http://www.ventanazul.com/webzine/taxonomy/term/144/0/feed" title="Ventanazul - django" />
+    <outline type="rss" text="Amit Chakradeo" xmlUrl="http://amit.chakradeo.net/category/django/feed/" title="Amit Chakradeo Inc. » django" />
+    <outline type="rss" text="Andrew Gleave" xmlUrl="http://www.tangerinesmash.com/feeds/tags/django/" title="tangerine smash - entries tagged with &quot;django&quot;" />
+    <outline type="rss" text="Andrew Godwin" xmlUrl="http://www.aeracode.org/category/django/feed/atom/" title="Aeracode: Django" />
+    <outline type="rss" text="Andrew Kurinnyi" xmlUrl="http://zen4ever.com/feeds/atom/tag/django/" title="Andrew Kurinnyi" />
+    <outline type="rss" text="Andrew Veitch" xmlUrl="http://finecoffeeclub.co.uk/blog/category/django/rss/" title="Fine Coffee Club Tech Blog: Django" />
+    <outline type="rss" text="Andrew Wilkinson" xmlUrl="http://andrewwilkinson.wordpress.com/tag/django/feed/" title="Andrew Wilkinson » django" />
+    <outline type="rss" text="Andrews Medina" xmlUrl="http://pyman.blogspot.com/feeds/posts/default/-/django" title="PyMan" />
+    <outline type="rss" text="Andriy Drozdyuk" xmlUrl="http://drozdyuk.blogspot.com/feeds/posts/default/-/django" title="Andriy Drozdyuk" />
+    <outline type="rss" text="Andy McKay" xmlUrl="http://pipes.yahoo.com/pipes/pipe.run?_id=a5514987fe5725e64f56db63c8c33186&amp;_render=rss" title="Django" />
+    <outline type="rss" text="Antonio Cangiano" xmlUrl="http://programmingzen.com/category/django/feed/" title="Zen and the Art of Programming » Django" />
+    <outline type="rss" text="Antti Niiles" xmlUrl="http://www.displayofpatience.net/tag/django/feed/" title="Antti Niiles" />
+    <outline type="rss" text="Appsembler" xmlUrl="http://feeds.feedburner.com/appsembler/tGwU" title="Blog" />
+    <outline type="rss" text="Armin K." xmlUrl="http://pipes.yahoo.com/pipes/pipe.run?_id=Qukay_fz3RG1h4ksQBJ3AQ&amp;_render=rss" title="twistedcommons django" />
+    <outline type="rss" text="Armin Ronacher" xmlUrl="http://lucumr.pocoo.org/cogitations/tag/django/feed/atom/" title="Armin Ronacher" />
+    <outline type="rss" text="Arne Brodowski" xmlUrl="http://www.arnebrodowski.de/blog/rss.php?serendipity[tag" title="Arnes Blog" />
+    <outline type="rss" text="Arthur Koziel" xmlUrl="http://arthurkoziel.com/feeds/tag/django/" title="Arthur Koziel" />
+    <outline type="rss" text="Arun Ravindran" xmlUrl="http://arunrocks.com/blog/djfeed/atom.xml" title="ArunRocks (Posts tagged 'django')" />
+    <outline type="rss" text="Ash Christopher" xmlUrl="http://www.newthink.net/tag/django/feed/" title="newthink.net » django" />
+    <outline type="rss" text="Ask The Pony" xmlUrl="http://feeds.feedburner.com/asktheponyblog" title="Ask The Pony" />
+    <outline type="rss" text="Barbara Shaurette" xmlUrl="http://www.djangrrl.com/feeds/django/" title="MechanicalGirl.com | Django" />
+    <outline type="rss" text="Bas van Oostveen" xmlUrl="http://trbs.net/blog/tag/django/atom/" title="trbs.net's Weblog: entries tagged &quot;django&quot;" />
+    <outline type="rss" text="Bertrand Mathieu" xmlUrl="http://zebert.blogspot.com/feeds/posts/default/-/django" title="Paste here" />
+    <outline type="rss" text="Beshr Kayali" xmlUrl="http://beshrkayali.com/feeds/tags/django/" title="Beshr Kayali" />
+    <outline type="rss" text="Brandon Konkle" xmlUrl="http://www.adoleo.com/feeds/blog/categories/django/" title="Brandon Konkle" />
+    <outline type="rss" text="Brett Haydon" xmlUrl="http://feeds.feedburner.com/HedgedDownDjango" title="Hedged down" />
+    <outline type="rss" text="Brian Ray" xmlUrl="http://brianray.chipy.org/Django?flav=rss" title="Brian Ray" />
+    <outline type="rss" text="Brian Riley" xmlUrl="http://feeds.feedburner.com/btrileycomdjango" title="Brian Riley" />
+    <outline type="rss" text="Brian Rosner" xmlUrl="http://oebfare.com/blog/feeds/tags/django/" title="Brian Rosner" />
+    <outline type="rss" text="Caktus Consulting Group" xmlUrl="http://www.caktusgroup.com/feeds/tags/django/" title="Caktus Blog" />
+    <outline type="rss" text="Cam MacRae" xmlUrl="http://cammacrae.com/feeds/django/" title="( cammacrae.com )" />
+    <outline type="rss" text="Cecil Meeks" xmlUrl="http://codershangout.com/taxonomy/term/46/0/feed" title="Cecil Meeks" />
+    <outline type="rss" text="Chris Kopec" xmlUrl="http://www.chriskopec.com/blog/feeds/atom/tag/django/" title="ChrisKopec.com: Articles for django" />
+    <outline type="rss" text="Christian Joergensen" xmlUrl="http://www.technobabble.dk/feeds/tags/django/" title="Technobabble - Christian Jørgensen » Django" />
+    <outline type="rss" text="Christian W. Koch" xmlUrl="http://somedot.com/category/django/feed/" title="Christian W. Koch" />
+    <outline type="rss" text="Christiano Anderson" xmlUrl="http://christiano.me/category/django/feed/" title="Comentários sobre: Django – Muito além do básico" />
+    <outline type="rss" text="Christopher Lenz" xmlUrl="http://www.cmlenz.net/blog/django.xml" title="Christopher Lenz" />
+    <outline type="rss" text="Cody Soyland" xmlUrl="http://feeds.feedburner.com/codysoyland-django" title="codysoyland.com posts category feed" />
+    <outline type="rss" text="Craig Kerstiens" xmlUrl="http://www.craigkerstiens.com/categories/python/atom.xml" title="Category: Python | Craig Kerstiens" />
+    <outline type="rss" text="Custard Melt" xmlUrl="http://weblog.greenpeace.org/melt/index.rdf" title="Custard Melt" />
+    <outline type="rss" text="Cyril" xmlUrl="http://savetheions.com/category/programming/python/django/feed/" title="Save the ions! » Django" />
+    <outline type="rss" text="Dan Fairs" xmlUrl="http://www.stereoplex.com/search_rss?portal_type=BlogEntry&amp;EntryCategory=Django&amp;sort_on=effective" title="Stereoplex" />
+    <outline type="rss" text="Daniel Davies" xmlUrl="http://www.danux.co.uk/feed/tags/django/" title="Daniel Davies" />
+    <outline type="rss" text="Daniel Greenfeld" xmlUrl="http://pydanny.com/feeds/django.atom.xml" title="pydanny" />
+    <outline type="rss" text="Daniel Lindsley" xmlUrl="http://toastdriven.com/feeds/fresh_django_news/" title="Toast Driven - The Django Edition" />
+    <outline type="rss" text="Daniel Tietze" xmlUrl="http://blog.go4teams.com/?feed=rss&amp;cat=6" title="Daniel Tietze" />
+    <outline type="rss" text="Daniel Watkins" xmlUrl="http://blog.daniel-watkins.co.uk/tags/Django?flav=atom" title="The New Utovsky Bolshevik Show" />
+    <outline type="rss" text="David Cramer" xmlUrl="http://justcramer.com/feeds/django.xml" title="JustCramer" />
+    <outline type="rss" text="David Grant" xmlUrl="http://www.davidgrant.ca/taxonomy/term/140/0/feed" title="David Grant - django" />
+    <outline type="rss" text="David Krauth" xmlUrl="http://dakrauth.com/feeds/blog/django/" title="David's Rants: Django" />
+    <outline type="rss" text="David Larlet" xmlUrl="http://www.biologeek.com/data/atom/django/" title="David Larlet" />
+    <outline type="rss" text="David Winterbottom" xmlUrl="http://codeinthehole.com/writing/tagged/django/feed/" title="Writing on django | David Winterbottom" />
+    <outline type="rss" text="Depressed Optimism" xmlUrl="http://depressedoptimism.com/?tag=django&amp;format=rss" title="Depressed Optimism" />
+    <outline type="rss" text="Deryck Hodge" xmlUrl="http://www.devurandom.org/rss/django/" title="devurandom.org | Weblog | Posts in &quot;django&quot;" />
+    <outline type="rss" text="Diego Andrés Sanabria" xmlUrl="http://pyautoservicio.blogspot.com/feeds/posts/default/-/django" title="pyAutoservicio" />
+    <outline type="rss" text="Dima Dogadaylo" xmlUrl="http://www.mysoftparade.com/feed/tag/django/" title="Dima Dogadaylo" />
+    <outline type="rss" text="Django Advent" xmlUrl="http://djangoadvent.com/feed/" title="Django Advent" />
+    <outline type="rss" text="Django Brasil" xmlUrl="http://www.djangobrasil.org/feeds/rss/weblog/" title="Django Brasil Weblog" />
+    <outline type="rss" text="Django CMS" xmlUrl="http://www.django-cms.org/blog/feed/" title="Django CMS" />
+    <outline type="rss" text="Django Dose" xmlUrl="http://djangodose.com/everything/feed/" title="Django Dose" />
+    <outline type="rss" text="Django Project" xmlUrl="http://www.djangoproject.com/rss/weblog" title="Django Project" />
+    <outline type="rss" text="Django-Fluent" xmlUrl="http://django-fluent.org/blog/feed.rss2" title="Django Fluent CMS - Latest entries" />
+    <outline type="rss" text="DjangoCon" xmlUrl="http://www.djangocon.org/blog/feeds/rss/latest/" title="DjangoCon" />
+    <outline type="rss" text="DjangoCon Europe" xmlUrl="http://blog.djangocircus.com/rss" title="DjangoCon Europe 2013" />
+    <outline type="rss" text="Dominik Szopa" xmlUrl="http://www.dominno.pl/blog/feeds/tags/django/" title="Dominik Szopa - wpisy oznaczone tagiem django" />
+    <outline type="rss" text="Doug Napoleone" xmlUrl="http://dougma.com/archives/category/django/feed/atom" title="Dougma (dŭg·mə) n. » django" />
+    <outline type="rss" text="Doug Van Horn" xmlUrl="http://www.dougblog.com/rss/tags/Django/" title="Doug Van Horn" />
+    <outline type="rss" text="Dougal Matthews" xmlUrl="http://dougalmatthews.com/feeds/python.rss.xml" title="Dougal Matthews" />
+    <outline type="rss" text="Dustin Davis" xmlUrl="http://feeds.feedburner.com/NerdyDorkDjango" title="Nerdy Dork » Search Results  »  django" />
+    <outline type="rss" text="Ed Menendez" xmlUrl="http://menendez.com/feeds/tag/django/" title="Ed Menendez' Blog for Django" />
+    <outline type="rss" text="Edward Dale" xmlUrl="http://scompt.com/archives/category/django/atom" title="Edward Dale" />
+    <outline type="rss" text="Edwin Knuth" xmlUrl="http://iknuth.com/tag/django/feed/" title="Edwin Knuth" />
+    <outline type="rss" text="Eivind Uggedal" xmlUrl="http://journal.redflavor.com/tags/django.atom" title="Eivind Uggedal" />
+    <outline type="rss" text="Eric Florenzano" xmlUrl="http://www.eflorenzano.com/blog/feeds/tag/django/" title="Eric Florenzano" />
+    <outline type="rss" text="Eric Holscher" xmlUrl="http://feeds.feedburner.com/EricPlanetDjango" title="Surfing in Kansas posts category feed" />
+    <outline type="rss" text="Eric Moritz" xmlUrl="http://eric.themoritzfamily.com/category/programming/python/django/feed/rss2" title="Eric Moritz" />
+    <outline type="rss" text="Erik Scheffers" xmlUrl="http://peach3.nl/blog/category/django/feed/" title="peach³ » Django" />
+    <outline type="rss" text="Espen Grindhuag" xmlUrl="http://grindhaug.org/?feed=rss2&amp;cat=13" title="Espen Grindhuag" />
+    <outline type="rss" text="Eugene Lazutkin" xmlUrl="http://www.lazutkin.com/blog/categories/django/atom.xml" title="Category: Django | Eugene's Blog" />
+    <outline type="rss" text="Euro DjangoCon" xmlUrl="http://euro.djangocon.org/blog/feeds/rss/latest/" title="Euro DjangoCon" />
+    <outline type="rss" text="Federico Cáceres" xmlUrl="http://pythonhaven.wordpress.com/tag/django/feed/" title="The Python Haven » django" />
+    <outline type="rss" text="Fernando Correia" xmlUrl="http://fernandoacorreia.wordpress.com/tag/django/feed/" title="Fernando Correia's Weblog » django" />
+    <outline type="rss" text="Francisco Souza" xmlUrl="http://f.souza.cc/feeds/posts/default/-/django" title="Francisco Souza" />
+    <outline type="rss" text="Francois Marier" xmlUrl="http://feeding.cloud.geek.nz/tags/django/index.rss" title="pages tagged django" />
+    <outline type="rss" text="Frankie Robertson" xmlUrl="http://grimboy.co.uk/blawg/category/programming/python/django/feed/" title="Frankie Robertson" />
+    <outline type="rss" text="Fred Palmer" xmlUrl="http://blog.twipout.com/tag/django/feed/" title="Fred Palmer" />
+    <outline type="rss" text="Garth Roxburgh-Kidd" xmlUrl="http://www.deadlybloodyserious.com/category/geek/django/feed/" title="Deadly Bloody Serious » Django" />
+    <outline type="rss" text="Gary Wilson" xmlUrl="http://gdub.wordpress.com/tag/django/feed/" title="Gary Wilson" />
+    <outline type="rss" text="Geek Scrap" xmlUrl="http://geekscrap.com/feed/?tag=django" title="geek scrap » django" />
+    <outline type="rss" text="Glenn Franxman" xmlUrl="http://hackermojo.com/mt-static/tagged/django.rdf" title="Glenn Fanxman's django feed" />
+    <outline type="rss" text="Glyn Jackson" xmlUrl="http://glynjackson.org/weblog/sitemap/django/" title="Glyn Jackson: Software Developer, Nerd and Hard Working Problem Solver" />
+    <outline type="rss" text="GoDjango" xmlUrl="http://feeds.feedburner.com/GoDjango" title="GoDjango Screencasts and Tutorials" />
+    <outline type="rss" text="Greg Newman" xmlUrl="http://www.20seven.org/journal/django/" title="Greg Newman" />
+    <outline type="rss" text="Greg Taylor" xmlUrl="http://gc-taylor.com/feeds/tag.Django.atom.xml" title="Greg Taylor" />
+    <outline type="rss" text="Greg Thornton" xmlUrl="http://xdissent.com/feeds/tags/django/" title="Greg Thornton" />
+    <outline type="rss" text="Guilherme Mesquita Gondim" xmlUrl="http://semente.taurinus.org/weblog/tags/django/atom/" title="Guilherme Mesquita Gondim" />
+    <outline type="rss" text="Gustavo Picón" xmlUrl="http://feeds.feedburner.com/tabo_django" title="Gustavo Picón" />
+    <outline type="rss" text="Horst Gutmann" xmlUrl="http://zerokspot.com/weblog/tags/django/feed/" title="zerokspot.com (tag=django)" />
+    <outline type="rss" text="Hugo" xmlUrl="http://hugo.rfc1437.de/tag/django/feed/" title="rfc1437 » Django" />
+    <outline type="rss" text="Ian Holsman" xmlUrl="http://feh.holsman.net/xml/rss/tag/django/feed.xml" title="Ian Holsman" />
+    <outline type="rss" text="Ian Reardon" xmlUrl="http://www.myapartmentmap.com/blog/?feed=rss2&amp;cat=21" title="Ian Reardon" />
+    <outline type="rss" text="Ian Ward" xmlUrl="http://excess.org/feeds/tag/django/" title="excess.org - Tag &quot;Django&quot;" />
+    <outline type="rss" text="Ilian Iliev" xmlUrl="http://ilian.i-n-i.org/feed/?cat=django" title="Between engineering and real life" />
+    <outline type="rss" text="Inka Labs" xmlUrl="http://inka-labs.com/en-us/blog/feeds/categories/django/" title="Entries for the category django" />
+    <outline type="rss" text="Ionel Cristian Mărieș" xmlUrl="http://blog.ionelmc.ro/feeds/django.rss.xml" title="ionel's codelog" />
+    <outline type="rss" text="Isotoma" xmlUrl="http://blog.isotoma.com/category/django/feed/" title="Isotoma Blog » Django" />
+    <outline type="rss" text="J. Pablo Fernández" xmlUrl="http://pupeno.com/blog/blog/django/RSS" title="J. Pablo Fernández" />
+    <outline type="rss" text="Jacob Kaplan-Moss" xmlUrl="http://jacobian.org/feed/tag/django/" title="Jacob Kaplan-Moss - Writing" />
+    <outline type="rss" text="Jake Boxer" xmlUrl="http://jboxer.com/tag/django/feed/" title="Jake Boxer" />
+    <outline type="rss" text="Jake Elliott" xmlUrl="http://dai5ychain.net/jake/?feed=rss2&amp;cat=14" title="Jake Elliott" />
+    <outline type="rss" text="Jakub Uniejewski" xmlUrl="http://djangoninja.com/tagged/django/rss" title="Jakub Uniejewski" />
+    <outline type="rss" text="James Bennett" xmlUrl="http://feeds.feedburner.com/b-list-entries" title="The B-List: Latest entries" />
+    <outline type="rss" text="James Punteney" xmlUrl="http://www.punteney.com/rss/about/django/" title="Django writings on Punteney.com" />
+    <outline type="rss" text="James Wheare" xmlUrl="http://www2.blogger.com/feeds/18336893/posts/default/-/django" title="Notebook" />
+    <outline type="rss" text="Jannis Leidel" xmlUrl="http://jannisleidel.com/cat/django/feed/atom/" title="Jannis Leidel" />
+    <outline type="rss" text="Jared Kuolt" xmlUrl="http://superjared.com/feed/blogcategory/4/" title="Jared Kuolt" />
+    <outline type="rss" text="Jarosław Zabiełło" xmlUrl="http://blog.zabiello.com/category/django-en.rss" title="Jarosław Zabiełło - BLOG : Category django-en, everything about django-en" />
+    <outline type="rss" text="Jason Broyles" xmlUrl="http://jasonism.org/feeds/categories/django/" title="Jason Broyles" />
+    <outline type="rss" text="Jason Davies" xmlUrl="http://www.jasondavies.com/blog/tags/django/?format=atom" title="Jason Davies" />
+    <outline type="rss" text="Jason Davies" xmlUrl="http://www.netspade.com/feeds/blog/categories/django/" title="Jason Davies" />
+    <outline type="rss" text="Jason Huggins" xmlUrl="http://www.jrandolph.com/blog/?cat=8&amp;feed=rss2" title="Jason Huggins" />
+    <outline type="rss" text="Jason McBrayer" xmlUrl="http://www.carcosa.net/jason/blog/computing/django/index.rss2" title="Prosthetic Conscience" />
+    <outline type="rss" text="Jeff Anderson" xmlUrl="http://www.programmerq.net/blog/feeds/tag/Django/" title="Jeff Anderson's Blog - Tag Django" />
+    <outline type="rss" text="Jeff Croft" xmlUrl="http://jeffcroft.com/feeds/tag/django/" title="Jeff Croft" />
+    <outline type="rss" text="Jeremy Epstein" xmlUrl="http://greenash.net.au/thoughts/topics/django/rss/" title="GreenAsh: thoughts filed in Django" />
+    <outline type="rss" text="Jeroen Vloothuis" xmlUrl="http://9bitcat.com/blog/feed/django/" title="9 BitCat" />
+    <outline type="rss" text="Joaquim Rocha" xmlUrl="http://www.joaquimrocha.com/category/django/feed/" title="Joaquim Rocha's Web Page » django" />
+    <outline type="rss" text="Joe Heck" xmlUrl="http://www.rhonabwy.com/wp/category/geekstuff/django/feed/" title="Rhonabwy » django" />
+    <outline type="rss" text="John DeRosa" xmlUrl="http://seeknuance.com/tag/django/feed/atom/" title="Seek Nuance » Django" />
+    <outline type="rss" text="John Hensley" xmlUrl="http://fairviewcomputing.com/feeds/blog/tag/django/" title="Fairview Computing articles tagged with django" />
+    <outline type="rss" text="John Paulett" xmlUrl="http://johnpaulett.com/feeds/tags/django/" title="johnpaulett.com / tags / django" />
+    <outline type="rss" text="John Sutherland" xmlUrl="http://sneeu.com/feed/tags/django/" title="John Sutherland" />
+    <outline type="rss" text="Jonathan Buchanan" xmlUrl="http://insin.webfactional.com/weblog/feeds/categories/1/" title="Jonathan Buchanan" />
+    <outline type="rss" text="Jone Eide" xmlUrl="http://www.idev.no/blog/kategorier/django/feed/" title="Jone Eide" />
+    <outline type="rss" text="Jordan Dimov" xmlUrl="http://django.a115.bg/feeds/blog/" title="Jordan Dimov" />
+    <outline type="rss" text="Jose Peñarrieta" xmlUrl="http://elpenia.wordpress.com/tag/django/feed/" title="Elpenia's Weblog » django" />
+    <outline type="rss" text="Joseph Spiros" xmlUrl="http://josephspiros.com/category/django/feed" title="Joseph Spiros' Blog – Django" />
+    <outline type="rss" text="Josh VanderLinden" xmlUrl="http://www.codekoala.com/categories/django.xml" title="Code Koala (django)" />
+    <outline type="rss" text="Juanjo Conti" xmlUrl="http://www.juanjoconti.com.ar/2008/06/28/django-messages-en-espanol/feed/" title="Comentarios en: django-messages en español" />
+    <outline type="rss" text="Julien Bouquillon" xmlUrl="http://blog.revolunet.com/index.php/conseil.intranet/developpement/django/feed" title="blog ntic de revolunet » django" />
+    <outline type="rss" text="Julien Phalip" xmlUrl="http://www.julienphalip.com/blog/feeds/tags/django/" title="Julien Phalip" />
+    <outline type="rss" text="Justin Lilly" xmlUrl="http://justinlilly.com/blog/feeds/tags/django/" title="Justin Lilly" />
+    <outline type="rss" text="Kelvin Nicholson" xmlUrl="http://www.kelvinism.com/feeds/tag/django/" title="django . tags . kelvinism" />
+    <outline type="rss" text="Kevin Fricovsky" xmlUrl="http://blog.montylounge.com/feeds/categories/django/" title="Monty Lounge Blog posts category feed" />
+    <outline type="rss" text="Kevin Menard" xmlUrl="http://dev.servprise.com/weblog/xml/atom/category/django/feed.xml" title="Kevin Menard" />
+    <outline type="rss" text="Kevin Renskers" xmlUrl="http://mixedcase.nl/articles/feeds/categories/django/" title="Entries for the category Django" />
+    <outline type="rss" text="Kevin Whitaker" xmlUrl="http://blog.kevin-whitaker.net/tagged/django/rss" title="Kevin Witaker" />
+    <outline type="rss" text="Kévin Dunglas" xmlUrl="http://dunglas.fr/category/programmation/php/django-framework/feed/" title="Kévin Dunglas » Django" />
+    <outline type="rss" text="Lee Braiden" xmlUrl="http://blog.irukado.org/category/django/feed/" title="Lee Braiden's Blog » Django" />
+    <outline type="rss" text="Leonardo Giordani" xmlUrl="http://lgiordani.github.io/blog/categories/django/atom.xml" title="Category: django | The digital cat" />
+    <outline type="rss" text="Low Kian Seong" xmlUrl="http://blog.lowkster.com/feeds/posts/default/-/django?alt=rss" title="Lowkster - Pythonly yours" />
+    <outline type="rss" text="Ludwig Pettersson" xmlUrl="http://luddep.se/rss/tag/django/" title="Ludwig Pettersson" />
+    <outline type="rss" text="Luke Plant" xmlUrl="http://lukeplant.me.uk/blog/categories/django/atom/index.xml" title="All Unkept" />
+    <outline type="rss" text="Mahdi Yusuf" xmlUrl="http://www.mahdiyusuf.com/tagged/django/rss" title="Mahdi Yusuf" />
+    <outline type="rss" text="Malcolm Tredinnick" xmlUrl="http://www.pointy-stick.com/blog/feeds/topics-summary/software/django/atom.xml" title="Malcolm Tredinnick" />
+    <outline type="rss" text="Marc Garcia" xmlUrl="http://blog.vaig.be/feeds/posts/default/-/Django/" title="Vaig bé" />
+    <outline type="rss" text="Marcin Mierzejewski" xmlUrl="http://www.zenzire.com/rss/tags/django/" title="zenzire | python, django, web, ..." />
+    <outline type="rss" text="Marco Gabriel" xmlUrl="http://www.marcogabriel.com/blog/categories/9-Django" title="Marco Gabriel" />
+    <outline type="rss" text="Mark van Lent" xmlUrl="http://www.vlent.nl/weblog/tag/django/feed.atom" title="Practicing web development" />
+    <outline type="rss" text="Marko Samastur" xmlUrl="http://markos.gaivo.net/blog/?cat=39&amp;feed=atom" title="A notch above a monkey » Django" />
+    <outline type="rss" text="Martin Jansen" xmlUrl="http://martinjansen.com/tag/django/feed/" title="Martin Jansen » django" />
+    <outline type="rss" text="Marty Alchin" xmlUrl="http://martyalchin.com/" title="Marty Alchin" />
+    <outline type="rss" text="Massimiliano Pippi" xmlUrl="http://dev.pippi.im/rss-django" title="/dev/" />
+    <outline type="rss" text="Matt Croydon" xmlUrl="http://postneo.com/categories/python/django/feed" title="Matt Croydon::Postneo » Django" />
+    <outline type="rss" text="Matt Dennebaum" xmlUrl="http://www.ninjacipher.com/category/development/python/django/feed" title="Matt Dennebaum" />
+    <outline type="rss" text="Matt Dennewitz" xmlUrl="http://www.debatablybeta.com/feeds/tags/django.rss" title="Matt Dennewitz" />
+    <outline type="rss" text="Matt Reiferson" xmlUrl="http://www.perplexedlabs.com/category/development/django/feed" title="Perplexed Labs » Django" />
+    <outline type="rss" text="Matt Stevens" xmlUrl="http://feeds.dirtymonkey.co.uk/djangodeveloper" title="Freelance Django Developer - Matt Deacalion Stevens" />
+    <outline type="rss" text="Matthew Flanagan" xmlUrl="http://wadofstuff.blogspot.com/feeds/posts/default/-/django" title="Wad of Stuff" />
+    <outline type="rss" text="Meio Código" xmlUrl="http://www.meiocodigo.com/category/django/feed/" title="Meio Código » Django" />
+    <outline type="rss" text="Mercurytide: Django articles" xmlUrl="http://www.mercurytide.co.uk/news/rss/django-whitepapers/" title="Django whitepapers News" />
+    <outline type="rss" text="Michael DiBernardo" xmlUrl="http://www.stopfinder.com/blog/category/django/feed/" title="PitStop » Django" />
+    <outline type="rss" text="Michael Irani" xmlUrl="http://iraniweb.com/blog/?feed=rss2&amp;cat=8" title="Iraniblog » Django" />
+    <outline type="rss" text="Michael Josephson" xmlUrl="http://www.sdjournal.com/archives/categories/languages/python/django/rss.xml" title="SDJournal posts in Django category" />
+    <outline type="rss" text="Michael McCormac" xmlUrl="http://mccormac.org/feeds/django/" title="Michael McCormac" />
+    <outline type="rss" text="Michael Trier" xmlUrl="http://blog.michaeltrier.com/feed/django/atom.xml" title="Michael Trier" />
+    <outline type="rss" text="Mike C. Fletcher" xmlUrl="http://blog.vrplumber.com/b/feeds/categories/pony/" title="blog.vrplumber.com - Entries for the category Pony" />
+    <outline type="rss" text="Mikeal Rogers" xmlUrl="http://www.mikealrogers.com/archives/category/django/feed/" title="Mikeal Rogers" />
+    <outline type="rss" text="Mikkel Høgh" xmlUrl="http://mikkel.hoegh.org/taxonomy/term/91/0/feed" title="Mikkel Høgh" />
+    <outline type="rss" text="Mikko Hellsing" xmlUrl="http://blog.sorl.net/feed/" title="Mikko Hellsing" />
+    <outline type="rss" text="Mikko Ohtamaa" xmlUrl="http://opensourcehacker.com/tag/django/feed/" title="Open Source Hacker » django" />
+    <outline type="rss" text="Mininglabs" xmlUrl="http://www.mininglabs.com/category/django/feed/" title="Mininglabs" />
+    <outline type="rss" text="Mohammad AlMarzouq" xmlUrl="http://twothirty.am/feeds/atom/tag/django/" title="Up at Two Thirty blog posts with tag intersection django" />
+    <outline type="rss" text="Muhammet S. Aydin" xmlUrl="http://www.mengu.net/feed/django" title="Mengu.net - Django" />
+    <outline type="rss" text="Nick Efford" xmlUrl="http://efford.org/blog/archives/category/django/feed/" title="Nick Efford" />
+    <outline type="rss" text="Nick Sergeant" xmlUrl="http://nicksergeant.com/blog/django/feed" title="Nick Sergeant" />
+    <outline type="rss" text="Nicolas Trangez" xmlUrl="http://eikke.com/tag/django/feed/" title="Ikke's blog » django" />
+    <outline type="rss" text="Nizam Sayeed" xmlUrl="http://www.nomadjourney.com/category/django/feed/" title="Nomad Journey » Django" />
+    <outline type="rss" text="Nuno Mariz" xmlUrl="http://mariz.org/blog/feeds/tag/django/" title="Nuno Mariz - Latest blog entries tagged with 'django'" />
+    <outline type="rss" text="Ole Morten Halvorsen" xmlUrl="http://www.omh.cc/feeds/tagged/django/" title="Ole Morten's Blog Feed" />
+    <outline type="rss" text="Oliver Weichhold" xmlUrl="http://www.weichhold.com/category/django/feed/" title="Oliver's Place » Django" />
+    <outline type="rss" text="Orestis Markou" xmlUrl="http://orestis.gr/feeds/tag/django/en/" title="Posts tagged with django" />
+    <outline type="rss" text="PK Shiu" xmlUrl="http://www.pkshiu.com/loft/archive/category/django/rss" title="PK Shiu" />
+    <outline type="rss" text="Patrick Altman" xmlUrl="http://feeds.feedburner.com/PatrickAltmanDjango" title="Shifting Bits by Patrick Altman: Entries tagged with &quot;django&quot;" />
+    <outline type="rss" text="Patrick Beeson" xmlUrl="http://patrickbeeson.com/feeds/tags/django/" title="Entries for Django tag | patrickbeeson.com" />
+    <outline type="rss" text="Paul Bissex" xmlUrl="http://e-scribe.com/news/rss/tag/django" title="E-Scribe News : a programmer's blog : django" />
+    <outline type="rss" text="Paul Kenjora" xmlUrl="http://django.awarelabs.com/?feed=atom" title="Paul Kenjora" />
+    <outline type="rss" text="Pedro Lima" xmlUrl="http://pedro.valelima.com/blog/feed/category/7/" title="Pedro Lima" />
+    <outline type="rss" text="Peter Baumgartner" xmlUrl="http://lincolnloop.com/blog/feeds/djanggregator/" title="Lincoln Loop Blog Feed for Django Community Aggregator" />
+    <outline type="rss" text="Peter Bengtsson" xmlUrl="http://www.peterbe.com/rss.xml?oc=Django" title="Peterbe.com" />
+    <outline type="rss" text="Peter Harkins" xmlUrl="http://push.cx/tag/django/feed" title="Push cx » Django" />
+    <outline type="rss" text="Peter Sanchez" xmlUrl="http://www.petersanchez.com/feeds/tag/django/" title="Peter Sanchez" />
+    <outline type="rss" text="Pietro Abate" xmlUrl="http://mancoosi.org/~abate/taxonomy/term/57/0/feed" title="Pietro Abate homepage - django" />
+    <outline type="rss" text="Piotr Maliński" xmlUrl="http://www.rkblog.rk.edu.pl/w/r/django/" title="Django :: RkBlog - Python, Linux, Astronomy" />
+    <outline type="rss" text="Przemysław Kołodziejczyk" xmlUrl="http://eshlox.net/tag/django/atom/" title="eshlox.net - Blog" />
+    <outline type="rss" text="Rachel Willmer" xmlUrl="http://blog.willmer.org/category/websites/django/feed/" title="Rachel's Knowledge Base » Django" />
+    <outline type="rss" text="Radek Švarz" xmlUrl="http://translatecz.svarz.cz/feeds/posts/default/-/django" title="Translate CZ" />
+    <outline type="rss" text="Rafael Campos de Bastiani" xmlUrl="http://rfdev.org/feeds/rss/tags/django/" title="Rafael Campos de Bastiani" />
+    <outline type="rss" text="Ramana Varanasi" xmlUrl="http://blog.sramana.in/rss.xml?tag=django" title="Ramana's Blog" />
+    <outline type="rss" text="Ramiro Morales" xmlUrl="http://rmorales.com.ar/blog/category/django/feed/" title="Total interferencia » Django" />
+    <outline type="rss" text="Reinout van Rees" xmlUrl="http://reinout.vanrees.org/weblog/djangofeed.xml" title="Reinout van Rees' weblog" />
+    <outline type="rss" text="Revolution Systems" xmlUrl="http://www.revsys.com/blog/feeds/tags/django/" title="Revolution Systems Blog: Entries tagged with &quot;django&quot;" />
+    <outline type="rss" text="Rob Hudson" xmlUrl="http://rob.cogit8.org/feeds/blog/tag/django/" title="Rob Hudson" />
+    <outline type="rss" text="Ross Poulton" xmlUrl="http://www.rossp.org/feeds/tag/django/" title="Ross Poulton: 'django' feed" />
+    <outline type="rss" text="Russell Keith-Magee" xmlUrl="http://cecinestpasun.com/rss/category/django/" title="Ceci n'est pas un blog about Django" />
+    <outline type="rss" text="Ryan Berg" xmlUrl="http://feeds.feedburner.com/ryanberg/blog/tags/django" title="ryanberg.net : Entries tagged with *django*" />
+    <outline type="rss" text="Ryan Kanno" xmlUrl="http://blog.localkinegrinds.com/category/django/feed/" title="Ryan Kanno: The diary of an Enginerd in Hawaii» Django" />
+    <outline type="rss" text="Ryan Kaskel" xmlUrl="http://www.ryankaskel.com/category/technology/python/django/feed/" title="Ryan Kaskel" />
+    <outline type="rss" text="Sam Bull" xmlUrl="http://www.pocketuniverse.ca/feeds/categories/dev/" title="pocketuniverse.ca Developer Stuff blog posts" />
+    <outline type="rss" text="Sam Newman" xmlUrl="http://www.magpiebrain.com/archives/django.xml" title="Sam Newman" />
+    <outline type="rss" text="Satchmo" xmlUrl="http://www.satchmoproject.com/blog/feeds/tags/django/" title="Latest satchmo project news by tag" />
+    <outline type="rss" text="Scot Hacker" xmlUrl="http://birdhouse.org/blog/tag/django/feed/" title="scot hacker's foobar blog » Django" />
+    <outline type="rss" text="Scott Barnham" xmlUrl="http://scottbarnham.com/blog/category/django/feed/" title="Flapping Head » Django" />
+    <outline type="rss" text="Sean Creeley" xmlUrl="http://www.screeley.com/rss/category/django/" title="Sean Creeley" />
+    <outline type="rss" text="Sean O'Connor" xmlUrl="http://feeds.feedburner.com/SeansSoftwareBlogDjango" title="Sean's Software Blog » Django" />
+    <outline type="rss" text="Seemant Kulleen" xmlUrl="http://kulleen.org/seemant/blog/tag/django/atom/" title="Blog entries by Seemant Kulleen in category: 'django'" />
+    <outline type="rss" text="Sergey Dimchenko" xmlUrl="http://mydjango.ru/feeds/atom/blog/" title="mydjango.ru posts" />
+    <outline type="rss" text="Seth Buntin" xmlUrl="http://buntin.org/feeds/categories/django/" title="Seth Buntin" />
+    <outline type="rss" text="Shabda Raaj" xmlUrl="http://42topics.com/blog/category/django/feed/" title="Shabda Raaj" />
+    <outline type="rss" text="Shwagroo Team" xmlUrl="http://feeds.feedburner.com/django-gems/" title="Perełki Django" />
+    <outline type="rss" text="Simon Willison" xmlUrl="http://simonwillison.net/atom/tagged/django/" title="Simon Willison's items tagged django" />
+    <outline type="rss" text="Socialist Software" xmlUrl="http://www.socialistsoftware.com/?cat=4&amp;feed=rss2" title="Socialist Software | Django" />
+    <outline type="rss" text="Steve Schwarz" xmlUrl="http://feeds.feedburner.com/djangotechagilitynerdcom" title="tech.agilitynerd.com" />
+    <outline type="rss" text="Stuart Marsh" xmlUrl="http://www.beardygeek.com/category/django/feed/" title="Stuart Marsh" />
+    <outline type="rss" text="Sune Kirkeby" xmlUrl="http://ibofobi.dk/blog/feeds/tags/django/" title="Sune Kirkeby" />
+    <outline type="rss" text="Sunlight Labs" xmlUrl="http://sunlightlabs.com/blog/feeds/tag/django/" title="Sunlight Labs loves django" />
+    <outline type="rss" text="Sébastien Piquemal" xmlUrl="http://any2any.posterous.com/rss.xml?tag=django" title="any2any" />
+    <outline type="rss" text="Taylan Pince" xmlUrl="http://taylanpince.com/feeds/posts-by-tag/django/" title="Taylan Pince - Blogs Posts Tagged As django" />
+    <outline type="rss" text="Thierry Schellenbach" xmlUrl="http://www.mellowmorning.com/category/django/feed/" title="Mellow Morning » Django" />
+    <outline type="rss" text="This Week in Django" xmlUrl="http://thisweekindjango.com/feeds/latest/" title="This Week in Django" />
+    <outline type="rss" text="Thomas Capricelli" xmlUrl="http://www.freehackers.org/thomas/category/django/feed/atom/" title="Thomas Capricelli » DjangoThomas Capricelli" />
+    <outline type="rss" text="Thomas Pelletier" xmlUrl="http://kiznet.fr/blog/flux/tag/django/" title="Thomas Pelletier" />
+    <outline type="rss" text="Timothy O'Connell" xmlUrl="http://demongin.org/feeds/django/" title="demongin.org - Posts tagged with 'Django'" />
+    <outline type="rss" text="Torsten Engelbrecht" xmlUrl="http://better-inter.net/rss/django/" title="Making the internet a better place - django" />
+    <outline type="rss" text="Trey Piepmeier" xmlUrl="http://solutions.treypiepmeier.com/category/programming/frameworks/django/feed/" title="Trey Piepmeier" />
+    <outline type="rss" text="Tyson Tate" xmlUrl="http://fallingbullets.com/feeds/tag/django/" title="Tyson Tate" />
+    <outline type="rss" text="Uxebu blog" xmlUrl="http://uxebu.com/blog/category/django/feed/" title="uxebu » blog » django" />
+    <outline type="rss" text="Viktor Nagy" xmlUrl="http://feedproxy.google.com/NagyViktor/tag/django" title="Viktor Nagy" />
+    <outline type="rss" text="Washington Times Open Source" xmlUrl="http://opensource.washingtontimes.com/feeds/posts/with_tag/django/" title="Latest entries on opensource.washingtontimes.com" />
+    <outline type="rss" text="Wiliam Alves de Souza" xmlUrl="http://pythonidae.blogspot.com/feeds/posts/default/-/Django" title="Pythonidae" />
+    <outline type="rss" text="Will Larson" xmlUrl="http://lethain.com/feeds/tag/django/" title="Irrational Exuberance" />
+    <outline type="rss" text="Will McGugan" xmlUrl="http://www.willmcgugan.com/blog/tech/feeds/tag/django/" title="Django posts in 'It's All Geek to Me'" />
+    <outline type="rss" text="Wilson Miner" xmlUrl="http://www.wilsonminer.com/feeds/category/django/" title="Wilson Miner" />
+    <outline type="rss" text="Wolfram Kriesing" xmlUrl="http://wolfram.kriesing.de/blog/index.php/category/programming/django/feed/rss" title="Pythoneer » Django" />
+    <outline type="rss" text="Wraithan" xmlUrl="http://blog.wraithan.net/feeds/posts/default/-/django" title="The Blaggin' Wraith" />
+    <outline type="rss" text="Yann Malet" xmlUrl="http://yml-blog.blogspot.com/feeds/posts/default/-/Django?alt=rss" title="Blog Roll" />
+    <outline type="rss" text="Yash" xmlUrl="http://www.yashh.com/feeds/django/" title="Yash" />
+    <outline type="rss" text="Yipit" xmlUrl="http://feeds.feedburner.com/YipitDjangoBlog" title="Yipit Django Blog" />
+    <outline type="rss" text="Zachary Voase" xmlUrl="http://zvoase.tumblr.com/search/django/rss" title="Download movies 1967" />
+    <outline type="rss" text="djangodb" xmlUrl="http://www.djangodb.org/blog/index.php?/feeds/index.rss2" title="djangodb" />
+    <outline type="rss" text="eGenix" xmlUrl="http://www.egenix.com/company/news/rss2?channel=Django" title="eGenix.com News &amp;amp; Events" />
+    <outline type="rss" text="onefinestay" xmlUrl="http://tech.onefinestay.com/tagged/django/rss" title="import unhotel" />
+    <outline type="rss" text="phaedo" xmlUrl="http://phaedo.cx/archives/category/geek/programming/python/django/feed" title="phaedo" />
+    <outline type="rss" text="unweb.me" xmlUrl="http://unweb.me/blog/topics/planetdjango/rss.xml" title="planetdjango" />
+    <outline type="rss" text="Łukasz Ligowski" xmlUrl="http://tinkerer-warehouse.blogspot.com/feeds/posts/default/-/django" title="tinkerer warehouse" />
+    <outline type="rss" text="Роман Толкачёв" xmlUrl="http://blog.retta-web.ru/category/django/rss" title="Роман Толкачёв" />
+  </body>
+</opml>
