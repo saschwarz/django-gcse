@@ -33,6 +33,7 @@ from .country_field import CountryField
 settings.GCSE_CONFIG = dict({
         'NUM_FACET_ITEMS_PER_FACET': 4,
         'NUM_ANNOTATIONS_PER_FILE': 1000,
+        'NUM_ANNOTATIONS_PER_PAGE': 25,
         },
         **getattr(settings, 'GCSE_CONFIG' , {}))
 

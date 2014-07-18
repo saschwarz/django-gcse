@@ -60,7 +60,7 @@ class AnnotationsList(ListView):
     """
     context_object_name = 'annotation_list'
     model = Annotation
-    paginate_by = 20
+    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
     template_name = 'gcse/browse.html'
 
     def get_queryset(self):

@@ -5,7 +5,7 @@ from django.test.utils import override_settings
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from gcse.models import CustomSearchEngine, Label, Annotation
-from gcse.views import CSEAnnotations
+from gcse.views import CSEAnnotations, AnnotationsList
 
 
 class ViewsTemplatesTestCase(TestCase):
@@ -28,14 +28,16 @@ class ViewsTemplatesTestCase(TestCase):
         self.cse.background_labels.add(self.label)
         self.cse.save()
         self.old_pagination = CSEAnnotations.paginate_by
+        self.old_annotation_pagination = AnnotationsList.paginate_by
 
     def tearDown(self):
         settings.ROOT_URLCONF = self.ROOT_URLCONF
         settings.TEMPLATE_CONTEXT_PROCESSORS = self.TEMPLATE_CONTEXT_PROCESSORS
         CSEAnnotations.paginate_by = self.old_pagination
+        AnnotationsList.paginate_by = self.old_annotation_pagination
 
-    def _add_annotation(self):
-        annotation = Annotation(comment='Site Name 2', 
+    def _add_annotation(self, name):
+        annotation = Annotation(comment=name,
                                 original_url='http://example.com/',
                                 status=Annotation.STATUS.active)
         annotation.save()
@@ -50,7 +52,7 @@ class ViewsTemplatesTestCase(TestCase):
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.0.xml"/>')
 
     def test_cse_xml_multiple_annotations(self):
-        self._add_annotation()
+        self._add_annotation('Site Name 2')
         # force update of CSE... change to signal on Annotation insert/delete?
         with override_settings(GCSE_CONFIG={'NUM_FACET_ITEMS_PER_FACET': 2,
                                             'NUM_ANNOTATIONS_PER_FILE': 1}):
@@ -71,7 +73,7 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, '<Annotations start="1" num="1" total="1">', count=1)
 
     def test_multiple_page_annotations_xml(self):
-        self._add_annotation()
+        self._add_annotation('Site Name 2')
         CSEAnnotations.paginate_by = 1 # one per page
 
         response = self.client.get(reverse('cse_annotations', args=(self.cse.gid, 1)))
@@ -87,12 +89,41 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, '<Annotations start="2" num="2" total="2">', count=1)
         self.assertContains(response, '<Comment>Site Name 2</Comment>', count=1)
 
-    def test_browse(self):
+    def test_browse_one_page_defaults_to_querying_letter_A(self):
         response = self.client.get(reverse('cse_browse'))
+
         self.assertEquals(200, response.status_code)
         self.assertTemplateUsed(response, 'gcse/browse.html')
         self.assertContains(response, 'A Site Name')
         self.assertContains(response, 'Page 1 of 1')
+        self.assertContains(response, 'class="selected"><a href="?q=A"')
+
+    def test_browse_first_of_two_pages_querying_letter_S(self):
+        self._add_annotation('Site Name 2')
+        self._add_annotation('Site Name 3')
+        AnnotationsList.paginate_by = 1
+
+        response = self.client.get(reverse('cse_browse')+"?q=S")
+        
+        self.assertEquals(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/browse.html')
+        self.assertContains(response, 'Site Name 2')
+        self.assertNotContains(response, 'Site Name 3')
+        self.assertContains(response, 'Page 1 of 2')
+        self.assertContains(response, 'class="selected"><a href="?q=S"')
+
+    def test_browse_second_of_two_pages_querying_letter_S(self):
+        self._add_annotation('Site Name 2')
+        self._add_annotation('Site Name 3')
+        AnnotationsList.paginate_by = 1
+        response = self.client.get(reverse('cse_browse')+"?q=S&page=2")
+        
+        self.assertEquals(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/browse.html')
+        self.assertNotContains(response, 'Site Name 2')
+        self.assertContains(response, 'Site Name 3')
+        self.assertContains(response, 'Page 2 of 2')
+        self.assertContains(response, 'class="selected"><a href="?q=S"')
 
 #     def test_search(self):
 #         response = self.client.get(reverse('cse_search'))
