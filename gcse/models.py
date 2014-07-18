@@ -347,17 +347,23 @@ class CustomSearchEngine(TimeStampedModel):
         return "%s" % (self.title,)
 
     @classmethod
-    def from_string(cls, xml):
+    def from_string(cls, xml, import_linked_annotations=False):
         handler = CSESAXHandler()
-        cse = handler.parseString(xml)
+        cse, linked_annotation_urls = handler.parseString(xml)
         cse.save()
+        if import_linked_annotations:
+            for url in linked_annotation_urls:
+                Annotation.from_url(url)
         return cse
 
     @classmethod
-    def from_url(cls, url):
+    def from_url(cls, url, import_linked_annotations=False):
         handler = CSESAXHandler()
-        cse = handler.parse(url)
+        cse, linked_annotation_urls = handler.parse(url)
         cse.save()
+        if import_linked_annotations:
+            for url in linked_annotation_urls:
+                Annotation.from_url(url)
         return cse
 
 
@@ -570,11 +576,12 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         self.facet_index = 0
         self.facet_item = None
         self.in_background_label = False
+        self.linked_annotation_urls = []
 
     def _parse(self, tree):
         lxml.sax.saxify(tree, self)
         self.cse.input_xml = lxml.etree.tostring(tree)
-        return self.cse
+        return self.cse, self.linked_annotation_urls
 
     def parseString(self, xml):
         tree = lxml.etree.fromstring(xml)
@@ -619,6 +626,10 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
                 self.facet_item.label = label
                 self.facet_item.save()
                 self.facet_item = None
+        elif name == 'Include':
+            url = attributes.get((None, 'href'))
+            if url:
+                self.linked_annotation_urls.append(url)
 
     def characters(self, data):
         self.attrs[self.name] += data
@@ -701,12 +712,11 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
             self.curAnnotation.comment += data
 
     def endElementNS(self, ns_name, qname):
-        uri, name = ns_name
-        if name == "Annotation":
+        if qname == "Annotation":
             self.curAnnotation.save()
             self.annotations.append(self.curAnnotation)
             self.curAnnotation = None
-        elif name == "Comment":
+        elif qname == "Comment":
             self.inComment = False
             # Store in database unescaped - let view(s) escape if needed
             self.curAnnotation.comment = \
@@ -715,7 +725,6 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # TODO:
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
-# - management command to insert GCSE and Annotations.
-# - import of CSE to optionally import linked Annotations.
-# - CSE output_xml of Included Annotation files can change as Annotations are added/deleted
-#   need either update on Annotation create/delete or dynamically update output_xml on GET.
+
+
+

@@ -413,7 +413,7 @@ class TestCSESAXHandler(TestCase):
 
     def setUp(self):
         self.handler = CSESAXHandler()
-        self.cse = self.handler.parseString(CSE_XML)
+        self.cse, self.annotation_urls = self.handler.parseString(CSE_XML)
 
     def test_gid_is_parsed_from_xml(self):
         self.assertEqual('c12345-r678', self.cse.gid)
@@ -425,7 +425,7 @@ class TestCSESAXHandler(TestCase):
         self.assertEqual('', self.cse.description)
 
     def test_description_is_parsed_from_xml(self):
-        self.cse = self.handler.parseString(FACETED_XML)
+        self.cse, annotation_urls = self.handler.parseString(FACETED_XML)
         self.assertEqual(u'Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores',
                          self.cse.description)
 
@@ -453,7 +453,7 @@ class TestCSESAXHandler(TestCase):
         self.assertEqual(0.8, labels[2].weight)
 
     def test_labels_are_parsed_from_facets_in_xml(self):
-        self.cse = self.handler.parseString(FACETED_XML)
+        self.cse, annotation_urls = self.handler.parseString(FACETED_XML)
         cse = self.cse
         self.assertEqual(12, cse.facetitem_set.count())
         labels = cse.facetitems_labels()
@@ -477,9 +477,16 @@ class TestCSESAXHandler(TestCase):
                          self.cse.input_xml)
 
     def test_facet_items_are_parsed_from_xml(self):
-        self.cse = self.handler.parseString(FACETED_XML)
-        cse = self.cse
+        cse, annotation_urls = self.handler.parseString(FACETED_XML)
         self.assertEqual(12, cse.facetitem_set.count())
+
+    def test_no_annotation_includes_are_parsed_from_xml(self):
+        cse, annotation_urls = self.handler.parseString(CSE_XML)
+        self.assertEqual(0, len(annotation_urls))
+
+    def test_annotation_includes_are_parsed_from_xml(self):
+        cse, annotation_urls = self.handler.parseString(FACETED_XML)
+        self.assertEqual(1, len(annotation_urls))
 
 
 class TestLabel(TestCase):
@@ -693,12 +700,26 @@ class AnnotationSAXHandlerTests(TestCase):
       <AdditionalData attribute="original_url" value="http://www.luckydogagility.com/" />
       <Comment>Lucky Dog &amp; Friends Agility</Comment>
   </Annotation>
+  <Annotation about="agilitynerd.com/blog/*">
+      <Label name="_cse_kueofys2mdy" />
+      <Label name="blog" />
+      <AdditionalData attribute="original_url" value="http://agilitynerd.com/blog/" />
+      <Comment>AgilityNerd Dog Agility Blog</Comment>
+  </Annotation>
   </Annotations>'''
         curHandler = AnnotationSAXHandler()
         annotations = curHandler.parseString(xml)
-        self.assertEqual(len(annotations), 1)
+        self.assertEqual(len(annotations), 2)
         # is ampersand no longer encoded?
-        self.assertEqual(curHandler.annotations[0].comment, 'Lucky Dog & Friends Agility')
+        annotation = annotations[0]
+        self.assertEqual(annotation.comment, 'Lucky Dog & Friends Agility')
+        self.assertEqual(annotation.original_url, 'http://www.luckydogagility.com/')
+        self.assertEqual(annotation.about, 'www.luckydogagility.com/*')
+
+        annotation = annotations[1]
+        self.assertEqual(annotation.comment, 'AgilityNerd Dog Agility Blog')
+        self.assertEqual(annotation.original_url, 'http://agilitynerd.com/blog/')
+        self.assertEqual(annotation.about, 'agilitynerd.com/blog/*')
 
 
 class AnnotationsLabels(TestCase):
