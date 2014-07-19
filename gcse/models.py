@@ -432,6 +432,12 @@ class Annotation(TimeStampedModel):
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
     objects = AnnotationManager()
+    
+    def __unicode__(self):
+        return u"%s %s" % (self.comment, self.original_url)
+
+    def __str__(self):
+        return "%s %s" % (self.comment, self.original_url)
 
     @classmethod
     def from_string(cls, xml, klass=None):
@@ -471,6 +477,19 @@ class Annotation(TimeStampedModel):
                 style="disabled"
             results.append({'i': i, 'style': style})
         return results
+
+    @classmethod
+    def guess_google_url(cls, url):
+        from django.utils.six.moves.urllib_parse import urlparse
+        result = urlparse(url)
+
+        # might be a single page
+        path = result.hostname + result.path
+        if not "." in result.path:
+            if not result.path.endswith("/"):
+                path += "/"
+            path += "*"
+        return path
 
     def labels_as_links(self):
         return "".join(

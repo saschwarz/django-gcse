@@ -733,6 +733,21 @@ class AnnotationsLabels(TestCase):
                          active.labels_as_links())
 
 
+class AnnotationsLabels(TestCase):
+    
+    def test_guess_google_url_for_a_single_page(self):
+        self.assertEqual('example.com/foo.html',
+                         Annotation.guess_google_url("http://example.com/foo.html"))
+
+    def test_guess_google_url_for_a_terminated_path(self):
+        self.assertEqual('example.com/foo/*',
+                         Annotation.guess_google_url("http://example.com/foo/"))
+
+    def test_guess_google_url_for_a_nonterminated_path(self):
+        self.assertEqual('example.com/foo/*',
+                         Annotation.guess_google_url("http://example.com/foo"))
+
+
 class AnnotationsAlphaList(TestCase):
 
     def test_no_annotations_no_active_letter(self):
