@@ -6,11 +6,12 @@
   <style>
 /* some basic styles to make the pages more attractive */
 html, body {
-  font-size: 1.1em;
+  font-size: 1em;
   height: 100%;
 }
 
 .navbar-header { width: 100% }
+.label-link {margin-right: 1em;}
 
 /* Wrapper for page content to push down footer */
 #wrap {
@@ -34,54 +35,7 @@ html, body {
 .alpha-nav.pagination>li>a, .pagination>li>span {
     padding: 6px;
 }
-
-
-.tag-cloud {
-text-align:center;
-border:1px solid #BBB;
-padding:5px;
-}
-.tag-cloud span {
-line-height:25px;
-padding:4px;
-}
-.tag-1 {
-font-size:12px;
-font-weight:100;
-}
-.tag-2 {
-font-size:13px;
-font-weight:200;
-}
-.tag-3 {
-font-size:14px;
-font-weight:300;
-}
-.tag-4 {
-font-size:15px;
-font-weight:400;
-}
-.tag-5 {
-font-size:16px;
-font-weight:500;
-}
-.tag-6 {
-font-size:17px;
-font-weight:600;
-}
-.tag-7 {
-font-size:18px;
-font-weight:700;
-}
-.tag-8 {
-font-size:19px;
-font-weight:800;
-}
-.periodical-logo, .article-image {
-float:right;
-margin:16px;
-}
-  </style>
+</style>
 </head>
 <body>
   <div id="wrap">
@@ -90,10 +44,10 @@ margin:16px;
         <div class="navbar-header">
           <a class="navbar-brand" href="https://github.com/saschwarz/django-gcse">django-gcse</a>
           <ul class="nav navbar-nav navbar-left">
-            <li><a href="{% url 'home' %}">Search Engines</a></li>
-            <li><a href="{% url 'cse_browse' %}">Annotations</a></li>
+            <li><a href="{% url 'gcse_cse_list' %}">Search Engines</a></li>
+            <li><a href="{% url 'gcse_annotation_list' %}">Annotations</a></li>
           </ul>
-          <form class="navbar-form navbar-right" role="search" action="{% url 'cse_search' %}" method="get">
+          <form class="navbar-form navbar-right" role="search" action="{% url 'gcse_search' %}" method="get">
             <div class="form-group">
               <input type="text" id="id_q" name="q" size="51" class="form-control" placeholder="Search">
             </div>

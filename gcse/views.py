@@ -26,7 +26,23 @@ except ImportError:
     import json
 
 
-class CustomSearchEngineDetail(View):
+class CustomSearchEngineList(ListView):
+    """
+    Generate list of all CustomSearchEngines.
+    """
+    context_object_name = 'gcse_list'
+    model = CustomSearchEngine
+    paginate_by = settings.GCSE_CONFIG.get('NUM_CSES_PER_PAGE')
+    template_name = 'gcse/cse_list.html'
+
+
+class CustomSearchEngineDetail(DetailView):
+    model = CustomSearchEngine
+    slug_url_kwarg = 'gid'
+    template_name = 'gcse/cse_detail.html'
+
+
+class CustomSearchEngineDetailXML(View):
     """
     Generate CustomSearchEngine XML with updated Annotation Include elements.
     """
@@ -54,14 +70,14 @@ class CSEAnnotations(ListView):
         return cse.annotations()
 
 
-class AnnotationsList(ListView):
+class AnnotationList(ListView):
     """
     Render all the Annotations in alphabetical order in a paged manner.
     """
     context_object_name = 'annotation_list'
     model = Annotation
     paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
-    template_name = 'gcse/browse.html'
+    template_name = 'gcse/annotation_list.html'
 
     def get_queryset(self):
         query = self.request.GET.get('q', 'A')
@@ -71,7 +87,7 @@ class AnnotationsList(ListView):
         return Annotation.objects.active().filter(qset).distinct().order_by('comment')
 
     def get_context_data(self, **kwargs):
-        context = super(AnnotationsList, self).get_context_data(**kwargs)
+        context = super(AnnotationList, self).get_context_data(**kwargs)
         query = self.request.GET.get('q', 'A')
         context['index'] = Annotation.alpha_list(query)
         context['query'] = query
@@ -177,7 +193,7 @@ def edit_update_email(object):
     Send email to managers when a change to an Annotation/Place has been
     submitted by an end user.
     """
-    admin_url = urlresolvers.reverse('admin:cse_annotation_change',
+    admin_url = urlresolvers.reverse('admin:gcse_annotation_change',
                                      args=(object.id,))
     email_body = _("Annotation added/edited: http://%s%s admin: http://%s%s") % (
         Site.objects.get_current().domain,
@@ -222,7 +238,7 @@ def edit(request, id=None, add=False, template='gcse/edit.html'):
                     newInstance.parent_version = instance
                     newInstance.save()
                     edit_update_email(newInstance)
-                return HttpResponseRedirect(reverse('cse_thanks'))
+                return HttpResponseRedirect(reverse('gcse_thanks'))
         else:  # new entry
             form = PlaceForm(request.POST)
             if captcha_error is '' and form.is_valid():
@@ -231,7 +247,7 @@ def edit(request, id=None, add=False, template='gcse/edit.html'):
                 instance.save()
                 form.save_m2m()
                 edit_update_email(instance)
-                return HttpResponseRedirect(reverse('cse_thanks'))
+                return HttpResponseRedirect(reverse('gcse_thanks'))
     else:
         if id:
             a = get_object_or_404(Annotation, pk=id)

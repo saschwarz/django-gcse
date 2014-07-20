@@ -34,6 +34,7 @@ settings.GCSE_CONFIG = dict({
         'NUM_FACET_ITEMS_PER_FACET': 4,
         'NUM_ANNOTATIONS_PER_FILE': 1000,
         'NUM_ANNOTATIONS_PER_PAGE': 25,
+        'NUM_CSES_PER_PAGE': 25,
         },
         **getattr(settings, 'GCSE_CONFIG' , {}))
 
@@ -223,6 +224,9 @@ class CustomSearchEngine(TimeStampedModel):
         labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.id', [self.id])
         return labels
 
+    def get_absolute_url(self):
+        return reverse('gcse_cse_detail', kwargs={'gid': self.gid})
+
     def _create_or_update_xml_element_text(self, doc, name):
         value = getattr(self, name)
         if value:
@@ -303,7 +307,7 @@ class CustomSearchEngine(TimeStampedModel):
         return True
 
     def _annotations_url(self, index):
-        url = reverse('cse_annotations', args=(self.gid, index))
+        url = reverse('gcse_annotations', args=(self.gid, index))
         return  '//' + Site.objects.get_current().domain + url
 
     def _update_xml(self):
@@ -559,8 +563,7 @@ class Place(Annotation):
         return "%s %s" % (self.comment, self.id)
 
     def get_absolute_url(self):
-        return ('gcse_annotation_detail', (), {'id': self.id})
-    get_absolute_url = models.permalink(get_absolute_url)
+        return reverse('gcse_annotation_detail', kwargs={'id': self.id})
 
     def wasAdded(self):
         return self.modified == self.created

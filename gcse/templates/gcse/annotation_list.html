@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1>Browse Alphabetically</h1>
-<p>These <span class="annotation tip">Annotations</span> are currently in the {% site "name" %} search database. You can also <a href="{% url 'cse_browse_labels' %}">browse Annotations by label</a>.</p>
+<p>These <span class="annotation tip">Annotations</span> are currently in the {% site "name" %} search database. You can also <a href="{% url 'gcse_browse_labels' %}">browse Annotations by label</a>.</p>
 {% block alpha-nav %}
 <ul class="alpha-nav pagination">
 <colgroup>{% for i in index %}<col width="1*" />{%endfor%}</colgroup>
