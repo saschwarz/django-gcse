@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
 from .feeds import RssLatestFeed, AtomLatestFeed
-from .views import (CSEAnnotations, CustomSearchEngineList, 
+from .views import (CSEAnnotations, CSEAnnotationList, CustomSearchEngineList, 
                     CustomSearchEngineDetail, CustomSearchEngineDetailXML, 
                     AnnotationList, browse_labels)
 
@@ -40,6 +40,10 @@ urlpatterns += patterns('gcse.views',
                         url(r'^cse/$', 
                             CustomSearchEngineList.as_view(), 
                             name='gcse_cse_list'),
+
+                        url(r'^cse/(?P<gid>[\w-]+)/annotations/$', 
+                            CSEAnnotationList.as_view(), 
+                            name='gcse_cse_annotation_list'),
 
                         url(r'^site/$', 
                             AnnotationList.as_view(),

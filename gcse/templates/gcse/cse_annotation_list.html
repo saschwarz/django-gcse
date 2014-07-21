@@ -1,10 +1,10 @@
 {% extends "gcse/base.html" %}
 {% load setting %}
-{% block title %}{% site "name" %} - Browse Alphabetically{% endblock %}
+{% block title %}{% site "name" %} - {{ cse.title }} Annotations{% endblock %}
 
 {% block content %}
-<h1>Annotations Alphabetically</h1>
-<p>There are {{count}} <span class="annotation tip">Annotations</span> are currently in the {% site "name" %} search database. You can also <a href="{% url 'gcse_browse_labels' %}">browse Annotations by label</a>.</p>
+<h1>{{ cse.title }} Annotations</h1>
+<p>There are {{count}} <span class="annotation tip">Annotations</span> for the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} custom search engine</a> in the {% site "name" %} search database. You can also <a href="{% url 'gcse_browse_labels' %}">browse Annotations by label</a>.</p>
 {% block alpha-nav %}
 <ul class="alpha-nav pagination">
 <colgroup>{% for i in index %}<col width="1*" />{%endfor%}</colgroup>

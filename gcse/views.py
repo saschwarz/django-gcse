@@ -39,6 +39,7 @@ class CustomSearchEngineList(ListView):
 class CustomSearchEngineDetail(DetailView):
     model = CustomSearchEngine
     slug_url_kwarg = 'gid'
+    slug_field = 'gid'
     template_name = 'gcse/cse_detail.html'
 
 
@@ -70,6 +71,35 @@ class CSEAnnotations(ListView):
         return cse.annotations()
 
 
+class CSEAnnotationList(ListView):
+    """
+    Render all the Annotations in alphabetical order in a paged manner for a single CSE.
+    """
+    context_object_name = 'annotation_list'
+    model = Annotation
+    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
+    template_name = 'gcse/cse_annotation_list.html'
+
+    def get_queryset(self):
+        cse = get_object_or_404(CustomSearchEngine,
+                                gid=self.kwargs['gid'])
+        self.cse = cse
+        query = self.request.GET.get('q', 'A')
+        qset = (
+            Q(comment__istartswith=query)
+            )
+        return cse.annotations().filter(qset).order_by('comment')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(CSEAnnotationList, self).get_context_data(**kwargs)
+        query = self.request.GET.get('q', 'A')
+        context['index'] = Annotation.alpha_list(query)
+        context['query'] = query
+        context['count'] = self.cse.annotation_count()
+        context['cse'] = self.cse
+        return context
+
+
 class AnnotationList(ListView):
     """
     Render all the Annotations in alphabetical order in a paged manner.
@@ -86,11 +116,12 @@ class AnnotationList(ListView):
             )
         return Annotation.objects.active().filter(qset).distinct().order_by('comment')
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, *args, **kwargs):
         context = super(AnnotationList, self).get_context_data(**kwargs)
         query = self.request.GET.get('q', 'A')
         context['index'] = Annotation.alpha_list(query)
         context['query'] = query
+        context['count'] = Annotation.objects.count()
         return context
 
 

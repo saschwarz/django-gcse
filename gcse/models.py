@@ -120,7 +120,7 @@ class FacetItem(OrderedModel):
     def xml(self):
         return '<FacetItem title="%s">%s</FacetItem>' % (self.title, self.label.xml(complete=False))
 
-
+@python_2_unicode_compatible
 class CustomSearchEngine(TimeStampedModel):
     """
     Hybrid representation of the Google Custom Search Engine
@@ -221,7 +221,7 @@ class CustomSearchEngine(TimeStampedModel):
 
     def facetitems_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
-        labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.id', [self.id])
+        labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.name', [self.id])
         return labels
 
     def get_absolute_url(self):
@@ -384,6 +384,7 @@ class AnnotationManager(InheritanceManager):
         return self.get_queryset().select_subclasses().filter(status=Annotation.STATUS.deleted)
 
 
+@python_2_unicode_compatible
 class Annotation(TimeStampedModel):
     """
     Abstract base class upon which Annotation entries and local "Place"
@@ -436,9 +437,6 @@ class Annotation(TimeStampedModel):
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
     objects = AnnotationManager()
-    
-    def __unicode__(self):
-        return u"%s %s" % (self.comment, self.original_url)
 
     def __str__(self):
         return "%s %s" % (self.comment, self.original_url)
@@ -469,7 +467,7 @@ class Annotation(TimeStampedModel):
         cursor = connection.cursor()
         cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM "
                        "gcse_annotation order by substr(comment, 1, 1)")
-        existent = [str(i[0]) for i in cursor.fetchall()]
+        existent = [i[0] for i in cursor.fetchall()]
         results = []
         for i in ascii_letters[26:] + "0123456789":
             style = ''
