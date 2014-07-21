@@ -7,7 +7,7 @@
 <p>This Google Custom Search Engine contains {{object.annotation_count}} Annotation entries.</p>
 <p><a href="{% url 'gcse_cse_annotation_list' gid=object.gid %}">View this Custom Search Engine's Annotations</a></p>
 <h2>Labels</h2>
-<table class="table search-results">
+<table class="table table-striped search-results">
   <tbody>
     <tr><th>Name</th></tr>
     {% for label in object.facetitems_labels %}

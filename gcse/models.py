@@ -493,12 +493,25 @@ class Annotation(TimeStampedModel):
             path += "*"
         return path
 
-    def labels_as_links(self):
+    def labels_as_links(self, include_background_labels=True):
         return "".join(
             ['<a class="label-link" href="%s">%s</a>' % (
                 reverse('browse_label', args=(l.name,)), l.name)
-             for l in self.labels.all()]
+             for l in self.labels.order_by("name") if include_background_labels or not l.background]
             )
+
+    def all_labels_as_links(self):
+        return self.labels_as_links(include_background_labels=True)
+
+    def facet_item_labels_as_links(self):
+        return self.labels_as_links(include_background_labels=False)
+
+    def cses(self):
+        """
+        All CustomSearchEngines having the same background_label(s) as this Annotation.
+        """
+        cses = CustomSearchEngine.objects.filter(background_labels__in=self.labels.all())
+        return cses
 
 
 @python_2_unicode_compatible

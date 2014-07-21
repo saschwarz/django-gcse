@@ -722,15 +722,26 @@ class AnnotationSAXHandlerTests(TestCase):
         self.assertEqual(annotation.about, 'agilitynerd.com/blog/*')
 
 
-class AnnotationsLabels(TestCase):
+class AnnotationsLabelsLinks(TestCase):
 
-    def test_labels_as_links(self):
+    def setUp(self):
         active = Annotation.objects.create(comment="Active Annotation",
                                            status=Annotation.STATUS.active)
-        label = Label.objects.create(name="Label & Name")
+        label = Label.objects.create(name="Label & Name",
+                                     background=False)
         active.labels.add(label)
+        label = Label.objects.create(name="Background Label",
+                                     background=True)
+        active.labels.add(label)
+        self.annotation = active
+
+    def test_labels_as_links_shows_all_labels(self):
+        self.assertEqual('<a class="label-link" href="/site/label/Background%20Label">Background Label</a><a class="label-link" href="/site/label/Label%20%26%20Name">Label & Name</a>',
+                         self.annotation.labels_as_links())
+
+    def test_labels_as_links_hides_background_labels(self):
         self.assertEqual('<a class="label-link" href="/site/label/Label%20%26%20Name">Label & Name</a>',
-                         active.labels_as_links())
+                         self.annotation.labels_as_links(include_background_labels=False))
 
 
 class AnnotationsLabels(TestCase):

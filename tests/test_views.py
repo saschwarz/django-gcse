@@ -100,6 +100,16 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, '<Annotations start="2" num="2" total="2">', count=1)
         self.assertContains(response, '<Comment>Site Name 2</Comment>', count=1)
 
+    def test_annotation_list_for_cse(self):
+        response = self.client.get(reverse('gcse_cse_annotation_list', kwargs={'gid': self.cse.gid}))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/cse_annotation_list.html')
+        self.assertContains(response, 'CSE 1234568')
+        self.assertContains(response, 'A Site Name')
+        self.assertContains(response, 'Page 1 of 1')
+        self.assertContains(response, 'class="selected"><a href="?q=A"')
+
     def test_annotation_list_one_page_defaults_to_querying_letter_A(self):
         response = self.client.get(reverse('gcse_annotation_list'))
 
