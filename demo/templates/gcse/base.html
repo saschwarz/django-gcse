@@ -38,10 +38,6 @@ html, body {
 .alpha-nav.pagination>li>a, .pagination>li>span {
     padding: 6px;
 }
-
-.search-results .cse-link {
-    margin-right: 6px;
-}
 </style>
 </head>
 <body>
@@ -51,8 +47,9 @@ html, body {
         <div class="navbar-header">
           <a class="navbar-brand" href="https://github.com/saschwarz/django-gcse">django-gcse</a>
           <ul class="nav navbar-nav navbar-left">
-            <li><a href="{% url 'gcse_cse_list' %}">Search Engines</a></li>
+            <li><a href="{% url 'gcse_cse_list' %}">Custom Search Engines</a></li>
             <li><a href="{% url 'gcse_annotation_list' %}">Annotations</a></li>
+            <li><a href="{% url 'gcse_label_list' %}">Labels</a></li>
           </ul>
           <form class="navbar-form navbar-right" role="search" action="{% url 'gcse_search' %}" method="get">
             <div class="form-group">

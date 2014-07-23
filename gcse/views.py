@@ -125,6 +125,70 @@ class AnnotationList(ListView):
         return context
 
 
+class AnnotationDetail(DetailView):
+    pass
+
+
+class LabelList(ListView):
+    """
+    Render all the Labels in alphabetical order in a paged manner.
+    """
+    model = Label
+    paginate_by = settings.GCSE_CONFIG.get('NUM_LABELS_PER_PAGE')
+    template_name = 'gcse/label_list.html'
+
+
+class CSELabelList(ListView):
+    """
+    Render all the Labels for a Custom Search Engine in alphabetical order in a paged manner.
+    """
+    model = Label
+    paginate_by = settings.GCSE_CONFIG.get('NUM_LABELS_PER_PAGE')
+    template_name = 'gcse/cse_label_list.html'
+
+
+class LabelDetail(DetailView):
+
+    model = Label
+    slug_url_kwarg = 'id'
+    slug_field = 'id'
+
+
+class CSELabelDetail(ListView):
+    """
+    Show the Annotations for a Label in a specific CustomSearchEngine.
+    """
+    model = Label
+    context_object_name = 'annotations'
+    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
+    slug_url_kwarg = 'id'
+    slug_field = 'id'
+    template_name = 'gcse/label_detail.html'
+
+    def get_queryset(self):
+        label = get_object_or_404(Label,
+                                  pk=self.kwargs['id'])
+        self.label = label
+        cse = get_object_or_404(CustomSearchEngine,
+                                gid=self.kwargs['gid'])
+        self.cse = cse
+        query = self.request.GET.get('q', 'A')
+        qset = (
+            Q(comment__istartswith=query) &
+            Q(labels__in=[label])
+            )
+        return cse.annotations().filter(qset).order_by('comment')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(CSELabelDetail, self).get_context_data(**kwargs)
+        query = self.request.GET.get('q', 'A')
+        context['label'] = self.label
+        context['index'] = Annotation.alpha_list(query) # TODO filter by CSE
+        context['query'] = query
+        context['count'] = self.cse.annotation_count() # TODO filter by query
+        context['cse'] = self.cse
+        return context
+
 def index(request, num_annotations=5, template='index.html'):
     """Render main page with lists of recently created and recently modified Annotations"""
     active = Annotation.active
@@ -298,9 +362,3 @@ def results(request, template='gcse/results.html'):
     """Render CSE results"""
     return render_to_response(template,
                               context_instance=RequestContext(request))
-
-def browse_label(request, label, template='gcse/browse_label.html'):
-    pass
-
-def browse_labels(request, label, template='gcse/browse_label.html'):
-    pass

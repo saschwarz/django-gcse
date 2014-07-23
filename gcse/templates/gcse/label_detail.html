@@ -1,0 +1,32 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+{% block title %}{% site "name" %} - Annotations for Label: {{ label.name }}{% endblock %}
+
+{% block content %}
+<h1>Annotations for Label: {{ label.name }}</h1>
+<p>There are {{count}} <span class="annotation tip">Annotations</span> currently in the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} Custom Search Engine</a> with this Label. You can also <a href="{% url 'gcse_label_list' %}">browse all Labels</a>.</p>
+
+{% block alpha-nav %}
+{% include "gcse/alpha-nav.html" %}
+{% endblock alpha-nav %}
+
+<table class="table table-striped search-results">
+  <tbody>
+    <tr><th>Name</th><th>Labels</th><th>URL</th></tr>
+    {% for annotation in annotations %}
+    <tr class="{% cycle 'odd' 'even' %}">
+      <td><a href="{{annotation.get_absolute_url}}">{{ annotation.comment|escape }}</a></td>
+      <td>
+        {% for label in annotation.facet_items_labels %}
+        <a class="label-link" href="{% url 'gcse_label_detail' cse.gid label.id %}">{{ label.name }}</a>
+        {% endfor %}
+      </td>
+      <td><a href="{{ annotation.original_url }}">{{annotation.original_url}}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% block pagination %}
+{% include "gcse/pagination.html" %}
+{% endblock pagination %}
+{% endblock %}

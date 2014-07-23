@@ -1,0 +1,5 @@
+<ul class="pager">
+  <li class="previous"> {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{query}}">previous</a>{% endif %}</li>
+  <li class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</li>
+  <li class="next">{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{query}}">next</a>{% endif %}</li>
+</ul>

@@ -9,9 +9,9 @@
 <h2>Labels</h2>
 <table class="table table-striped search-results">
   <tbody>
-    <tr><th>Name</th></tr>
+    <tr><th>Name</th><th>Description</th></tr>
     {% for label in object.facetitems_labels %}
-    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{{label.get_absolute_url}}">{{ label.name|escape }}</a></td></tr>
+    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{% url 'gcse_cse_label_detail' object.gid label.id %}">{{ label.name|escape }}</a></td><td>{{ label.description }}</td></tr>
     {% endfor %}
   </tbody>
 </table>

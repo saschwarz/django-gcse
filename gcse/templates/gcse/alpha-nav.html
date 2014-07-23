@@ -1,0 +1,6 @@
+<ul class="alpha-nav pagination">
+<colgroup>{% for i in index %}<col width="1*" />{%endfor%}</colgroup>
+{% for i in index %}
+<li class="{{i.style}}"><a href="?q={{i.i}}">{{i.i}}</a></li>
+{% endfor%}
+</ul>

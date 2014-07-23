@@ -35,6 +35,7 @@ settings.GCSE_CONFIG = dict({
         'NUM_ANNOTATIONS_PER_FILE': 1000,
         'NUM_ANNOTATIONS_PER_PAGE': 25,
         'NUM_CSES_PER_PAGE': 25,
+        'NUM_LABELS_PER_PAGE': 25,
         },
         **getattr(settings, 'GCSE_CONFIG' , {}))
 
@@ -77,11 +78,28 @@ class Label(models.Model):
     #     default=False,
     #     help_text=_('Annotations with this Label have a physical address.'))
 
+    def cses(self):
+        """
+        All CustomSearchEngines having this Label as either a background label.
+        or in a FacetItem.
+        """
+        from django.db.models import Q
+        cses = CustomSearchEngine.objects.filter(Q(background_labels=self) |
+                                                 Q(facetitem__label=self)).distinct().order_by('title')
+        return cses
+
+    def annotations(self):
+        """
+        Annotations for this Label regardless of the CustomSearchEngine.
+        """
+        return Annotation.objects.filter(status=Annotation.STATUS.active,
+                                         labels__name__exact=self.name)
+
     class Meta:
         ordering = ["name"]
 
-    def __str__(self):
-        return "%s %s weight: %s" % (self.name, self.get_mode_display(), self.weight)
+    def get_absolute_url(self):
+        return reverse('gcse_label_detail', kwargs={'id': self.id})
 
     @classmethod
     def get_mode(cls, mode_string):
@@ -97,6 +115,9 @@ class Label(models.Model):
                   "mode": self.get_mode_display(),
                   "weight": weight}
         return '<Label name="%(name)s" mode="%(mode)s"%(weight)s/>' % params
+
+    def __str__(self):
+        return "%d %s %s weight: %s" % (self.id, self.name, self.get_mode_display(), self.weight)
 
 
 @python_2_unicode_compatible
@@ -114,11 +135,12 @@ class FacetItem(OrderedModel):
     class Meta(OrderedModel.Meta):
         pass
 
+    def xml(self):
+        return '<FacetItem title="%s">%s</FacetItem>' % (self.title, self.label.xml(complete=False))
+
     def __str__(self):
         return '%s %s' % (self.title, self.label)
 
-    def xml(self):
-        return '<FacetItem title="%s">%s</FacetItem>' % (self.title, self.label.xml(complete=False))
 
 @python_2_unicode_compatible
 class CustomSearchEngine(TimeStampedModel):
@@ -221,7 +243,7 @@ class CustomSearchEngine(TimeStampedModel):
 
     def facetitems_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
-        labels = Label.objects.raw('SELECT * FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.name', [self.id])
+        labels = Label.objects.raw('SELECT gcse_label.* FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.name', [self.id])
         return labels
 
     def get_absolute_url(self):
@@ -317,7 +339,7 @@ class CustomSearchEngine(TimeStampedModel):
             # need to replace id attribute with id of this CSE
             input_xml = self.DEFAULT_XML
             self.input_xml = input_xml
-        
+
         # since lxml doesn't trust encoding directives remove them
         doc = ET.fromstring(input_xml)
         # handle case where user gives us only CustomSearchEngine without
@@ -337,7 +359,7 @@ class CustomSearchEngine(TimeStampedModel):
 
     def update(self):
         super(CustomSearchEngine, self).save()
-        
+
     def save(self, *args, **kwargs):
         if not self.id:
             # need id so foreign key/m2m relations are satisfied
@@ -436,10 +458,14 @@ class Annotation(TimeStampedModel):
                                        related_name='newer_versions',
                                        help_text=_('Set to newer Annotation instance when user modifies this instance'))
 
-    objects = AnnotationManager()
+    def cses(self):
+        """
+        All CustomSearchEngines having the same background_label(s) as this Annotation.
+        """
+        cses = CustomSearchEngine.objects.filter(background_labels__in=self.labels.all())
+        return cses
 
-    def __str__(self):
-        return "%s %s" % (self.comment, self.original_url)
+    objects = AnnotationManager()
 
     @classmethod
     def from_string(cls, xml, klass=None):
@@ -496,7 +522,7 @@ class Annotation(TimeStampedModel):
     def labels_as_links(self, include_background_labels=True):
         return "".join(
             ['<a class="label-link" href="%s">%s</a>' % (
-                reverse('browse_label', args=(l.name,)), l.name)
+                reverse('gcse_label_detail', args=(l.id,)), l.name)
              for l in self.labels.order_by("name") if include_background_labels or not l.background]
             )
 
@@ -506,12 +532,11 @@ class Annotation(TimeStampedModel):
     def facet_item_labels_as_links(self):
         return self.labels_as_links(include_background_labels=False)
 
-    def cses(self):
-        """
-        All CustomSearchEngines having the same background_label(s) as this Annotation.
-        """
-        cses = CustomSearchEngine.objects.filter(background_labels__in=self.labels.all())
-        return cses
+    def get_absolute_url(self):
+        return reverse('gcse_annotation_detail', kwargs={'id': self.id})
+
+    def __str__(self):
+        return "%s %s" % (self.comment, self.original_url)
 
 
 @python_2_unicode_compatible
@@ -759,6 +784,6 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # TODO:
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
-
-
-
+# - change detail views to use slug instead of db id
+# - Add Facet container for FacetItems!
+# - Fix pagination with filters
