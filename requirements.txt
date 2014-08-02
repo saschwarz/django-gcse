@@ -1,7 +1,7 @@
 django>=1.5.1
 django-stw>=0.3,<0.4
 django-model-utils>=2.0,<2.1
-django-ordered-model>=0.3,<0.4
+django-ordered-model>=0.3,<0.5
 #django-recaptcha==0.0.6
 # version that supports django 1.6+
 -e git://github.com/saschwarz/django-recaptcha.git#egg=django-recaptcha
