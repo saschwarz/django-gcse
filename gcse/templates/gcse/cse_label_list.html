@@ -1,0 +1,22 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+{% block title %}{% site "name" %} {{ cse.title }} - All Labels{% endblock %}
+
+
+{% block content %}
+<h1>{{ cse.title }}: All Labels</h1>
+<p>There are {{ object_list|length }} Labels associated with the <a href={% url 'gcse_cse_detail' cse.gid %}> {{ cse.title }}</a> Custom Search Engine.</p>
+<table class="table table-striped search-results">
+  <tr><th>Name</th><th>Number of Annotations</th></tr>
+{% for label in object_list %}
+    <tr>
+      <td><a href="{% url 'gcse_cse_label_detail' cse.gid label.id %}">{{ label.name }}</a></td>
+      <td>
+        {% for cse in label.cses %}
+        <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a>
+        {% endfor %}
+      </td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}
