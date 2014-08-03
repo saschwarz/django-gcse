@@ -4,15 +4,9 @@
 
 {% block content %}
 <h1>{{ object.title }}</h1>
-<p>This Google Custom Search Engine contains {{object.annotation_count}} Annotation entries.</p>
-<p><a href="{% url 'gcse_cse_annotation_list' gid=object.gid %}">View this Custom Search Engine's Annotations</a></p>
-<h2>Labels</h2>
-<table class="table table-striped search-results">
-  <tbody>
-    <tr><th>Name</th><th>Description</th></tr>
-    {% for label in object.facetitems_labels %}
-    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{% url 'gcse_cse_label_detail' object.gid label.id %}">{{ label.name|escape }}</a></td><td>{{ label.description }}</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<p>{{ object.description }}</p>
+<p>Created: {{object.created | date}} {{object.created | time}}</p>
+<p>Last Modified: {{object.modified | date}} {{object.modified | time}}</p>
+<p><a href="{% url 'gcse_cse_annotation_list' gid=object.gid %}">View this Custom Search Engine's {{object.annotation_count}} Annotations</a></p>
+<p><a href="{% url 'gcse_cse_label_list' gid=object.gid %}">View this Custom Search Engine's {{object.facetitems_labels|length}} Labels</a></p>
 {% endblock %}

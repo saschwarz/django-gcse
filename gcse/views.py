@@ -146,12 +146,46 @@ class CSELabelList(ListView):
     paginate_by = settings.GCSE_CONFIG.get('NUM_LABELS_PER_PAGE')
     template_name = 'gcse/cse_label_list.html'
 
+    def get_queryset(self):
+        cse = get_object_or_404(CustomSearchEngine,
+                                gid=self.kwargs['gid'])
+        self.cse = cse
+        return cse.facetitems_labels()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(CSELabelList, self).get_context_data(**kwargs)
+        context['cse'] = self.cse
+        return context
+
 
 class LabelDetail(DetailView):
-
+    """
+    Show the Annotations for a Label across all CustomSearchEngines
+    """
     model = Label
+    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
     slug_url_kwarg = 'id'
     slug_field = 'id'
+    template_name = 'gcse/label_detail.html'
+
+    def get_queryset(self):
+        label = get_object_or_404(Label,
+                                  pk=self.kwargs['id'])
+        self.label = label
+        query = self.request.GET.get('q', 'A')
+        qset = (
+            Q(comment__istartswith=query) #&
+#            Q(labels__in=[label])
+            )
+        return Annotation.objects.active().filter(qset).order_by('comment')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(LabelDetail, self).get_context_data(**kwargs)
+        query = self.request.GET.get('q', 'A')
+        context['label'] = self.label
+        context['index'] = Annotation.alpha_list(query) # TODO filter by CSE
+        context['query'] = query
+        return context
 
 
 class CSELabelDetail(ListView):
@@ -188,6 +222,7 @@ class CSELabelDetail(ListView):
         context['count'] = self.cse.annotation_count() # TODO filter by query
         context['cse'] = self.cse
         return context
+
 
 def index(request, num_annotations=5, template='index.html'):
     """Render main page with lists of recently created and recently modified Annotations"""

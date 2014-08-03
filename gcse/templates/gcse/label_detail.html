@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1>Annotations for Label: {{ label.name }}</h1>
-<p>There are {{count}} <span class="annotation tip">Annotations</span> currently in the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} Custom Search Engine</a> with this Label. You can also <a href="{% url 'gcse_label_list' %}">browse all Labels</a>.</p>
+<p>There are {{count}} <span class="annotation tip">Annotations</span> currently in the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} Custom Search Engine</a> with this Label. You can also <a href="{% url 'gcse_cse_label_list' cse.gid %}">browse all Labels for this Custom Search Engine</a>.</p>
 
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}

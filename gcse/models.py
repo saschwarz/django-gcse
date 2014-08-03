@@ -244,7 +244,7 @@ class CustomSearchEngine(TimeStampedModel):
     def facetitems_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
         labels = Label.objects.raw('SELECT gcse_label.* FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.name', [self.id])
-        return labels
+        return list(labels)
 
     def get_absolute_url(self):
         return reverse('gcse_cse_detail', kwargs={'gid': self.gid})
@@ -489,7 +489,7 @@ class Annotation(TimeStampedModel):
     def alpha_list(cls, selection=None):
         """Return a list of the case insensitive matches of Annotation
         comment's first letters. For use in the view to give alpha based
-        tabs for browsing"""
+        links for browsing"""
         cursor = connection.cursor()
         cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM "
                        "gcse_annotation order by substr(comment, 1, 1)")

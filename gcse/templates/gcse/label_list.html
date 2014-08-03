@@ -5,7 +5,7 @@
 
 {% block content %}
 <h1>All Labels</h1>
-<p>There are {{ count }} Labels are currently in the {% site "name" %} search database.</p>
+<p>There are {{ object_list|length }} Labels are currently in the {% site "name" %} search database.</p>
 <table class="table table-striped search-results">
   <tr><th>Name</th><th>Search Engines</th><Number of Annotations</th></tr>
 {% for label in object_list %}

@@ -12,9 +12,9 @@
 
 <table class="table table-striped search-results">
   <tbody>
-    <tr><th>Name</th><th>Labels</th><th>URL</th></tr>
+    <tr><th>Name</th><th>Labels</th></tr>
     {% for site in annotation_list %}
-    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{{site.get_absolute_url}}">{{ site.comment|escape }}</a></td><td>{{site.facet_item_labels_as_links|safe}}</td><td><a href="{{site.original_url}}">{{site.original_url}}</a></td></tr>
+    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{{site.get_absolute_url}}">{{ site.comment|escape }}</a></td><td>{{site.facet_item_labels_as_links|safe}}</td></tr>
     {% endfor %}
   </tbody>
 </table>

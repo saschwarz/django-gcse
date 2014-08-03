@@ -66,7 +66,7 @@ urlpatterns += patterns('gcse.views',
                             name="gcse_label_list"),
 
                         # One Label (all CSEs)
-                        url(r'^cses/labels/(?P<id>.+)/$',
+                        url(r'^labels/(?P<id>.+)/$',
                             LabelDetail.as_view(),
                             name='gcse_label_detail'),
 
