@@ -241,7 +241,7 @@ class CustomSearchEngine(TimeStampedModel):
     def annotation_count(self):
         return self.annotations().count()
 
-    def facetitems_labels(self):
+    def facet_item_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
         labels = Label.objects.raw('SELECT gcse_label.* FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.name', [self.id])
         return list(labels)
@@ -787,3 +787,4 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # - change detail views to use slug instead of db id
 # - Add Facet container for FacetItems!
 # - Fix pagination with filters
+# - slugify label, annotation, and GCSE

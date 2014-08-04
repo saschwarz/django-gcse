@@ -4,20 +4,31 @@
 
 {% block content %}
 <h1>{{ cse.title }} Annotations</h1>
-<p>There are {{count}} <span class="annotation tip">Annotations</span> for the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} custom search engine</a> in the {% site "name" %} search database. You can also <a href="{% url 'gcse_label_list' %}">browse Annotations by Label</a>.</p>
+<p>There are {{count}} <span class="annotation tip">Annotations</span> for the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} custom search engine</a> in the {% site "name" %} search database. You can also <a href="{% url 'gcse_cse_label_list' cse.gid %}">browse Annotations by Label</a>.</p>
 
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}
 {% endblock alpha-nav %}
 
+{% with cse.facet_item_labels as visible_labels %}
 <table class="table table-striped search-results">
   <tbody>
     <tr><th>Name</th><th>Labels</th></tr>
     {% for site in annotation_list %}
-    <tr class="{% cycle 'odd' 'even' %}"><td><a href="{{site.get_absolute_url}}">{{ site.comment|escape }}</a></td><td>{{site.facet_item_labels_as_links|safe}}</td></tr>
+    <tr class="{% cycle 'odd' 'even' %}">
+      <td><a href="{% url 'gcse_site.get_absolute_url}}">{{ site.comment|escape }}</a></td>
+      <td>
+        {% for label in site.labels.all %}
+        {% if label in visible_labels %}
+        <a href="{% url 'gcse_cse_label_detail' cse.gid label.id %}">{{ label.name }}</a>
+        {% endif %}
+        {% endfor %}
+      </td>
+    </tr>
     {% endfor %}
   </tbody>
 </table>
+{% endwith %}
 {% block pagination %}
 {% include "gcse/pagination.html" %}
 {% endblock pagination %}

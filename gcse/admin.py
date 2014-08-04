@@ -8,10 +8,11 @@ from django.forms import ModelForm, CharField, Textarea
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.template.loader import render_to_string
 from gcse.models import Label, Annotation, CustomSearchEngine, FacetItem
+from ordered_model.admin import OrderedModelAdmin
 
 
 class CustomSearchEngineForm(ModelForm):
- 
+
     def clean_input_xml(self):
         # strip xml encoding so lxml is happy
         input_xml = self.cleaned_data["input_xml"]
@@ -92,6 +93,11 @@ class AnnotationAdmin(admin.ModelAdmin):
     save_on_top = True
 #     form = AnnotationAdminForm
 
-admin.site.register(Annotation, AnnotationAdmin)
-admin.site.register(FacetItem)
 
+admin.site.register(Annotation, AnnotationAdmin)
+
+
+class FacetItemAdmin(OrderedModelAdmin):
+    list_display = ('title', 'move_up_down_links')
+
+admin.site.register(FacetItem, FacetItemAdmin)
