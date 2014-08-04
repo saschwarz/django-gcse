@@ -14,11 +14,11 @@
 <table class="table table-striped search-results">
   <tbody>
     <tr><th>Name</th><th>Labels</th></tr>
-    {% for site in annotation_list %}
+    {% for annotation in annotation_list %}
     <tr class="{% cycle 'odd' 'even' %}">
-      <td><a href="{% url 'gcse_site.get_absolute_url}}">{{ site.comment|escape }}</a></td>
+      <td><a href="{% url 'gcse_site.get_absolute_url}}">{{ annotation.comment|escape }}</a></td>
       <td>
-        {% for label in site.labels.all %}
+        {% for label in annotation.labels.all %}
         {% if label in visible_labels %}
         <a href="{% url 'gcse_cse_label_detail' cse.gid label.id %}">{{ label.name }}</a>
         {% endif %}
@@ -29,7 +29,9 @@
   </tbody>
 </table>
 {% endwith %}
+
 {% block pagination %}
 {% include "gcse/pagination.html" %}
 {% endblock pagination %}
+
 {% endblock %}

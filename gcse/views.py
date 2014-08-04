@@ -88,7 +88,7 @@ class CSEAnnotationList(ListView):
         qset = (
             Q(comment__istartswith=query)
             )
-        return cse.annotations().filter(qset).order_by('comment')
+        return cse.annotations().filter(qset).order_by('comment').prefetch_related('labels')
 
     def get_context_data(self, *args, **kwargs):
         context = super(CSEAnnotationList, self).get_context_data(**kwargs)
@@ -150,7 +150,7 @@ class CSELabelList(ListView):
         cse = get_object_or_404(CustomSearchEngine,
                                 gid=self.kwargs['gid'])
         self.cse = cse
-        return cse.facetitems_labels()
+        return cse.facet_item_labels()
 
     def get_context_data(self, *args, **kwargs):
         context = super(CSELabelList, self).get_context_data(**kwargs)
@@ -193,7 +193,7 @@ class CSELabelDetail(ListView):
     Show the Annotations for a Label in a specific CustomSearchEngine.
     """
     model = Label
-    context_object_name = 'annotations'
+    context_object_name = 'annotation_list'
     paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
     slug_url_kwarg = 'id'
     slug_field = 'id'
@@ -211,7 +211,7 @@ class CSELabelDetail(ListView):
             Q(comment__istartswith=query) &
             Q(labels__in=[label])
             )
-        return cse.annotations().filter(qset).order_by('comment')
+        return cse.annotations().filter(qset).order_by('comment').prefetch_related('labels')
 
     def get_context_data(self, *args, **kwargs):
         context = super(CSELabelDetail, self).get_context_data(**kwargs)

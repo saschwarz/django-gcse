@@ -10,23 +10,28 @@
 {% include "gcse/alpha-nav.html" %}
 {% endblock alpha-nav %}
 
+{% with cse.facet_item_labels as visible_labels %}
 <table class="table table-striped search-results">
   <tbody>
-    <tr><th>Name</th><th>Labels</th><th>URL</th></tr>
-    {% for annotation in annotations %}
+    <tr><th>Name</th><th>Labels</th></tr>
+    {% for annotation in annotation_list %}
     <tr class="{% cycle 'odd' 'even' %}">
       <td><a href="{{annotation.get_absolute_url}}">{{ annotation.comment|escape }}</a></td>
       <td>
-        {% for label in annotation.facet_items_labels %}
-        <a class="label-link" href="{% url 'gcse_label_detail' cse.gid label.id %}">{{ label.name }}</a>
+        {% for label in annotation.labels.all %}
+        {% if label in visible_labels %}
+        <a href="{% url 'gcse_cse_label_detail' cse.gid label.id %}">{{ label.name }}</a>
+        {% endif %}
         {% endfor %}
       </td>
-      <td><a href="{{ annotation.original_url }}">{{annotation.original_url}}</a></td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+{% endwith %}
+
 {% block pagination %}
 {% include "gcse/pagination.html" %}
 {% endblock pagination %}
+
 {% endblock %}
