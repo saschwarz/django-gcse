@@ -12,6 +12,7 @@ import xml.sax.saxutils
 import xml.sax.handler
 
 from django.db import models, connection
+from django.db.models import Count
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
@@ -243,8 +244,15 @@ class CustomSearchEngine(TimeStampedModel):
 
     def facet_item_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
-        labels = Label.objects.raw('SELECT gcse_label.* FROM gcse_label INNER JOIN gcse_facetitem ON gcse_label.id = gcse_facetitem.label_id WHERE gcse_facetitem.cse_id = %s ORDER BY gcse_label.name', [self.id])
-        return list(labels)
+        return Label.objects.filter(background=False, facetitem__cse=self).order_by('name')
+
+    def facet_item_labels_counts(self):
+        """Return all the Labels for the FacetItems associated with this instance and the counts of Annotations associated with them."""
+        labels = self.facet_item_labels()
+        annotations = Annotation.objects.filter(labels__in=labels).values('labels__id').order_by().annotate(Count('labels__id'))
+        count_by_id = dict([(x['labels__id'], x['labels__id__count']) for x in annotations])
+        label_counts = [ (label, count_by_id.setdefault(label.id, 0)) for label in labels]
+        return label_counts
 
     def get_absolute_url(self):
         return reverse('gcse_cse_detail', kwargs={'gid': self.gid})

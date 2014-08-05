@@ -150,7 +150,7 @@ class CSELabelList(ListView):
         cse = get_object_or_404(CustomSearchEngine,
                                 gid=self.kwargs['gid'])
         self.cse = cse
-        return cse.facet_item_labels()
+        return cse.facet_item_labels_counts()
 
     def get_context_data(self, *args, **kwargs):
         context = super(CSELabelList, self).get_context_data(**kwargs)
