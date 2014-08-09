@@ -1,10 +1,23 @@
 {% extends "gcse/base.html" %}
 {% load setting %}
-{% block title %}{% site "name" %} - Annotations for Label: {{ label.name }}{% endblock %}
+{% block title %}{% site "name" %} - Label: {{ label.name }}{% endblock %}
 
 {% block content %}
-<h1>Annotations for Label: {{ label.name }}</h1>
-<p>There are {{total_count}} <span class="annotation tip">Annotations</span> currently in the {% site 'name' %} database with this Label. You can also <a href="{% url 'gcse_label_list' %}">browse all Labels</a>.</p>
+<h1>Label: {{ label.name }}</h1>
+<p>{{ label.description }}</p>
+<table class="table table-striped search-results">
+  <tr><th>Name</th><th>Background</th><th>Mode</th><th>Weight</th></tr>
+    <tr>
+      <td>{{label.name}}</td>
+      <td>{{label.background}}</td>
+      <td>{{label.get_mode_display}}</td>
+      <td>{{label.weight}}</td>
+    </tr>
+</table>
+<p><a href="{% url 'gcse_label_list' %}">Browse all Labels</a>.</p>
+
+<h2>Annotations</h2>
+<p>There are {{total_count}} Annotations currently in the {% site 'name' %} database with this Label. </p>
 
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}
