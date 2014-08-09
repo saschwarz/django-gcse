@@ -7,16 +7,16 @@
 <h1>All Labels</h1>
 <p>There are {{ object_list|length }} Labels are currently in the {% site "name" %} search database.</p>
 <table class="table table-striped search-results">
-  <tr><th>Name</th><th>Search Engines</th><Number of Annotations</th></tr>
-{% for label in object_list %}
-    <tr>
-      <td><a href="{{ label.get_absolute_url }}">{{ label.name }}</a></td>
-      <td>
-        {% for cse in label.cses %}
-        <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a>
-        {% endfor %}
-      </td>
-    </tr>
-{% endfor %}
+  <tr><th>Name</th><th>Search Engines</th></tr>
+  {% for label in object_list %}
+  <tr>
+    <td><a href="{{ label.get_absolute_url }}">{{ label.name }}</a></td>
+    <td>
+      {% for cse in label.cses %}
+      <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a>
+      {% endfor %}
+    </td>
+  </tr>
+  {% endfor %}
 </table>
 {% endblock %}

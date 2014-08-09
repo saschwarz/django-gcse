@@ -93,7 +93,7 @@ class CSEAnnotationList(ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(CSEAnnotationList, self).get_context_data(**kwargs)
         query = self.request.GET.get('q', 'A')
-        context['index'] = Annotation.alpha_list(query)
+        context['index'] = Annotation.alpha_list(selection=query)
         context['query'] = query
         context['count'] = self.cse.annotation_count()
         context['cse'] = self.cse
@@ -119,7 +119,7 @@ class AnnotationList(ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(AnnotationList, self).get_context_data(**kwargs)
         query = self.request.GET.get('q', 'A')
-        context['index'] = Annotation.alpha_list(query)
+        context['index'] = Annotation.alpha_list(selection=query)
         context['query'] = query
         context['count'] = Annotation.objects.count()
         return context
@@ -155,13 +155,16 @@ class CSELabelList(ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(CSELabelList, self).get_context_data(**kwargs)
         context['cse'] = self.cse
+        context['count_facets'] = self.cse.facet_item_labels().count()
+        context['count_labels'] = self.cse.all_labels().count() - context['count_facets']
         return context
 
 
-class LabelDetail(DetailView):
+class LabelDetail(ListView):
     """
     Show the Annotations for a Label across all CustomSearchEngines
     """
+    context_object_name = 'annotation_list'
     model = Label
     paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
     slug_url_kwarg = 'id'
@@ -174,8 +177,8 @@ class LabelDetail(DetailView):
         self.label = label
         query = self.request.GET.get('q', 'A')
         qset = (
-            Q(comment__istartswith=query) #&
-#            Q(labels__in=[label])
+            Q(comment__istartswith=query) &
+            Q(labels__in=[label])
             )
         return Annotation.objects.active().filter(qset).order_by('comment')
 
@@ -183,43 +186,40 @@ class LabelDetail(DetailView):
         context = super(LabelDetail, self).get_context_data(**kwargs)
         query = self.request.GET.get('q', 'A')
         context['label'] = self.label
-        context['index'] = Annotation.alpha_list(query) # TODO filter by CSE
+        context['index'] = Annotation.alpha_list(selection=query, label_id=self.label.id)
         context['query'] = query
+        context['total_count'] = Annotation.objects.active().filter(labels__in=(self.label,)).count()
         return context
 
 
-class CSELabelDetail(ListView):
+class CSELabelDetail(LabelDetail):
     """
     Show the Annotations for a Label in a specific CustomSearchEngine.
     """
-    model = Label
-    context_object_name = 'annotation_list'
-    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
-    slug_url_kwarg = 'id'
-    slug_field = 'id'
-    template_name = 'gcse/label_detail.html'
+    template_name = 'gcse/cse_label_detail.html'
 
     def get_queryset(self):
         label = get_object_or_404(Label,
                                   pk=self.kwargs['id'])
         self.label = label
-        cse = get_object_or_404(CustomSearchEngine,
-                                gid=self.kwargs['gid'])
-        self.cse = cse
+
         query = self.request.GET.get('q', 'A')
         qset = (
             Q(comment__istartswith=query) &
             Q(labels__in=[label])
             )
+        cse = get_object_or_404(CustomSearchEngine,
+                                gid=self.kwargs['gid'])
+        self.cse = cse
         return cse.annotations().filter(qset).order_by('comment').prefetch_related('labels')
 
     def get_context_data(self, *args, **kwargs):
         context = super(CSELabelDetail, self).get_context_data(**kwargs)
         query = self.request.GET.get('q', 'A')
         context['label'] = self.label
-        context['index'] = Annotation.alpha_list(query) # TODO filter by CSE
+        context['index'] = Annotation.alpha_list(selection=query, label_id=self.label.id) # also filter by CSE
         context['query'] = query
-        context['count'] = self.cse.annotation_count() # TODO filter by query
+        context['total_count'] = self.cse.annotation_count(label_id=self.label.id)
         context['cse'] = self.cse
         return context
 

@@ -5,14 +5,21 @@
 
 {% block content %}
 <h1>{{ cse.title }}: All Labels</h1>
-<p>There are {{ object_list|length }} Labels associated with the <a href={% url 'gcse_cse_detail' cse.gid %}> {{ cse.title }}</a> Custom Search Engine.</p>
+<p>There are {{ count_labels }} background Labels and {{ count_facets }} Facets associated with the <a href={% url 'gcse_cse_detail' cse.gid %}> {{ cse.title }}</a> Custom Search Engine.</p>
 <table class="table table-striped search-results">
-  <tr><th>Name</th><th>Number of Annotations</th></tr>
+  <tr><th>Name</th><th>Background</th><th>Mode</th><th class="text-right">Number of Annotations</th></tr>
   {% for label, count in object_list %}
     <tr>
       <td><a href="{% url 'gcse_cse_label_detail' cse.gid label.id %}">{{ label.name }}</a></td>
-      <td>{{count}}</td>
+      <td>{{label.background}}</td>
+      <td>{{label.get_mode_display}}</td>
+      <td class="text-right">{{count}}</td>
     </tr>
 {% endfor %}
 </table>
+
+{% block pagination %}
+{% include "gcse/pagination.html" %}
+{% endblock pagination %}
+
 {% endblock %}

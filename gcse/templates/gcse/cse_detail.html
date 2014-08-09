@@ -8,5 +8,5 @@
 <p>Created: {{object.created | date}} {{object.created | time}}</p>
 <p>Last Modified: {{object.modified | date}} {{object.modified | time}}</p>
 <p><a href="{% url 'gcse_cse_annotation_list' gid=object.gid %}">View this Custom Search Engine's {{object.annotation_count}} Annotations</a></p>
-<p><a href="{% url 'gcse_cse_label_list' gid=object.gid %}">View this Custom Search Engine's {{object.facet_item_labels|length}} Filter Labels</a></p>
+<p><a href="{% url 'gcse_cse_label_list' gid=object.gid %}">View this Custom Search Engine's {{object.all_labels|length}} Filter Labels</a></p>
 {% endblock %}

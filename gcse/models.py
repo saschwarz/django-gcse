@@ -12,7 +12,7 @@ import xml.sax.saxutils
 import xml.sax.handler
 
 from django.db import models, connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
@@ -84,7 +84,6 @@ class Label(models.Model):
         All CustomSearchEngines having this Label as either a background label.
         or in a FacetItem.
         """
-        from django.db.models import Q
         cses = CustomSearchEngine.objects.filter(Q(background_labels=self) |
                                                  Q(facetitem__label=self)).distinct().order_by('title')
         return cses
@@ -206,7 +205,7 @@ class CustomSearchEngine(TimeStampedModel):
                                   blank=True)
 
     background_labels = models.ManyToManyField(Label,
-                                               related_name='cse_background_labels',
+                                               related_name='background_cses',
                                                blank=True,
                                                help_text=_('Labels for this search engine'))
 
@@ -237,10 +236,19 @@ class CustomSearchEngine(TimeStampedModel):
 
     def annotations(self):
         return Annotation.objects.filter(status=Annotation.STATUS.active,
-                                         labels__in=self.background_labels.all()).select_subclasses().order_by('id')
+                                         labels__in=self.background_labels.all()).select_subclasses()
 
-    def annotation_count(self):
-        return self.annotations().count()
+    def annotation_count(self, label_id=None):
+        query = self.annotations()
+        if label_id:
+            return query.filter(labels__in=(label_id,)).count()
+        return query.count()
+
+    def all_labels(self):
+        """Return all the Labels associated with this instance."""
+        return Label.objects.filter(Q(facetitem__cse=self) |
+                                    Q(background=True, background_cses=self)
+                                    ).order_by('name')
 
     def facet_item_labels(self):
         """Return all the Labels for the FacetItems associated with this instance."""
@@ -248,8 +256,8 @@ class CustomSearchEngine(TimeStampedModel):
 
     def facet_item_labels_counts(self):
         """Return all the Labels for the FacetItems associated with this instance and the counts of Annotations associated with them."""
-        labels = self.facet_item_labels()
-        annotations = Annotation.objects.filter(labels__in=labels).values('labels__id').order_by().annotate(Count('labels__id'))
+        labels = self.all_labels() # self.facet_item_labels()
+        annotations = Annotation.objects.filter(Q(labels__in=labels) | Q(labels__in=self.background_labels.all())).values('labels__id').order_by().annotate(Count('labels__id'))
         count_by_id = dict([(x['labels__id'], x['labels__id__count']) for x in annotations])
         label_counts = [ (label, count_by_id.setdefault(label.id, 0)) for label in labels]
         return label_counts
@@ -494,13 +502,18 @@ class Annotation(TimeStampedModel):
         return annotations
 
     @classmethod
-    def alpha_list(cls, selection=None):
+    def alpha_list(cls, selection=None, cse=None, label_id=None):
         """Return a list of the case insensitive matches of Annotation
-        comment's first letters. For use in the view to give alpha based
-        links for browsing"""
+        comment's first letters. For use in views to give alpha based
+        links for browsing."""
         cursor = connection.cursor()
-        cursor.execute("SELECT distinct(substr(comment, 1, 1)) FROM "
-                       "gcse_annotation order by substr(comment, 1, 1)")
+        if label_id is None:
+            cursor.execute("SELECT DISTINCT(SUBSTR(comment, 1, 1)) FROM "
+                           "gcse_annotation ORDER BY SUBSTR(comment, 1, 1)")
+        else:
+            cursor.execute("SELECT DISTINCT(SUBSTR(comment, 1, 1)) FROM "
+                           "gcse_annotation JOIN gcse_annotation_labels ON gcse_annotation.id=gcse_annotation_labels.annotation_id WHERE label_id=%s"
+"ORDER BY SUBSTR(comment, 1, 1)", (label_id,))
         existent = [i[0] for i in cursor.fetchall()]
         results = []
         for i in ascii_letters[26:] + "0123456789":

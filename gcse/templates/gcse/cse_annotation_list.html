@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1>{{ cse.title }} Annotations</h1>
-<p>There are {{count}} <span class="annotation tip">Annotations</span> for the <a href="{{ cse.get_absolute_url }}">{{ cse.title }} custom search engine</a> in the {% site "name" %} search database. You can also <a href="{% url 'gcse_cse_label_list' cse.gid %}">browse Annotations by Label</a>.</p>
+<p>There are {{count}} <span class="annotation tip">Annotations</span> for the <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a> Custom Search Engine (CSE) in the {% site "name" %} search database. You can also browse this CSE's <a href="{% url 'gcse_cse_label_list' cse.gid %}">Annotations by Label</a>.</p>
 
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}
@@ -13,10 +13,18 @@
 {% with cse.facet_item_labels as visible_labels %}
 <table class="table table-striped search-results">
   <tbody>
-    <tr><th>Name</th><th>Labels</th></tr>
+    <tr><th>Name</th><th>Background Labels</th><th>Facet Labels</th></tr>
     {% for annotation in annotation_list %}
+    {% with annotation.labels.all as all_labels %}
     <tr class="{% cycle 'odd' 'even' %}">
       <td><a href="{% url 'gcse_site.get_absolute_url}}">{{ annotation.comment|escape }}</a></td>
+      <td>
+        {% for label in annotation.labels.all %}
+        {% if label.background %}
+        <a href="{% url 'gcse_cse_label_detail' cse.gid label.id %}">{{ label.name }}</a>
+        {% endif %}
+        {% endfor %}
+      </td>
       <td>
         {% for label in annotation.labels.all %}
         {% if label in visible_labels %}
@@ -25,6 +33,7 @@
         {% endfor %}
       </td>
     </tr>
+    {% endwith %}
     {% endfor %}
   </tbody>
 </table>
