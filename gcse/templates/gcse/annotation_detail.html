@@ -1,0 +1,23 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+{% block title %}{% site "name" %} - Annotation: {{ object.comment }}{% endblock %}
+
+{% block content %}
+<h1>{{ object.comment }}</h1>
+<p>{{ object.description }}</p>
+<p>Status: {{ object.get_status_display }}</p>
+
+<h2>Labels</h2>
+<table class="table table-striped search-results">
+  <tr><th>Name</th><th>Background</th><th>Mode</th><th>Weight</th></tr>
+  {% for label in object.labels.all %}
+    <tr>
+      <td>{{label.name}}</td>
+      <td>{{label.background}}</td>
+      <td>{{label.get_mode_display}}</td>
+      <td>{{label.weight}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

@@ -71,13 +71,35 @@ class CSEAnnotations(ListView):
         return cse.annotations()
 
 
-class CSEAnnotationList(ListView):
+class AnnotationList(ListView):
     """
-    Render all the Annotations in alphabetical order in a paged manner for a single CSE.
+    Render all the Annotations in alphabetical order in a paged manner.
     """
     context_object_name = 'annotation_list'
     model = Annotation
     paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
+    template_name = 'gcse/annotation_list.html'
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', 'A')
+        qset = (
+            Q(comment__istartswith=query)
+            )
+        return Annotation.objects.active().filter(qset).distinct().order_by('comment') #.prefetch_related('labels')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(AnnotationList, self).get_context_data(**kwargs)
+        query = self.request.GET.get('q', 'A')
+        context['index'] = Annotation.alpha_list(selection=query)
+        context['query'] = query
+        context['count'] = Annotation.objects.count()
+        return context
+
+
+class CSEAnnotationList(AnnotationList):
+    """
+    Render all the Annotations in alphabetical order in a paged manner for a single CSE.
+    """
     template_name = 'gcse/cse_annotation_list.html'
 
     def get_queryset(self):
@@ -100,33 +122,11 @@ class CSEAnnotationList(ListView):
         return context
 
 
-class AnnotationList(ListView):
-    """
-    Render all the Annotations in alphabetical order in a paged manner.
-    """
-    context_object_name = 'annotation_list'
-    model = Annotation
-    paginate_by = settings.GCSE_CONFIG.get('NUM_ANNOTATIONS_PER_PAGE')
-    template_name = 'gcse/annotation_list.html'
-
-    def get_queryset(self):
-        query = self.request.GET.get('q', 'A')
-        qset = (
-            Q(comment__istartswith=query)
-            )
-        return Annotation.objects.active().filter(qset).distinct().order_by('comment')
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(AnnotationList, self).get_context_data(**kwargs)
-        query = self.request.GET.get('q', 'A')
-        context['index'] = Annotation.alpha_list(selection=query)
-        context['query'] = query
-        context['count'] = Annotation.objects.count()
-        return context
-
-
 class AnnotationDetail(DetailView):
-    pass
+    model = Annotation
+    slug_url_kwarg = 'id'
+    slug_field = 'id'
+    template_name = 'gcse/annotation_detail.html'
 
 
 class LabelList(ListView):
@@ -138,12 +138,10 @@ class LabelList(ListView):
     template_name = 'gcse/label_list.html'
 
 
-class CSELabelList(ListView):
+class CSELabelList(LabelList):
     """
     Render all the Labels for a Custom Search Engine in alphabetical order in a paged manner.
     """
-    model = Label
-    paginate_by = settings.GCSE_CONFIG.get('NUM_LABELS_PER_PAGE')
     template_name = 'gcse/cse_label_list.html'
 
     def get_queryset(self):
@@ -180,7 +178,7 @@ class LabelDetail(ListView):
             Q(comment__istartswith=query) &
             Q(labels__in=[label])
             )
-        return Annotation.objects.active().filter(qset).order_by('comment').prefetch_related('labels__background_cses')
+        return Annotation.objects.active().filter(qset).order_by('comment')#.prefetch_related()
 
     def get_context_data(self, *args, **kwargs):
         context = super(LabelDetail, self).get_context_data(**kwargs)
