@@ -6,6 +6,7 @@
 <h1>{{ cse.title }} Annotations</h1>
 <p>There are {{count}} Annotations for the <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a> Custom Search Engine (CSE) in the {% site "name" %} search database. You can also browse this CSE's <a href="{% url 'gcse_cse_label_list' cse.gid %}">Labels</a>.</p>
 
+<p>Click a letter/number below to filter the Annotations by name.</p>
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}
 {% endblock alpha-nav %}

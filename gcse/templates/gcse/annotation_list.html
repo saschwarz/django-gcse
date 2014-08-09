@@ -4,8 +4,9 @@
 
 {% block content %}
 <h1>All Annotations</h1>
-<p>There are {{count}} <span class="annotation tip">Annotations</span> are currently in the {% site "name" %} database. You can also <a href="{% url 'gcse_label_list' %}">browse Annotations by Label</a>.</p>
-
+<p>There are {{count}} Annotations currently in the {% site "name" %} database.</p>
+<p>Browse all <a href="{% url 'gcse_label_list' %}"> Annotations by Label</a>.</p>
+<p>Click a letter/number below to filter the Annotations by name.</p>
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}
 {% endblock alpha-nav %}

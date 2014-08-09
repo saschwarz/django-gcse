@@ -3,7 +3,7 @@
 {% block title %}{% site "name" %} - Label: {{ label.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ cse.title }} Label: {{ label.name }}</h1>
+<h1>{{ cse.title }} - Label: {{ label.name }}</h1>
 <p>{{ label.description }}</p>
 <table class="table table-striped search-results">
   <tr><th>Name</th><th>Background</th><th>Mode</th><th>Weight</th></tr>
@@ -14,11 +14,12 @@
       <td>{{label.weight}}</td>
     </tr>
 </table>
-<p>All of this CSE's <a href="{% url 'gcse_cse_label_list' cse.gid %}">Labels</a>.</p>
+<p>Browse all of this CSE's <a href="{% url 'gcse_cse_label_list' cse.gid %}">Labels</a>.</p>
 
 <h2>Annotations</h2>
-<p>There are {{total_count}} Annotations tagged with this Label in the <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a> Custom Search Engine (CSE) in the {% site "name" %} search database. </p>
-<p>All of this CSE's <a href="{% url 'gcse_cse_annotation_list' cse.gid %}">Annotations</a>.</p>
+<p>There are {{total_count}} Annotations tagged with this Label in the <a href="{{ cse.get_absolute_url }}">{{ cse.title }}</a> Custom Search Engine (CSE). </p>
+<p>Browse all of this CSE's <a href="{% url 'gcse_cse_annotation_list' cse.gid %}">Annotations</a>.</p>
+<p>Click a letter/number below to filter the Annotations by name.</p>
 
 {% block alpha-nav %}
 {% include "gcse/alpha-nav.html" %}

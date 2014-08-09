@@ -180,7 +180,7 @@ class LabelDetail(ListView):
             Q(comment__istartswith=query) &
             Q(labels__in=[label])
             )
-        return Annotation.objects.active().filter(qset).order_by('comment')
+        return Annotation.objects.active().filter(qset).order_by('comment').prefetch_related('labels__background_cses')
 
     def get_context_data(self, *args, **kwargs):
         context = super(LabelDetail, self).get_context_data(**kwargs)
