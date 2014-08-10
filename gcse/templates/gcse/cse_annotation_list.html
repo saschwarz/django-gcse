@@ -18,7 +18,7 @@
     {% for annotation in annotation_list %}
     {% with annotation.labels.all as all_labels %}
     <tr class="{% cycle 'odd' 'even' %}">
-      <td><a href="{% url 'gcse_site.get_absolute_url}}">{{ annotation.comment|escape }}</a></td>
+      <td><a href="{{ annotation.get_absolute_url }}">{{ annotation.comment|escape }}</a></td>
       <td>
         {% for label in annotation.labels.all %}
         {% if label.background %}

@@ -5,14 +5,27 @@
 {% block content %}
 <h1>{{ object.comment }}</h1>
 <p>{{ object.description }}</p>
-<p>Status: {{ object.get_status_display }}</p>
-
+<table class="table table-striped search-results">
+  <tr><th>Status</th><th>Original URL</th><th>Google Regexp</th><th>Score</th></tr>
+  <tr>
+    <td>{{ object.get_status_display }}</td>
+    <td><a href="{{ object.original_url}}">{{ object.original_url }}</a></td>
+    <td>{{ object.about }}</td>
+    <td>{{ object.score }}</td>
+  </tr>
+</table>
+<p>Used in these Custom Search Engines:</p>
+<ul>
+{% for cse in object.cses %}
+<li><a href="{% url 'gcse_cse_detail' cse.gid %}">{{ cse.title }}</a></li>
+{% endfor %}
+</ul>
 <h2>Labels</h2>
 <table class="table table-striped search-results">
   <tr><th>Name</th><th>Background</th><th>Mode</th><th>Weight</th></tr>
   {% for label in object.labels.all %}
     <tr>
-      <td>{{label.name}}</td>
+      <td><a href="{% url 'gcse_label_detail' label.id %}">{{ label.name }}</a></td>
       <td>{{label.background}}</td>
       <td>{{label.get_mode_display}}</td>
       <td>{{label.weight}}</td>
