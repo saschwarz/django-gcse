@@ -18,13 +18,15 @@ class ViewsTemplatesTestCase(TestCase):
 
         self.label = Label(name='name', description='description')
         self.label.save()
-        self.annotation = Annotation(comment='A Site Name', 
+        self.annotation = Annotation(comment='A Site Name',
                                      original_url='http://example.com/',
                                      status=Annotation.STATUS.active)
         self.annotation.save()
         self.annotation.labels.add(self.label)
         self.annotation.save()
-        self.cse = CustomSearchEngine.objects.create(gid="g123-456-AZ0", title="CSE 1234568", description="Description")
+        self.cse = CustomSearchEngine.objects.create(gid="g123-456-AZ0",
+                                                     title="CSE 1234568",
+                                                     description="Description")
         self.cse.background_labels.add(self.label)
         self.cse.save()
         self.old_pagination = CSEAnnotations.paginate_by
@@ -46,9 +48,9 @@ class ViewsTemplatesTestCase(TestCase):
     def test_cse_xml(self):
         response = self.client.get(reverse('gcse_cse', args=(self.cse.gid,)))
         self.assertEqual(200, response.status_code)
-        self.assertContains(response, 
+        self.assertContains(response,
                             '<CustomSearchEngine id="g123-456-AZ0" language="en" encoding="utf-8" enable_suggest="true">')
-        self.assertContains(response, 
+        self.assertContains(response,
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.0.xml"/>')
 
     def test_cse_xml_multiple_annotations(self):
@@ -59,11 +61,11 @@ class ViewsTemplatesTestCase(TestCase):
             response = self.client.get(reverse('gcse_cse', args=(self.cse.gid,)))
 
         self.assertEqual(200, response.status_code)
-        self.assertContains(response, 
+        self.assertContains(response,
                             '<CustomSearchEngine id="g123-456-AZ0" language="en" encoding="utf-8" enable_suggest="true">')
-        self.assertContains(response, 
+        self.assertContains(response,
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.0.xml"/>')
-        self.assertContains(response, 
+        self.assertContains(response,
                             '<Include type="Annotations" href="//example.com/annotations/g123-456-AZ0.1.xml"/>')
 
     def test_cse_list_view(self):
@@ -125,7 +127,7 @@ class ViewsTemplatesTestCase(TestCase):
         AnnotationList.paginate_by = 1
 
         response = self.client.get(reverse('gcse_annotation_list')+"?q=S")
-        
+
         self.assertEqual(200, response.status_code)
         self.assertTemplateUsed(response, 'gcse/annotation_list.html')
         self.assertContains(response, 'Site Name 2')
@@ -138,13 +140,76 @@ class ViewsTemplatesTestCase(TestCase):
         self._add_annotation('Site Name 3')
         AnnotationList.paginate_by = 1
         response = self.client.get(reverse('gcse_annotation_list')+"?q=S&page=2")
-        
+
         self.assertEqual(200, response.status_code)
         self.assertTemplateUsed(response, 'gcse/annotation_list.html')
         self.assertNotContains(response, 'Site Name 2')
         self.assertContains(response, 'Site Name 3')
         self.assertContains(response, 'Page 2 of 2')
         self.assertContains(response, 'class="selected"><a href="?q=S"')
+
+    def test_custom_search_engine_list(self):
+        response = self.client.get(reverse('gcse_cse_list'))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/cse_list.html')
+        self.assertContains(response, 'CSE 1234568')
+        self.assertContains(response, 'Description', 2)
+        self.assertContains(response, 'Page 1 of 1')
+        self.assertContains(response, '/cses/g123-456-AZ0/')
+
+    def test_custom_search_engine_detail(self):
+        response = self.client.get(reverse('gcse_cse_detail', kwargs={'gid': self.cse.gid}))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/cse_detail.html')
+        self.assertContains(response, 'CSE 1234568')
+        self.assertContains(response, 'Description', 1)
+        self.assertContains(response, '/cses/g123-456-AZ0/')
+        self.assertContains(response, "View this Custom Search Engine's 1 Annotations")
+        self.assertContains(response, "/cses/g123-456-AZ0/labels/")
+        self.assertContains(response, "View this Custom Search Engine's 0 Labels")
+
+    def test_annotation_list(self):
+        response = self.client.get(reverse('gcse_annotation_list'))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation_list.html')
+        self.assertContains(response, 'There are 1 Annotations currently in the example.com database')
+        self.assertContains(response, 'CSE 1234568')
+        self.assertContains(response, 'A Site Name')
+        self.assertContains(response, '/annotations/1/')
+        self.assertContains(response, "/labels/1/")
+        self.assertContains(response, "Page 1 of 1")
+        self.assertContains(response, "disabled", 35)
+        self.assertContains(response, "selected", 1)
+
+    def test_annotation_detail(self):
+        response = self.client.get(reverse('gcse_annotation_detail', kwargs={'id': self.annotation.id}))
+        print(response.content)
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/annotation_detail.html')
+        self.assertContains(response, 'There are 1 Annotations currently in the example.com database')
+        self.assertContains(response, 'CSE 1234568')
+        self.assertContains(response, 'A Site Name')
+        self.assertContains(response, '/annotations/1/')
+        self.assertContains(response, "/labels/1/")
+        self.assertContains(response, "Page 1 of 1")
+        self.assertContains(response, "disabled", 35)
+        self.assertContains(response, "selected", 1)
+
+    def test_label_list(self):
+        response = self.client.get(reverse('gcse_label_list'))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/label_list.html')
+        self.assertContains(response, 'There are 1 Labels currently in the example.com database')
+        self.assertContains(response, 'CSE 1234568')
+        self.assertContains(response, '/cses/g123-456-AZ0/')
+        self.assertContains(response, "/labels/1/")
+        self.assertContains(response, "Page 1 of 1")
+
 
 #     def test_search(self):
 #         response = self.client.get(reverse('gcse_search'))
