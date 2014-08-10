@@ -256,10 +256,10 @@ class CustomSearchEngine(TimeStampedModel):
 
     def facet_item_labels_counts(self):
         """Return all the Labels for the FacetItems associated with this instance and the counts of Annotations associated with them."""
-        labels = self.all_labels() # self.facet_item_labels()
+        labels = self.facet_item_labels()
         annotations = Annotation.objects.filter(Q(labels__in=labels) | Q(labels__in=self.background_labels.all())).values('labels__id').order_by().annotate(Count('labels__id'))
         count_by_id = dict([(x['labels__id'], x['labels__id__count']) for x in annotations])
-        label_counts = [ (label, count_by_id.setdefault(label.id, 0)) for label in labels]
+        label_counts = [(label, count_by_id.setdefault(label.id, 0)) for label in labels]
         return label_counts
 
     def get_absolute_url(self):

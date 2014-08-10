@@ -50,7 +50,7 @@ FACETED_XML = b"""<GoogleCustomizations version="1.0">
       <!-- max of FOUR Facets each with at most FOUR FacetItems -->
       <Facet>
         <FacetItem title="Blogs">
-          <Label name="blogs" mode="BOOST"/>
+          <Label name="blog" mode="BOOST"/>
         </FacetItem>
         <FacetItem title="Clubs">
           <Label name="club" mode="FILTER"/>
@@ -198,12 +198,12 @@ class TestCSEUpdateXML(TestCase):
         cse = CustomSearchEngine(gid="c12345-r999",
                                  input_xml=CSE_XML)
         cse.save()
-        self.assertEqual('c12345-r999', 
+        self.assertEqual('c12345-r999',
                          _extractPath(cse.output_xml,
                                       "/GoogleCustomizations/CustomSearchEngine")[0].attrib['id'])
 
         self.assertEqual('', cse.title) # no title set so leave XML alone
-        self.assertEqual("AgilityNerd Site Search", 
+        self.assertEqual("AgilityNerd Site Search",
                          _extractPathElementText(cse.output_xml, "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_when_title_is_changed(self):
@@ -211,8 +211,8 @@ class TestCSEUpdateXML(TestCase):
                                  title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
-        self.assertEqual(cse.title, 
-                         _extractPathElementText(cse.output_xml, 
+        self.assertEqual(cse.title,
+                         _extractPathElementText(cse.output_xml,
                                                  "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_title_element_when_there_is_no_title_element(self):
@@ -221,8 +221,8 @@ class TestCSEUpdateXML(TestCase):
                                  title="""Here's a new title in need of escaping: &<>""",
                                  input_xml=input_xml)
         cse.save()
-        self.assertEqual(cse.title, 
-                         _extractPathElementText(cse.output_xml, 
+        self.assertEqual(cse.title,
+                         _extractPathElementText(cse.output_xml,
                                                  "/GoogleCustomizations/CustomSearchEngine/Title"))
 
     def test_output_xml_has_new_description_when_description_is_changed(self):
@@ -230,8 +230,8 @@ class TestCSEUpdateXML(TestCase):
                                  description="""Here's a new description in need of escaping: &<>""",
                                  input_xml=CSE_XML)
         cse.save()
-        self.assertEqual(cse.description, 
-                         _extractPathElementText(cse.output_xml, 
+        self.assertEqual(cse.description,
+                         _extractPathElementText(cse.output_xml,
                                                  "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_new_description_element_when_there_is_no_description_element(self):
@@ -241,8 +241,8 @@ class TestCSEUpdateXML(TestCase):
                                  input_xml=input_xml)
         cse.save()
 
-        self.assertEqual(cse.description, 
-                         _extractPathElementText(cse.output_xml, 
+        self.assertEqual(cse.description,
+                         _extractPathElementText(cse.output_xml,
                                                  "/GoogleCustomizations/CustomSearchEngine/Description"))
 
     def test_output_xml_has_new_title_and_description_when_neither_exist(self):
@@ -456,17 +456,16 @@ class TestCSESAXHandler(TestCase):
         self.cse, annotation_urls = self.handler.parseString(FACETED_XML)
         cse = self.cse
         self.assertEqual(12, cse.facetitem_set.count())
-        labels = cse.facetitems_labels()
+        self.assertEqual(12, len(cse.facet_item_labels_counts()))
+        labels = cse.facet_item_labels()
         label_names = set([x.name for x in labels])
-        self.assertEqual(set(["blogs", "club", "equipment", "forum", "general", "organization", "service", "store", "training", "facility", "video", "rental"]),
+        self.assertEqual(set(["blog", "club", "equipment", "forum", "general", "organization", "service", "store", "training", "facility", "video", "rental"]),
                          label_names)
 
         label_modes = [x.mode for x in labels]
         self.assertTrue(Label.MODE.filter in label_modes)
         self.assertFalse(Label.MODE.eliminate in label_modes)
         self.assertTrue(Label.MODE.boost in label_modes)
-
-        self.assertEqual(1, len([x for x in labels if x.weight==0.8]))
 
         self.assertEqual(set(["_cse_csekeystring", "_cse_exclude_csekeystring"]),
                          set([x.name for x in cse.background_labels.all()]))
@@ -736,16 +735,16 @@ class AnnotationsLabelsLinks(TestCase):
         self.annotation = active
 
     def test_labels_as_links_shows_all_labels(self):
-        self.assertEqual('<a class="label-link" href="/site/label/Background%20Label">Background Label</a><a class="label-link" href="/site/label/Label%20%26%20Name">Label & Name</a>',
+        self.assertEqual('<a class="label-link" href="/labels/2/">Background Label</a><a class="label-link" href="/labels/1/">Label & Name</a>',
                          self.annotation.labels_as_links())
 
     def test_labels_as_links_hides_background_labels(self):
-        self.assertEqual('<a class="label-link" href="/site/label/Label%20%26%20Name">Label & Name</a>',
+        self.assertEqual('<a class="label-link" href="/labels/1/">Label & Name</a>',
                          self.annotation.labels_as_links(include_background_labels=False))
 
 
 class AnnotationsLabels(TestCase):
-    
+
     def test_guess_google_url_for_a_single_page(self):
         self.assertEqual('example.com/foo.html',
                          Annotation.guess_google_url("http://example.com/foo.html"))
