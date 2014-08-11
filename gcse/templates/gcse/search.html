@@ -1,13 +1,11 @@
 {% extends "gcse/base.html" %}
 {% load setting %}
 
-{% block title %}{% site "name" %} - Find, Edit, or Add to {% site "name" %}{% endblock %}
+{% block title %}{% site "name" %} - Search for Annoation{% endblock %}
 
 {% block content %}
-  <h1>Find, Edit or Add  to {% site "name" %}</h1>
-  <p>See if we already have your favorite place in our database.</p>
-  <p>If we do you can visit their website, get driving directions and contact information.<br/>If it is missing information you can edit/update the information.<br/>If your favorite place isn't listed you can add it.</p>
-  <p>It doesn't need to have a web site to be listed!</p>
+  <h1>Search Annotation Names and URLs</h1>
+  <p>See if we have your favorite place in our database.</p>
   <form action="." method="get">
     <label style="font-weight:bold">Name, web site name or web site address: </label><br/>
     <input type="text" name="q" value="{{ query|escape }}" size="30"/>
@@ -15,30 +13,25 @@
     <p class="help">i.e. agilitynerd</p>
   </form>
   {% if query %}
-    {% if results.object_list %}
-      <h2>Businesses and Web Sites Matching "{{ query|escape }}":</h2>
-      <table class="searchResults" style="width:100%"><tbody>
-      <tr><th>Name</th><th>Web Site</th><th>Actions</th></tr>
-      {% for site in results.object_list %}
-        <tr class="{% cycle 'odd' 'even' %}"><td>{{ site.comment|escape }}</td><td><a href="{{site.original_url}}">{{ site.original_url|escape }}</a></td><td style="text-align:center"><a href="../view/{{site.id|escape}}/">View</a>&nbsp;<a href="../edit/{{site.id|escape}}/">Edit</a></td></tr>
+  {% if object_list %}
+  <h2>Annotations Containing "{{ query|escape }}":</h2>
+  <table class="table table-striped searchResults">
+    <tbody>
+      <tr><th>Name</th><th>Web Site</th></tr>
+      {% for site in object_list %}
+      <tr class="{% cycle 'odd' 'even' %}">
+        <td><a href="{% url 'gcse_annotation_detail' site.id %}">{{ site.comment|escape }}</td>
+        <td>{{ site.original_url }}</td>
+      </tr>
       {% endfor %}
-      </tbody></table>
-      <div class="pagination">
-        <span class="step-links">
-        {% if results.has_previous %}
-            <a href="?q={{query|escape}}&page={{ results.previous_page_number }}">previous</a>
-        {% endif %}
-        <span class="current">
-            Page {{ results.number }} of {{ results.paginator.num_pages }}
-        </span>
-        {% if results.has_next %}
-            <a href="?q={{query|escape}}&page={{ results.next_page_number }}">next</a>
-        {% endif %}
-	</span>
-	</div>
-	<p style="font-weight:bold">Don't see your site? <a href="../add/">Please Add It!</a></p>
-    {% else %}
-      <p><span class="required" style="font-weight:bold">No businesses or web sites found</span> - <a href="../add/">Please Add It!</a></p>
-    {% endif %}
-  {% endif %}
+    </tbody>
+  </table>
+
+  {% block pagination %}
+  {% include "gcse/pagination.html" %}
+  {% endblock pagination %}
+  {% else %}
+<p class="bg-warning">No Annotations found.</p>
+{% endif %}
+{% endif %}
 {% endblock %}

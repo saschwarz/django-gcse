@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
 from .feeds import RssLatestFeed, AtomLatestFeed
-from .views import (AnnotationList, AnnotationDetail,
+from .views import (AnnotationList, AnnotationSearchList, AnnotationDetail,
                     CSEAnnotations, CSEAnnotationList,
                     CustomSearchEngineList,
                     CustomSearchEngineDetail, CustomSearchEngineDetailXML,
@@ -20,7 +20,7 @@ urlpatterns = patterns('',
                        )
 
 urlpatterns += patterns('gcse.views',
-                        url(r'^$', 'index', name="home"),
+
                         # urls for Google search related resources
                         url(r'^(?P<gid>[\w-]+).xml$',
                             CustomSearchEngineDetailXML.as_view(),
@@ -49,6 +49,11 @@ urlpatterns += patterns('gcse.views',
                         url(r'^annotations/$',
                             AnnotationList.as_view(),
                             name='gcse_annotation_list'),
+
+                        # Search for Annotations containing string
+                        url(r'^annotations/search/$',
+                            AnnotationSearchList.as_view(),
+                            name='gcse_search'),
 
                         # One Annotation
                         url(r'^annotations/(?P<id>.+)/$',
@@ -80,7 +85,6 @@ urlpatterns += patterns('gcse.views',
                             CSELabelDetail.as_view(),
                             name='gcse_cse_label_detail'),
 
-                        url(r'^site/search/$', 'search', name='gcse_search'),
                         # url(r'^site/edit/(?P<id>\d+)/$', 'edit', name='edit'),
                         # url(r'^site/view/(?P<id>\d+)/$', 'view', name='view'),
                         # url(r'^site/add/$', 'edit', {'add': True}, name='add'),

@@ -202,7 +202,7 @@ class ViewsTemplatesTestCase(TestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertTemplateUsed(response, 'gcse/label_list.html')
-        self.assertContains(response, 'There are 1 Labels currently in the example.com database')
+        self.assertContains(response, 'There is 1 Label currently in the example.com database')
         self.assertContains(response, 'CSE 1234568')
         self.assertContains(response, '/cses/g123-456-AZ0/')
         self.assertContains(response, "/labels/1/")
@@ -251,30 +251,37 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, "disabled", 35)
         self.assertContains(response, "selected", 1)
 
-#     def test_search(self):
-#         response = self.client.get(reverse('gcse_search'))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/search.html')
+    def test_search_initial_display(self):
+        response = self.client.get(reverse('gcse_search'))
 
-#     def test_results(self):
-#         response = self.client.get(reverse('gcse_results'))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/results.html')
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/search.html')
+        self.assertNotContains(response, "Page 1 of 1")
+        self.assertNotContains(response, "No Annotations found.")
+
+    def test_search_one_found(self):
+        response = self.client.get(reverse('gcse_search')+"?q=example")
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/search.html')
+        self.assertContains(response, "Page 1 of 1")
+
+    def test_search_none_found(self):
+        response = self.client.get(reverse('gcse_search')+"?q=xxxxxxxx")
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/search.html')
+        self.assertContains(response, "No Annotations found.")
+
+    def test_results(self):
+        response = self.client.get(reverse('gcse_results'))
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/results.html')
 
 #     def test_edit(self):
 #         response = self.client.get(reverse('gcse_edit', kwargs={"id":self.annotation.id}))
 #         self.assertEqual(200, response.status_code)
 #         self.assertTemplateUsed(response, 'gcse/edit.html')
-
-#     def test_view(self):
-#         response = self.client.get(reverse('gcse_view', kwargs={"id":self.annotation.id}))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/view.html')
-
-#     def test_browse_by_label(self):
-#         response = self.client.get(reverse('gcse_browse_by_label'))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/browse_by_label_tabbed.html')
 
 #     def test_add(self):
 #         response = self.client.get(reverse('gcse_add'))
