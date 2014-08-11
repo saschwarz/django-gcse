@@ -186,18 +186,16 @@ class ViewsTemplatesTestCase(TestCase):
 
     def test_annotation_detail(self):
         response = self.client.get(reverse('gcse_annotation_detail', kwargs={'id': self.annotation.id}))
-        print(response.content)
 
         self.assertEqual(200, response.status_code)
         self.assertTemplateUsed(response, 'gcse/annotation_detail.html')
-        self.assertContains(response, 'There are 1 Annotations currently in the example.com database')
+        self.assertContains(response, '<h1>A Site Name</h1>')
         self.assertContains(response, 'CSE 1234568')
-        self.assertContains(response, 'A Site Name')
-        self.assertContains(response, '/annotations/1/')
+        self.assertContains(response, "active")
+        self.assertContains(response, '/cses/g123-456-AZ0/')
         self.assertContains(response, "/labels/1/")
-        self.assertContains(response, "Page 1 of 1")
-        self.assertContains(response, "disabled", 35)
-        self.assertContains(response, "selected", 1)
+        self.assertContains(response, "FILTER")
+        self.assertContains(response, "http://example.com/")
 
     def test_label_list(self):
         response = self.client.get(reverse('gcse_label_list'))
@@ -210,6 +208,48 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, "/labels/1/")
         self.assertContains(response, "Page 1 of 1")
 
+    def test_cse_label_list(self):
+        response = self.client.get(reverse('gcse_cse_label_list', kwargs={'gid': self.cse.gid}))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/cse_label_list.html')
+        self.assertContains(response, 'There are 0 background Labels and 0 Facets associated with the')
+        self.assertContains(response, 'CSE 1234568: All Labels')
+
+    def test_label_detail(self):
+        response = self.client.get(reverse('gcse_label_detail', kwargs={'id': self.label.id}))
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/label_detail.html')
+        self.assertContains(response, '<h1>Label: name</h1>')
+        self.assertContains(response, 'description')
+        self.assertContains(response, 'False')
+        self.assertContains(response, 'There are 1 Annotations currently in the example.com database with this Label.')
+        self.assertContains(response, '/annotations/1/')
+        self.assertContains(response, "/labels/1/")
+        self.assertContains(response, "FILTER")
+        self.assertContains(response, "Page 1 of 1")
+        self.assertContains(response, "disabled", 35)
+        self.assertContains(response, "selected", 1)
+
+    def test_cse_label_detail(self):
+        response = self.client.get(reverse('gcse_cse_label_detail', kwargs={'gid': self.cse.gid,
+                                                                            'id': self.label.id}))
+
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, 'gcse/cse_label_detail.html')
+        self.assertContains(response, '<h1>CSE 1234568 - Label: name</h1>')
+        self.assertContains(response, 'name')
+        self.assertContains(response, 'False')
+        self.assertContains(response, "FILTER")
+        self.assertContains(response, 'There are 1 Annotations tagged with this Label in the')
+        self.assertContains(response, '/cses/g123-456-AZ0/')
+        self.assertContains(response, '/cses/g123-456-AZ0/annotations/')
+        self.assertContains(response, "/annotations/1/")
+        self.assertContains(response, "Page 1 of 1")
+        self.assertContains(response, "disabled", 35)
+        self.assertContains(response, "selected", 1)
 
 #     def test_search(self):
 #         response = self.client.get(reverse('gcse_search'))
