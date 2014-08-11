@@ -1,0 +1,6 @@
+<form action="{% url 'gcse_search' %}" method="get">
+  <label style="font-weight:bold">Name, web site name or web site address: </label><br/>
+  <input type="text" name="q" value="{{ query|escape }}" size="30"/>
+  <input type="submit" value="Search"/>
+  <p class="help">i.e. django</p>
+</form>

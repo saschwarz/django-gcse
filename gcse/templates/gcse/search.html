@@ -1,17 +1,12 @@
 {% extends "gcse/base.html" %}
 {% load setting %}
-
 {% block title %}{% site "name" %} - Search for Annoation{% endblock %}
 
 {% block content %}
   <h1>Search Annotation Names and URLs</h1>
   <p>See if we have your favorite place in our database.</p>
-  <form action="." method="get">
-    <label style="font-weight:bold">Name, web site name or web site address: </label><br/>
-    <input type="text" name="q" value="{{ query|escape }}" size="30"/>
-    <input type="submit" value="Search"/>
-    <p class="help">i.e. agilitynerd</p>
-  </form>
+  {% include "gcse/annotation_search.html" %}
+
   {% if query %}
   {% if object_list %}
   <h2>Annotations Containing "{{ query|escape }}":</h2>

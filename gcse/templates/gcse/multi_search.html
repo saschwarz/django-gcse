@@ -1,36 +1,5 @@
-{% load setting %}
-{% load periodicals_tags %}
 {% load cse_tags %}
-<script type="text/javascript">
-<!--
-$(document).ready(function() {
-    var actionURL = {'periodical':'{% url 'haystack_search' %}',
-                     'google':'{% url 'cse_results' %}'
-                    };
-    var searchForm = jQuery("#cse-search-box");
-    function setFormAction(){
-        searchForm.attr("action", actionURL[$("input[name=searchType]:checked").val()]);
-    };
-    if ($.browser.msie) {
-        $('input:radio').click(function () {
-	    setFormAction();
-            this.blur();
-            this.focus();
-	    })
-    } else {
-        $('input:radio').click(function () {
-	    setFormAction();
-	    })
-    }
-    // same URL for periodical search and results so use that to check
-    if (document.location.pathname === '{% url 'haystack_search' %}'){
-        $('#search-type-periodical').attr('checked','checked');
-    } else {
-        $('#search-type-google').attr('checked','checked');
-    }
-    setFormAction();
-});
--->
+
 </script>
 <form action="{% url 'cse_results' %}" id="cse-search-box">
   <div>

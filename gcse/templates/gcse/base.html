@@ -19,12 +19,3 @@ Example: Developer melding the 2SoD pattern to fit inside with another pattern::
 
     {% endblock extra_js %}
 {% endcomment %}
-
-{% block search %}
-<div style="float:right;margin-top:5px">
-<form action="{% url 'cse_search' %}" method="get">
-    <input type="text" name="q" />
-    <input type="submit" value="Search"/>
-  </form>
-</div>
-{% endblock search %}
