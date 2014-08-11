@@ -197,6 +197,7 @@ class CustomSearchEngine(TimeStampedModel):
     across multiple CSEs or not.
     """
     gid = models.CharField(max_length=32, unique=True)
+    creator = models.CharField(max_length=32)
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=256)
     input_xml = models.TextField(max_length=4096,

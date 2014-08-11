@@ -1,0 +1,12 @@
+{% extends "gcse/base.html" %}
+{% load setting %}
+{% block title %}{% site "name" %} - {{ cse.title }} Search Results{% endblock %}
+
+{% block javascript %}
+{% include "gcse/google_search_javascript" %}
+{% endblock javascript %}
+
+{% block content %}
+{% include "gcse/google_search.html" %}
+{% include "gcse/google_search_results.html" %}
+{% endblock %}

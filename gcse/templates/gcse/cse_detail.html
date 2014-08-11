@@ -2,9 +2,14 @@
 {% load setting %}
 {% block title %}{% site "name" %} - Custom Search Engine: {{ object.title }}{% endblock %}
 
+{% block javascript %}
+{% include "gcse/google_search_javascript" %}
+{% endblock javascript %}
+
 {% block content %}
 <h1>{{ object.title }}</h1>
 <p>{{ object.description }}</p>
+{% include "gcse/google_search.html" %}
 <p>Created: {{object.created | date}} {{object.created | time}}</p>
 <p>Last Modified: {{object.modified | date}} {{object.modified | time}}</p>
 <p><a href="{% url 'gcse_cse_annotation_list' gid=object.gid %}">View this Custom Search Engine's {{object.annotation_count}} Annotations</a></p>

@@ -43,6 +43,10 @@ class CustomSearchEngineDetail(DetailView):
     template_name = 'gcse/cse_detail.html'
 
 
+class CustomSearchEngineResults(CustomSearchEngineDetail):
+    template_name = 'gcse/cse_results.html'
+
+
 class CustomSearchEngineDetailXML(View):
     """
     Generate CustomSearchEngine XML with updated Annotation Include elements.

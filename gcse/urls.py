@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from .feeds import RssLatestFeed, AtomLatestFeed
 from .views import (AnnotationList, AnnotationSearchList, AnnotationDetail,
                     CSEAnnotations, CSEAnnotationList,
-                    CustomSearchEngineList,
+                    CustomSearchEngineList, CustomSearchEngineResults,
                     CustomSearchEngineDetail, CustomSearchEngineDetailXML,
                     CSELabelList, CSELabelDetail, LabelDetail, LabelList,
                     )
@@ -30,11 +30,6 @@ urlpatterns += patterns('gcse.views',
                             CSEAnnotations.as_view(),
                             name='gcse_annotations'),
 
-                        # display Google Search results
-                        url(r'^results.html$',
-                            TemplateView.as_view(template_name='gcse/results.html'),
-                            name='gcse_results'),
-
                         # all CSEs
                         url(r'^cses/$',
                             CustomSearchEngineList.as_view(),
@@ -44,6 +39,11 @@ urlpatterns += patterns('gcse.views',
                         url(r'^cses/(?P<gid>[\w-]+)/$',
                             CustomSearchEngineDetail.as_view(),
                             name='gcse_cse_detail'),
+
+                        # display Google Search results
+                        url(r'^cses/(?P<gid>[\w-]+)/results/$',
+                            CustomSearchEngineResults.as_view(),
+                            name='gcse_results'),
 
                         # all Annotations
                         url(r'^annotations/$',
