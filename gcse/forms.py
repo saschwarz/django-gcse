@@ -6,7 +6,9 @@ from django.utils.html import conditional_escape
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 
-from .models import Annotation, Label, Place
+from .models import Annotation, Label
+# TODO move to googility
+# from .models import Annotation, Label, Place
 from .model_fields import get_labels_for
 
 
@@ -71,30 +73,31 @@ class SpecialCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
         return mark_safe(u'\n'.join(output))
 
 
-class PlaceForm(ModelForm):
-    """End user form for modifying or adding new sites to the index."""
-    class Meta:
-        model = Place
-        exclude = ('about', 'created', 'newer_version', 'modified', 'status',)
+# TODO move to googility
+# class PlaceForm(ModelForm):
+#     """End user form for modifying or adding new sites to the index."""
+#     class Meta:
+#         model = Place
+#         exclude = ('about', 'created', 'newer_version', 'modified', 'status',)
 
-    labels_dict = get_labels_for(Place, cap=False)
-    comment = forms.CharField(label=labels_dict['comment'], widget=forms.TextInput(attrs={'size':'50'}))
-    original_url = forms.CharField(label=labels_dict['original_url'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-#    original_url = forms.URLField(label=labels_dict['original_url'], widget=forms.TextInput(attrs={'size':'50'}), required=False, error_messages={'invalid': _(u'Please enter a valid URL: http://example.com')}) # initial="http://" - requires that URLField be subclassed and a custom clean() be written
-    submitter_email = forms.EmailField(label=labels_dict['submitter_email'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    address1 = forms.CharField(label=labels_dict['address1'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    address2 = forms.CharField(label=labels_dict['address2'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    city = forms.CharField(label=labels_dict['city'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    state = forms.CharField(label=labels_dict['state'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    zipcode = forms.CharField(label=labels_dict['zipcode'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    phone = forms.CharField(label=labels_dict['phone'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    email = forms.EmailField(label=labels_dict['email'],
-                             help_text=_('Email address of business/site. Will be spam protected.'),
-                             widget=forms.TextInput(attrs={'size':'50'}), required=False)
-    description = forms.CharField(label=labels_dict['description'], widget=forms.Textarea(attrs={'cols':'70', 'rows':'8'}), required=False)
+#     labels_dict = get_labels_for(Place, cap=False)
+#     comment = forms.CharField(label=labels_dict['comment'], widget=forms.TextInput(attrs={'size':'50'}))
+#     original_url = forms.CharField(label=labels_dict['original_url'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+# #    original_url = forms.URLField(label=labels_dict['original_url'], widget=forms.TextInput(attrs={'size':'50'}), required=False, error_messages={'invalid': _(u'Please enter a valid URL: http://example.com')}) # initial="http://" - requires that URLField be subclassed and a custom clean() be written
+#     submitter_email = forms.EmailField(label=labels_dict['submitter_email'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     address1 = forms.CharField(label=labels_dict['address1'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     address2 = forms.CharField(label=labels_dict['address2'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     city = forms.CharField(label=labels_dict['city'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     state = forms.CharField(label=labels_dict['state'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     zipcode = forms.CharField(label=labels_dict['zipcode'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     phone = forms.CharField(label=labels_dict['phone'], widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     email = forms.EmailField(label=labels_dict['email'],
+#                              help_text=_('Email address of business/site. Will be spam protected.'),
+#                              widget=forms.TextInput(attrs={'size':'50'}), required=False)
+#     description = forms.CharField(label=labels_dict['description'], widget=forms.Textarea(attrs={'cols':'70', 'rows':'8'}), required=False)
 
-    def __init__(self, *args, **kwargs):
-        super(PlaceForm, self ).__init__( *args, **kwargs )
-        # Show the latest non-hidden labels to the user for their selection
-        self.fields['labels'] = SpecialMultipleChoiceField(widget=SpecialCheckboxSelectMultiple,
-                                                           choices=[(o.id, str(o), o.description) for o in Label.objects.filter(hidden=False).order_by('name')])
+#     def __init__(self, *args, **kwargs):
+#         super(PlaceForm, self ).__init__( *args, **kwargs )
+#         # Show the latest non-hidden labels to the user for their selection
+#         self.fields['labels'] = SpecialMultipleChoiceField(widget=SpecialCheckboxSelectMultiple,
+#                                                            choices=[(o.id, str(o), o.description) for o in Label.objects.filter(hidden=False).order_by('name')])

@@ -274,21 +274,6 @@ class ViewsTemplatesTestCase(TestCase):
         self.assertContains(response, "No Annotations found.")
 
     def test_results(self):
-        response = self.client.get(reverse('gcse_results'))
+        response = self.client.get(reverse('gcse_results',  kwargs={'gid': self.cse.gid}))
         self.assertEqual(200, response.status_code)
-        self.assertTemplateUsed(response, 'gcse/results.html')
-
-#     def test_edit(self):
-#         response = self.client.get(reverse('gcse_edit', kwargs={"id":self.annotation.id}))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/edit.html')
-
-#     def test_add(self):
-#         response = self.client.get(reverse('gcse_add'))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/edit.html')
-
-#     def test_thanks(self):
-#         response = self.client.get(reverse('gcse_thanks'))
-#         self.assertEqual(200, response.status_code)
-#         self.assertTemplateUsed(response, 'gcse/thanks.html')
+        self.assertTemplateUsed(response, 'gcse/cse_results.html')

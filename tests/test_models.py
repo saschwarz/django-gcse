@@ -13,7 +13,7 @@ import mock
 from django.db import IntegrityError
 from django.test import TestCase
 from django.test.utils import override_settings
-from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, Place, AnnotationSAXHandler
+from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, AnnotationSAXHandler
 
 # Default CSE XML created by google
 CSE_XML = b"""<CustomSearchEngine id="c12345-r678" keywords="" language="en" domain="www.google.com" safesearch="true" encoding="utf-8">
@@ -554,47 +554,47 @@ class TestCSEAddingAnnotations(TestCase):
         self.assertEqual(self.cse.annotations()[0],
                          annotation)
 
+# TODO move to googility
+# class TestCSEAddingPlaces(TestCase):
 
-class TestCSEAddingPlaces(TestCase):
+#     def setUp(self):
+#         self.cse = CustomSearchEngine.from_string(FACETED_XML)
 
-    def setUp(self):
-        self.cse = CustomSearchEngine.from_string(FACETED_XML)
+#     def test_place_with_STATUS_ACTIVE_without_labels_not_in_cse(self):
+#         Place.objects.create(comment="Active Place",
+#                              status=Annotation.STATUS.active)
+#         self.assertEqual(0, self.cse.annotation_count())
 
-    def test_place_with_STATUS_ACTIVE_without_labels_not_in_cse(self):
-        Place.objects.create(comment="Active Place",
-                             status=Annotation.STATUS.active)
-        self.assertEqual(0, self.cse.annotation_count())
+#     def test_place_with_STATUS_ACTIVE_without_matching_label_not_in_cse(self):
+#         place = Place.objects.create(comment="Active Place",
+#                                      status=Annotation.STATUS.active)
+#         label = Label.objects.create()
+#         place.labels.add(label)
+#         place.save()
+#         self.assertEqual(0, self.cse.annotation_count())
 
-    def test_place_with_STATUS_ACTIVE_without_matching_label_not_in_cse(self):
-        place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS.active)
-        label = Label.objects.create()
-        place.labels.add(label)
-        place.save()
-        self.assertEqual(0, self.cse.annotation_count())
+#     def test_place_with_matching_label_and_STATUS_SUBMITTED_not_in_cse(self):
+#         place = Place.objects.create(comment="Active Place",
+#                                      status=Annotation.STATUS.submitted)
+#         place.labels.add(self.cse.background_labels.all()[0])
+#         place.save()
+#         self.assertEqual(0, self.cse.annotation_count())
 
-    def test_place_with_matching_label_and_STATUS_SUBMITTED_not_in_cse(self):
-        place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS.submitted)
-        place.labels.add(self.cse.background_labels.all()[0])
-        place.save()
-        self.assertEqual(0, self.cse.annotation_count())
+#     def test_place_with_matching_label_and_STATUS_DELETED_not_in_cse(self):
+#         place = Place.objects.create(comment="Active Place",
+#                                      status=Annotation.STATUS.deleted)
+#         place.labels.add(self.cse.background_labels.all()[0])
+#         place.save()
+#         self.assertEqual(0, self.cse.annotation_count())
 
-    def test_place_with_matching_label_and_STATUS_DELETED_not_in_cse(self):
-        place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS.deleted)
-        place.labels.add(self.cse.background_labels.all()[0])
-        place.save()
-        self.assertEqual(0, self.cse.annotation_count())
-
-    def test_place_with_matching_label_and_STATUS_ACTIVE_in_cse(self):
-        place = Place.objects.create(comment="Active Place",
-                                     status=Annotation.STATUS.active)
-        place.labels.add(self.cse.background_labels.all()[0])
-        place.save()
-        self.assertEqual(1, self.cse.annotation_count())
-        self.assertEqual(self.cse.annotations()[0],
-                         place)
+#     def test_place_with_matching_label_and_STATUS_ACTIVE_in_cse(self):
+#         place = Place.objects.create(comment="Active Place",
+#                                      status=Annotation.STATUS.active)
+#         place.labels.add(self.cse.background_labels.all()[0])
+#         place.save()
+#         self.assertEqual(1, self.cse.annotation_count())
+#         self.assertEqual(self.cse.annotations()[0],
+#                          place)
 
 
 class TestAnnotationManager(TestCase):
@@ -614,20 +614,20 @@ class TestAnnotationManager(TestCase):
         self.assertEqual(1, Annotation.objects.deleted().count())
         self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
 
-    def test_manager_places(self):
-        active = Place.objects.create(comment="Active Place",
-                                      status=Annotation.STATUS.active)
-        submitted = Place.objects.create(comment="Submitted Place",
-                                         status=Annotation.STATUS.submitted)
-        deleted = Place.objects.create(comment="Deleted Place",
-                                       status=Annotation.STATUS.deleted)
+    # def test_manager_places(self):
+    #     active = Place.objects.create(comment="Active Place",
+    #                                   status=Annotation.STATUS.active)
+    #     submitted = Place.objects.create(comment="Submitted Place",
+    #                                      status=Annotation.STATUS.submitted)
+    #     deleted = Place.objects.create(comment="Deleted Place",
+    #                                    status=Annotation.STATUS.deleted)
 
-        self.assertEqual(1, Annotation.objects.active().count())
-        self.assertEqual(active, Annotation.objects.active().all()[0])
-        self.assertEqual(1, Annotation.objects.submitted().count())
-        self.assertEqual(submitted, Annotation.objects.submitted().all()[0])
-        self.assertEqual(1, Annotation.objects.deleted().count())
-        self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
+    #     self.assertEqual(1, Annotation.objects.active().count())
+    #     self.assertEqual(active, Annotation.objects.active().all()[0])
+    #     self.assertEqual(1, Annotation.objects.submitted().count())
+    #     self.assertEqual(submitted, Annotation.objects.submitted().all()[0])
+    #     self.assertEqual(1, Annotation.objects.deleted().count())
+    #     self.assertEqual(deleted, Annotation.objects.deleted().all()[0])
 
 
 class TestAnnotationParsing(TestCase):

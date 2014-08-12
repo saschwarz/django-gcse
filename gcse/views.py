@@ -16,7 +16,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from gcse.models import CustomSearchEngine, Annotation, Label
-from gcse.forms import PlaceForm
+# from gcse.forms import PlaceForm
 from .model_fields import get_labels_for
 #from recaptcha.client import captcha
 

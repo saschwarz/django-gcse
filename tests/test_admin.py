@@ -4,44 +4,44 @@ from django.test.utils import override_settings
 
 from gcse import models, views
 
+# TODO move to googility
+# class PlaceTest(TestCase):
 
-class PlaceTest(TestCase):
+#     def setUp(self):
+#         backgroundLabel = models.Label(name="background 1",
+#                                        description="background 1 desc",
+#                                        background=True)
+#         backgroundLabel.save()
+#         label1 = models.Label(name="label 1",
+#                               description="label 1 desc",
+#                               background=False)
+#         label1.save()
+#         self.annotation = models.Place(comment="Site Name",
+#                                             original_url="http://example.com")
+#         self.annotation.save()
+#         self.annotation.labels.add(backgroundLabel)
+#         self.annotation.labels.add(label1)
+#         self.assertTrue(self.annotation.labels.count() == 2)
 
-    def setUp(self):
-        backgroundLabel = models.Label(name="background 1",
-                                       description="background 1 desc",
-                                       background=True)
-        backgroundLabel.save()
-        label1 = models.Label(name="label 1",
-                              description="label 1 desc",
-                              background=False)
-        label1.save()
-        self.annotation = models.Place(comment="Site Name",
-                                            original_url="http://example.com")
-        self.annotation.save()
-        self.annotation.labels.add(backgroundLabel)
-        self.annotation.labels.add(label1)
-        self.assertTrue(self.annotation.labels.count() == 2)
+#     def allowNullURL(self):
+#         a = models.Place(comment="Site Name")
+#         a.save()
 
-    def allowNullURL(self):
-        a = models.Place(comment="Site Name")
-        a.save()
+#     def testHasAddress(self):
+#         self.assertFalse(self.annotation.hasAddress())
+#         # add attributes until it passes
+#         self.annotation.address1 = "100 main st"
+#         self.assertFalse(self.annotation.hasAddress())
+#         self.annotation.city = "Hometown"
+#         self.assertFalse(self.annotation.hasAddress())
+#         self.annotation.state = "Hometown"
+#         self.assertFalse(self.annotation.hasAddress())
+#         self.annotation.country = "USA"
+#         self.assertTrue(self.annotation.hasAddress())
 
-    def testHasAddress(self):
-        self.assertFalse(self.annotation.hasAddress())
-        # add attributes until it passes
-        self.annotation.address1 = "100 main st"
-        self.assertFalse(self.annotation.hasAddress())
-        self.annotation.city = "Hometown"
-        self.assertFalse(self.annotation.hasAddress())
-        self.annotation.state = "Hometown"
-        self.assertFalse(self.annotation.hasAddress())
-        self.annotation.country = "USA"
-        self.assertTrue(self.annotation.hasAddress())
-
-    # def testShouldHaveAddress(self):
-    #     # have one label with a physical address so should pass
-    #     self.assertTrue(self.annotation.shouldHaveAddress())
+#     # def testShouldHaveAddress(self):
+#     #     # have one label with a physical address so should pass
+#     #     self.assertTrue(self.annotation.shouldHaveAddress())
 
 
 class ViewLabels(TestCase):

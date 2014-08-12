@@ -561,90 +561,92 @@ class Annotation(TimeStampedModel):
         return "%s %s" % (self.comment, self.original_url)
 
 
-@python_2_unicode_compatible
-class Place(Annotation):
-    """
-    Concrete class representation of a physical place, organization, business
-    that can be represented in an Annotation and/or on a Google map
-    """
-    # The labels and help text for these fields are defined in the forms.py
-    address1 = models.CharField(verbose_name=_('Address Line 1'),
-                                max_length=128,
-                                blank=True)
-    address2 = models.CharField(verbose_name=_('Address Line 2'),
-                                max_length=128,
-                                blank=True)
-    city = models.CharField(verbose_name=_('City/Town'),
-                            max_length=128,
-                            blank=True)
-    state = models.CharField(verbose_name=_('State/Province/Region'),
-                             max_length=128,
-                             blank=True)
-    zipcode = models.CharField(verbose_name=_('Zip/Postal Code'),
-                               max_length=128,
-                               blank=True)
-    country = CountryField(verbose_name=_('Country'),
-                           max_length=2,
-                           blank=True)
-    phone = models.CharField(verbose_name=_('Telephone'),
-                             max_length=128,
-                             blank=True)
-    email = models.EmailField(verbose_name=_('Business or Web Site Email'),
-                              max_length=128,
-                              blank=True)
-    description = models.CharField(verbose_name=_('Description'),
-                                   max_length=512,
-                                   blank=True)
+# TODO Move to googility or new django app
+#
+# @python_2_unicode_compatible
+# class Place(Annotation):
+#     """
+#     Concrete class representation of a physical place, organization, business
+#     that can be represented in an Annotation and/or on a Google map
+#     """
+#     # The labels and help text for these fields are defined in the forms.py
+#     address1 = models.CharField(verbose_name=_('Address Line 1'),
+#                                 max_length=128,
+#                                 blank=True)
+#     address2 = models.CharField(verbose_name=_('Address Line 2'),
+#                                 max_length=128,
+#                                 blank=True)
+#     city = models.CharField(verbose_name=_('City/Town'),
+#                             max_length=128,
+#                             blank=True)
+#     state = models.CharField(verbose_name=_('State/Province/Region'),
+#                              max_length=128,
+#                              blank=True)
+#     zipcode = models.CharField(verbose_name=_('Zip/Postal Code'),
+#                                max_length=128,
+#                                blank=True)
+#     country = CountryField(verbose_name=_('Country'),
+#                            max_length=2,
+#                            blank=True)
+#     phone = models.CharField(verbose_name=_('Telephone'),
+#                              max_length=128,
+#                              blank=True)
+#     email = models.EmailField(verbose_name=_('Business or Web Site Email'),
+#                               max_length=128,
+#                               blank=True)
+#     description = models.CharField(verbose_name=_('Description'),
+#                                    max_length=512,
+#                                    blank=True)
 
-    # Fields not visible to end users
-    submitter_email = models.EmailField(verbose_name=_('Submitter Email'),
-                                        max_length=128,
-                                        blank=True,
-                                        help_text=_('Email address of the person who submitted this site information'))
+#     # Fields not visible to end users
+#     submitter_email = models.EmailField(verbose_name=_('Submitter Email'),
+#                                         max_length=128,
+#                                         blank=True,
+#                                         help_text=_('Email address of the person who submitted this site information'))
 
-    # Could use gis Point field but don't need that much functionality
-    lat = models.DecimalField(verbose_name=_('Latitude'),
-                              max_digits=10,
-                              decimal_places=7,
-                              null=True,
-                              blank=True)
-    lng = models.DecimalField(verbose_name=_('Longitude'),
-                              max_digits=10,
-                              decimal_places=7,
-                              null=True,
-                              blank=True)
+#     # Could use gis Point field but don't need that much functionality
+#     lat = models.DecimalField(verbose_name=_('Latitude'),
+#                               max_digits=10,
+#                               decimal_places=7,
+#                               null=True,
+#                               blank=True)
+#     lng = models.DecimalField(verbose_name=_('Longitude'),
+#                               max_digits=10,
+#                               decimal_places=7,
+#                               null=True,
+#                               blank=True)
 
-    class Meta:
-        ordering = ["about"]
+#     class Meta:
+#         ordering = ["about"]
 
-    def __str__(self):
-        return "%s %s" % (self.comment, self.id)
+#     def __str__(self):
+#         return "%s %s" % (self.comment, self.id)
 
-    def get_absolute_url(self):
-        return reverse('gcse_annotation_detail', kwargs={'id': self.id})
+#     def get_absolute_url(self):
+#         return reverse('gcse_annotation_detail', kwargs={'id': self.id})
 
-    def wasAdded(self):
-        return self.modified == self.created
+#     def wasAdded(self):
+#         return self.modified == self.created
 
-    def shouldHaveAddress(self):
-        """Does this annotation have Labels that indicate
-        that it could have a physical address"""
-        for label in self.labels.all():
-            if label.physical:
-                return True
-        return False
+#     def shouldHaveAddress(self):
+#         """Does this annotation have Labels that indicate
+#         that it could have a physical address"""
+#         for label in self.labels.all():
+#             if label.physical:
+#                 return True
+#         return False
 
-    def hasAddress(self):
-        return self.address1 and self.city and self.state and self.country
+#     def hasAddress(self):
+#         return self.address1 and self.city and self.state and self.country
 
-    def webOnly(self):
-        for label in self.labels.all():
-            if label.physical:
-                return False
-        return True
+#     def webOnly(self):
+#         for label in self.labels.all():
+#             if label.physical:
+#                 return False
+#         return True
 
-    def address(self):
-        return " ".join([self.address1, self.city, self.state, self.country])
+#     def address(self):
+#         return " ".join([self.address1, self.city, self.state, self.country])
 
 
 class CSESAXHandler(xml.sax.handler.ContentHandler):
@@ -806,7 +808,4 @@ class AnnotationSAXHandler(xml.sax.handler.ContentHandler):
 # TODO:
 # - reloading same GCSE XML file to optionally create new what(?).
 # - delete old FacetItems and their Labels on import (with flag?) if unused by any Annotation.
-# - change detail views to use slug instead of db id
-# - Add Facet container for FacetItems!
-# - Fix pagination with filters
 # - slugify label, annotation, and GCSE

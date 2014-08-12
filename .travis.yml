@@ -8,7 +8,7 @@ python:
   - "2.6"
 
 env:
-  - DJANGO=https://github.com/django/django/archive/master.tar.gz
+#  - DJANGO=https://github.com/django/django/archive/master.tar.gz
   - DJANGO=django>=1.6,<1.7
   - DJANGO=django>=1.5,<1.6
 
@@ -21,5 +21,5 @@ script:
   - coverage report
 
 # report coverage to coveralls.io
-after_success: 
+after_success:
   - coveralls
