@@ -16,7 +16,6 @@ class CustomSearchEngineForm(ModelForm):
     def clean_input_xml(self):
         # strip xml encoding so lxml is happy
         input_xml = self.cleaned_data["input_xml"]
-        print(input_xml)
         if not input_xml:
             return ""
         result = re.sub(r'<\?xml.*\?>\r?\n?', '', input_xml)
@@ -29,7 +28,7 @@ class CustomSearchEngineForm(ModelForm):
 class CustomSearchEngineAdmin(admin.ModelAdmin):
     list_display = ('title', 'description', 'gid')
     save_on_top = True
-    readonly_fields = ('output_xml',)
+    readonly_fields = ('output_xml', 'creator', 'created', 'modified')
     form = CustomSearchEngineForm
 
 admin.site.register(CustomSearchEngine, CustomSearchEngineAdmin)

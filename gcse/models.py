@@ -681,6 +681,7 @@ class CSESAXHandler(xml.sax.handler.ContentHandler):
         if name == "CustomSearchEngine":
             self.cse, created = CustomSearchEngine.objects.\
                 get_or_create(gid=attributes[(None, "id")])
+            self.cse.creator = attributes[(None, 'creator')]
         elif name == "FacetItem":
             title = attributes[(None, "title")]
             facet, created = FacetItem.objects.get_or_create(title=title,

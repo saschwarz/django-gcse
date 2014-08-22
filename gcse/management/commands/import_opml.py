@@ -5,25 +5,28 @@ from gcse.models import Annotation, CustomSearchEngine, Label
 
 class Command(BaseCommand):
     args = 'gid background_label path_to_opml.xml'
-    help = 'Import outline elements from the specified opml.xml into the specified CustomSearchEngine as Annotations'
+    help = 'Import outline elements from the specified opml.xml into the specified CustomSearchEngine as Annotations labeled with the specified background filter label.'
 
     def handle(self, *args, **options):
+
         if len(args) != 3:
-            self.stderr.write("import_opml " + Command.args)
+            self.stderr.write("Incorrect number of arguments. import_opml " + Command.args)
             exit()
-        gid = args[0]
+
+        gid, label_name, opml_path = args
         try:
             cse = CustomSearchEngine.objects.get(gid=gid)
         except CustomSearchEngine.DoesNotExist:
             raise CommandError('CustomSearchEngine "%s" does not exist' % gid)
 
         try:
-            label = Label.objects.get(name=args[1],
-                                      background=True)
+            label = Label.objects.get(name=label_name,
+                                      background=True,
+                                      background_cses=cse)
         except Label.DoesNotExist:
-            raise CommandError('Background Label "%s" does not exist' % gid)
+            raise CommandError('Background Label "%s" does not exist for CSE "%s""' % (label_name, gid))
 
-        tree = ET.parse(args[2])
+        tree = ET.parse(opml_path)
         for outline in tree.xpath('//outline'):
             annotation, created = Annotation.objects.get_or_create(comment=outline.attrib['title'],
                                                                    original_url=outline.attrib['xmlUrl'])

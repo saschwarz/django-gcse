@@ -1,6 +1,5 @@
-from lxml import etree as ET
-from django.core.management.base import BaseCommand, CommandError
-from gcse.models import Annotation, CustomSearchEngine, Label
+from django.core.management.base import BaseCommand
+from gcse.models import CustomSearchEngine
 
 
 class Command(BaseCommand):
@@ -9,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if len(args) != 1:
-            self.stderr.write("import_cse " + Command.args)
+            self.stderr.write("Incorrect number of arguments. import_cse " + Command.args)
             exit()
         url = args[0]
         cse = CustomSearchEngine.from_url(url, import_linked_annotations=True)

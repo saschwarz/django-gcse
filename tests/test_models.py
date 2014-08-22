@@ -16,7 +16,7 @@ from django.test.utils import override_settings
 from gcse.models import CustomSearchEngine, CSESAXHandler, Label, FacetItem, Annotation, AnnotationSAXHandler
 
 # Default CSE XML created by google
-CSE_XML = b"""<CustomSearchEngine id="c12345-r678" keywords="" language="en" domain="www.google.com" safesearch="true" encoding="utf-8">
+CSE_XML = b"""<CustomSearchEngine id="c12345-r678" creator="creatorid" keywords="" language="en" domain="www.google.com" safesearch="true" encoding="utf-8">
   <Title>AgilityNerd Site Search</Title>
   <Context>
     <BackgroundLabels>
@@ -43,11 +43,10 @@ CSE_XML = b"""<CustomSearchEngine id="c12345-r678" keywords="" language="en" dom
 
 # Semi customized
 FACETED_XML = b"""<GoogleCustomizations version="1.0">
-  <CustomSearchEngine id="csekeystring" version="1.0" encoding="utf-8" volunteers="false" keywords="" visible="true" top_refinements="4">
+  <CustomSearchEngine id="csekeystring" version="1.0" creator="anothercreatorid" encoding="utf-8" volunteers="false" keywords="" visible="true" top_refinements="4">
     <Title>AgilityNerd Dog Agility Search</Title>
     <Description>Search for Dog Agility topics, clubs, trainers, facilities, organizations and stores</Description>
     <Context refinementsTitle="Refine results for $q:">
-      <!-- max of FOUR Facets each with at most FOUR FacetItems -->
       <Facet>
         <FacetItem title="Blogs">
           <Label name="blog" mode="BOOST"/>
@@ -170,9 +169,10 @@ class TestImportCustomSearchEngine(TestCase):
                                  )
         self.assertRaises(IntegrityError, cse.save)
 
-    def test_gid_populated_from_google_xml_as_string(self):
+    def test_gid_creator_populated_from_google_xml_as_string(self):
         cse = CustomSearchEngine.from_string(CSE_XML)
         self.assertEqual("c12345-r678", cse.gid)
+        self.assertEqual("creatorid", cse.creator)
 
 
 def _extractPath(xml, path):
@@ -760,123 +760,26 @@ class AnnotationsLabels(TestCase):
 
 class AnnotationsAlphaList(TestCase):
 
+    def setUp(self):
+        self.expected = [{'i': x, 'style': 'disabled'} for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789']
+
     def test_no_annotations_no_active_letter(self):
         results = Annotation.alpha_list()
-        self.assertEqual([{'i': 'A', 'style': 'disabled'},
-                          {'i': 'B', 'style': 'disabled'},
-                          {'i': 'C', 'style': 'disabled'},
-                          {'i': 'D', 'style': 'disabled'},
-                          {'i': 'E', 'style': 'disabled'},
-                          {'i': 'F', 'style': 'disabled'},
-                          {'i': 'G', 'style': 'disabled'},
-                          {'i': 'H', 'style': 'disabled'},
-                          {'i': 'I', 'style': 'disabled'},
-                          {'i': 'J', 'style': 'disabled'},
-                          {'i': 'K', 'style': 'disabled'},
-                          {'i': 'L', 'style': 'disabled'},
-                          {'i': 'M', 'style': 'disabled'},
-                          {'i': 'N', 'style': 'disabled'},
-                          {'i': 'O', 'style': 'disabled'},
-                          {'i': 'P', 'style': 'disabled'},
-                          {'i': 'Q', 'style': 'disabled'},
-                          {'i': 'R', 'style': 'disabled'},
-                          {'i': 'S', 'style': 'disabled'},
-                          {'i': 'T', 'style': 'disabled'},
-                          {'i': 'U', 'style': 'disabled'},
-                          {'i': 'V', 'style': 'disabled'},
-                          {'i': 'W', 'style': 'disabled'},
-                          {'i': 'X', 'style': 'disabled'},
-                          {'i': 'Y', 'style': 'disabled'},
-                          {'i': 'Z', 'style': 'disabled'},
-                          {'i': '0', 'style': 'disabled'},
-                          {'i': '1', 'style': 'disabled'},
-                          {'i': '2', 'style': 'disabled'},
-                          {'i': '3', 'style': 'disabled'},
-                          {'i': '4', 'style': 'disabled'},
-                          {'i': '5', 'style': 'disabled'},
-                          {'i': '6', 'style': 'disabled'},
-                          {'i': '7', 'style': 'disabled'},
-                          {'i': '8', 'style': 'disabled'},
-                          {'i': '9', 'style': 'disabled'}], results)
+        self.assertEqual(self.expected, results)
 
     def test_two_annotations_two_active_letters(self):
         f = Annotation.objects.create(comment="Fun with Python")
         five = Annotation.objects.create(comment="5 Python Anti-Patterns")
         results = Annotation.alpha_list()
-        self.assertEqual([{'i': 'A', 'style': 'disabled'},
-                          {'i': 'B', 'style': 'disabled'},
-                          {'i': 'C', 'style': 'disabled'},
-                          {'i': 'D', 'style': 'disabled'},
-                          {'i': 'E', 'style': 'disabled'},
-                          {'i': 'F', 'style': 'active'},
-                          {'i': 'G', 'style': 'disabled'},
-                          {'i': 'H', 'style': 'disabled'},
-                          {'i': 'I', 'style': 'disabled'},
-                          {'i': 'J', 'style': 'disabled'},
-                          {'i': 'K', 'style': 'disabled'},
-                          {'i': 'L', 'style': 'disabled'},
-                          {'i': 'M', 'style': 'disabled'},
-                          {'i': 'N', 'style': 'disabled'},
-                          {'i': 'O', 'style': 'disabled'},
-                          {'i': 'P', 'style': 'disabled'},
-                          {'i': 'Q', 'style': 'disabled'},
-                          {'i': 'R', 'style': 'disabled'},
-                          {'i': 'S', 'style': 'disabled'},
-                          {'i': 'T', 'style': 'disabled'},
-                          {'i': 'U', 'style': 'disabled'},
-                          {'i': 'V', 'style': 'disabled'},
-                          {'i': 'W', 'style': 'disabled'},
-                          {'i': 'X', 'style': 'disabled'},
-                          {'i': 'Y', 'style': 'disabled'},
-                          {'i': 'Z', 'style': 'disabled'},
-                          {'i': '0', 'style': 'disabled'},
-                          {'i': '1', 'style': 'disabled'},
-                          {'i': '2', 'style': 'disabled'},
-                          {'i': '3', 'style': 'disabled'},
-                          {'i': '4', 'style': 'disabled'},
-                          {'i': '5', 'style': 'active'},
-                          {'i': '6', 'style': 'disabled'},
-                          {'i': '7', 'style': 'disabled'},
-                          {'i': '8', 'style': 'disabled'},
-                          {'i': '9', 'style': 'disabled'}], results)
+        self.expected[5]['style'] = 'active'
+        self.expected[-5]['style'] = 'active'
+        self.assertEqual(self.expected, results)
 
     def test_two_annotations_two_active_letters_one_inactive_selected(self):
         f = Annotation.objects.create(comment="Fun with Python")
         five = Annotation.objects.create(comment="5 Python Anti-Patterns")
         results = Annotation.alpha_list(selection="B")
-        self.assertEqual([{'i': 'A', 'style': 'disabled'},
-                          {'i': 'B', 'style': 'selected'},
-                          {'i': 'C', 'style': 'disabled'},
-                          {'i': 'D', 'style': 'disabled'},
-                          {'i': 'E', 'style': 'disabled'},
-                          {'i': 'F', 'style': 'active'},
-                          {'i': 'G', 'style': 'disabled'},
-                          {'i': 'H', 'style': 'disabled'},
-                          {'i': 'I', 'style': 'disabled'},
-                          {'i': 'J', 'style': 'disabled'},
-                          {'i': 'K', 'style': 'disabled'},
-                          {'i': 'L', 'style': 'disabled'},
-                          {'i': 'M', 'style': 'disabled'},
-                          {'i': 'N', 'style': 'disabled'},
-                          {'i': 'O', 'style': 'disabled'},
-                          {'i': 'P', 'style': 'disabled'},
-                          {'i': 'Q', 'style': 'disabled'},
-                          {'i': 'R', 'style': 'disabled'},
-                          {'i': 'S', 'style': 'disabled'},
-                          {'i': 'T', 'style': 'disabled'},
-                          {'i': 'U', 'style': 'disabled'},
-                          {'i': 'V', 'style': 'disabled'},
-                          {'i': 'W', 'style': 'disabled'},
-                          {'i': 'X', 'style': 'disabled'},
-                          {'i': 'Y', 'style': 'disabled'},
-                          {'i': 'Z', 'style': 'disabled'},
-                          {'i': '0', 'style': 'disabled'},
-                          {'i': '1', 'style': 'disabled'},
-                          {'i': '2', 'style': 'disabled'},
-                          {'i': '3', 'style': 'disabled'},
-                          {'i': '4', 'style': 'disabled'},
-                          {'i': '5', 'style': 'active'},
-                          {'i': '6', 'style': 'disabled'},
-                          {'i': '7', 'style': 'disabled'},
-                          {'i': '8', 'style': 'disabled'},
-                          {'i': '9', 'style': 'disabled'}], results)
+        self.expected[1]['style'] = 'selected'
+        self.expected[5]['style'] = 'active'
+        self.expected[-5]['style'] = 'active'
+        self.assertEqual(self.expected, results)
