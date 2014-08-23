@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from string import ascii_letters
 import datetime
 import math
-from io import StringIO
 
 from lxml import etree as ET
 import lxml.sax
