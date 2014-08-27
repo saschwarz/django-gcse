@@ -1,6 +1,5 @@
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
-from .feeds import RssLatestFeed, AtomLatestFeed
 from .views import (AnnotationList, AnnotationSearchList, AnnotationDetail,
                     CSEAnnotations, CSEAnnotationList,
                     CustomSearchEngineList, CustomSearchEngineResults,
@@ -9,17 +8,7 @@ from .views import (AnnotationList, AnnotationSearchList, AnnotationDetail,
                     )
 
 
-feeds = {
-    'rss': RssLatestFeed,
-    'atom': AtomLatestFeed,
-}
-
-urlpatterns = patterns('',
-                       (r'^feeds/rss/$', RssLatestFeed()),
-                       (r'^feeds/atom/$', AtomLatestFeed()),
-                       )
-
-urlpatterns += patterns('gcse.views',
+urlpatterns = patterns('gcse.views',
 
                         # urls for Google search related resources
                         url(r'^(?P<gid>[\w-]+).xml$',
